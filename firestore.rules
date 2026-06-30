@@ -1,0 +1,170 @@
+rules_version = '2';
+
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    // --- Curated research data: cities, cost-of-living, crime, climate ---
+    // Public read (the whole site depends on it), write only from the Firebase
+    // console or an authenticated admin script - never from the browser.
+    match /cities/{slug} {
+      allow read: if true;
+      allow write: if false;
+    }
+    match /costOfLivingResearch/{slug} {
+      allow read: if true;
+      allow write: if false;
+    }
+    match /crimeResearch/{slug} {
+      allow read: if true;
+      allow write: if false;
+    }
+    match /climateNormals/{slug} {
+      allow read: if true;
+      allow write: if false;
+    }
+    match /config/{doc} {
+      allow read: if true;
+      allow write: if false;
+    }
+    match /notableIncidents/{id} {
+      allow read: if true;
+      allow write: if false;
+    }
+
+    // --- User-generated content ---
+    // Anyone can read listings; only signed-in users can create one, and only
+    // the original poster (or no one, for now, until a moderation flow exists)
+    // can edit/delete it.
+    match /apartments/{id} {
+      allow read: if true;
+      allow create: if request.auth != null
+        && request.resource.data.ownerId == request.auth.uid
+        && request.resource.data.priceNaira is number
+        && request.resource.data.priceNaira > 0;
+      allow update, delete: if request.auth != null && resource.data.ownerId == request.auth.uid;
+    }
+    match /directoryListings/{id} {
+      allow read: if true;
+      allow create: if request.auth != null && request.resource.data.ownerId == request.auth.uid;
+      allow update, delete: if request.auth != null && resource.data.ownerId == request.auth.uid;
+    }
+
+    // Reviews: open posting (no login required, matches the original
+    // localStorage-based UX) but field-validated to prevent garbage data.
+    match /reviews/{id} {
+      allow read: if true;
+      allow create: if request.resource.data.rating is int
+        && request.resource.data.rating >= 1
+        && request.resource.data.rating <= 5
+        && request.resource.data.name is string
+        && request.resource.data.name.size() > 0
+        && request.resource.data.name.size() < 100
+        && request.resource.data.comment is string
+        && request.resource.data.comment.size() > 0
+        && request.resource.data.comment.size() < 2000;
+      allow update, delete: if false;
+    }
+
+    // --- User accounts ---
+    match /users/{uid} {
+      allow read: if true;
+      allow create, update: if request.auth != null && request.auth.uid == uid;
+      allow delete: if false;
+    }
+
+    // --- Tenancies: links a tenant to one apartment ---
+    // Two creation paths: landlord invites a tenant by email ("invited", tenantId
+    // null until that email signs up), or a tenant requests to rent ("requested",
+    // landlord approves/rejects). Note: the auto-link-on-signup branch trusts the
+    // Auth token's self-reported email (no email-verification step exists yet) -
+    // accepted tradeoff for v1, see project notes.
+    match /tenancies/{tenancyId} {
+      // A user can also read (and thus query for) a not-yet-linked invite
+      // addressed to their own email - required for the auto-link-on-signup
+      // flow to find its own pending invites before tenantId is set.
+      allow read: if request.auth != null
+        && (resource.data.landlordId == request.auth.uid
+            || resource.data.tenantId == request.auth.uid
+            || (resource.data.tenantId == null && resource.data.tenantEmail == request.auth.token.email));
+
+      allow create: if request.auth != null && (
+        (request.resource.data.landlordId == request.auth.uid
+          && request.resource.data.status == "invited"
+          && request.resource.data.tenantId == null
+          && request.resource.data.tenantEmail is string
+          && get(/databases/$(database)/documents/apartments/$(request.resource.data.apartmentId)).data.ownerId == request.auth.uid)
+        ||
+        (request.resource.data.tenantId == request.auth.uid
+          && request.resource.data.status == "requested"
+          && request.resource.data.landlordId == get(/databases/$(database)/documents/apartments/$(request.resource.data.apartmentId)).data.ownerId)
+      );
+
+      allow update: if request.auth != null && (
+        (resource.data.landlordId == request.auth.uid
+          && resource.data.status in ["requested", "invited"]
+          && request.resource.data.status in ["active", "rejected"]
+          && request.resource.data.diff(resource.data).affectedKeys().hasOnly(["status"]))
+        ||
+        (resource.data.status == "invited"
+          && resource.data.tenantId == null
+          && resource.data.tenantEmail == request.auth.token.email
+          && request.resource.data.tenantId == request.auth.uid
+          && request.resource.data.status == "active"
+          && request.resource.data.diff(resource.data).affectedKeys().hasOnly(["tenantId", "status"]))
+      );
+
+      allow delete: if request.auth != null && resource.data.landlordId == request.auth.uid;
+    }
+
+    // --- Conversations: 1:1 and per-property group chats ---
+    match /conversations/{conversationId} {
+      allow read: if request.auth != null && request.auth.uid in resource.data.participantIds;
+      allow create: if request.auth != null
+        && request.auth.uid in request.resource.data.participantIds
+        && request.resource.data.participantIds is list
+        && request.resource.data.participantIds.size() >= 2;
+      allow update: if request.auth != null
+        && request.auth.uid in resource.data.participantIds
+        && request.auth.uid in request.resource.data.participantIds;
+      allow delete: if false;
+
+      match /messages/{messageId} {
+        allow read: if request.auth != null
+          && request.auth.uid in get(/databases/$(database)/documents/conversations/$(conversationId)).data.participantIds;
+        allow create: if request.auth != null
+          && request.auth.uid in get(/databases/$(database)/documents/conversations/$(conversationId)).data.participantIds
+          && request.resource.data.senderId == request.auth.uid;
+        allow update, delete: if false;
+      }
+    }
+
+    // --- Maintenance tickets ---
+    match /maintenanceTickets/{id} {
+      allow read: if request.auth != null
+        && (resource.data.landlordId == request.auth.uid || resource.data.tenantId == request.auth.uid);
+      allow create: if request.auth != null && request.resource.data.tenantId == request.auth.uid;
+      allow update: if request.auth != null
+        && resource.data.landlordId == request.auth.uid
+        && request.resource.data.diff(resource.data).affectedKeys().hasOnly(["status", "updatedAt"]);
+      allow delete: if false;
+    }
+
+    // --- Rent payments ---
+    // Landlords create "pending" invoices for their own tenancies; status can
+    // only ever flip to "success" via the admin-SDK-backed /api/payments/verify
+    // route (which bypasses these rules entirely), never directly by a client -
+    // that's what makes a "success" status trustworthy.
+    match /payments/{paymentId} {
+      allow read: if request.auth != null
+        && (resource.data.landlordId == request.auth.uid || resource.data.tenantId == request.auth.uid);
+      allow create: if request.auth != null
+        && request.resource.data.landlordId == request.auth.uid
+        && request.resource.data.status == "pending"
+        && request.resource.data.amount is number && request.resource.data.amount > 0
+        && get(/databases/$(database)/documents/tenancies/$(request.resource.data.tenancyId)).data.landlordId == request.auth.uid
+        && get(/databases/$(database)/documents/tenancies/$(request.resource.data.tenancyId)).data.tenantId == request.resource.data.tenantId;
+      allow update: if false;
+      allow delete: if false;
+    }
+  }
+}

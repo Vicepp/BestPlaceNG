@@ -1,0 +1,134 @@
+"use client";
+
+import Link from "next/link";
+import { usePathname, useRouter } from "next/navigation";
+import {
+  LayoutDashboard,
+  Building2,
+  Users,
+  CreditCard,
+  Wrench,
+  MessageSquare,
+  BarChart3,
+  LifeBuoy,
+  Settings,
+  LogOut,
+} from "lucide-react";
+import { useAuth, type DashboardView } from "@/context/AuthContext";
+
+interface NavItem {
+  label: string;
+  href: string;
+  icon: React.ComponentType<{ className?: string }>;
+}
+
+const NAV_ITEMS: NavItem[] = [
+  { label: "Dashboard", href: "/dashboard", icon: LayoutDashboard },
+  { label: "Properties", href: "/dashboard/properties", icon: Building2 },
+  { label: "Tenants", href: "/dashboard/tenants", icon: Users },
+  { label: "Payments", href: "/dashboard/payments", icon: CreditCard },
+  { label: "Maintenance", href: "/dashboard/maintenance", icon: Wrench },
+  { label: "Messages", href: "/dashboard/messages", icon: MessageSquare },
+];
+
+const TENANT_NAV_ITEMS: NavItem[] = [
+  { label: "Dashboard", href: "/dashboard", icon: LayoutDashboard },
+  { label: "Maintenance", href: "/dashboard/maintenance", icon: Wrench },
+  { label: "Messages", href: "/dashboard/messages", icon: MessageSquare },
+];
+
+const HELP_ITEMS: NavItem[] = [
+  { label: "Reports", href: "/dashboard/reports", icon: BarChart3 },
+  { label: "Support", href: "/dashboard/support", icon: LifeBuoy },
+  { label: "Settings", href: "/dashboard/settings", icon: Settings },
+];
+
+export default function DashboardShell({ children }: { children: React.ReactNode }) {
+  const { user, profile, activeView, setActiveView, logOut } = useAuth();
+  const pathname = usePathname();
+  const router = useRouter();
+
+  const navItems = activeView === "landlord" ? NAV_ITEMS : TENANT_NAV_ITEMS;
+
+  async function handleSignOut() {
+    await logOut();
+    router.push("/");
+  }
+
+  return (
+    <div className="mx-auto flex min-h-[calc(100vh-4rem)] max-w-7xl gap-6 px-4 py-6 sm:px-6 lg:px-8">
+      <aside className="hidden w-60 shrink-0 flex-col justify-between md:flex">
+        <div>
+          <div className="rounded-2xl border border-zinc-100 bg-white p-4 shadow-sm">
+            <p className="text-xs font-semibold uppercase tracking-wide text-zinc-400">Viewing as</p>
+            <div className="mt-2 flex rounded-full bg-zinc-100 p-1 text-xs font-semibold">
+              {(["landlord", "tenant"] as DashboardView[]).map((v) => (
+                <button
+                  key={v}
+                  onClick={() => setActiveView(v)}
+                  className={`flex-1 rounded-full px-3 py-1.5 capitalize transition ${
+                    activeView === v ? "bg-brand text-white shadow-sm" : "text-zinc-500 hover:text-foreground"
+                  }`}
+                >
+                  {v === "landlord" ? "Landlord" : "Tenant"}
+                </button>
+              ))}
+            </div>
+          </div>
+
+          <p className="mb-2 mt-6 px-2 text-xs font-semibold uppercase tracking-wide text-zinc-400">Menu</p>
+          <nav className="space-y-1">
+            {navItems.map((item) => {
+              const active = pathname === item.href;
+              const Icon = item.icon;
+              return (
+                <Link
+                  key={item.href}
+                  href={item.href}
+                  className={`flex items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-medium transition ${
+                    active ? "bg-brand-light text-brand-dark" : "text-foreground/70 hover:bg-zinc-50"
+                  }`}
+                >
+                  <Icon className="h-4 w-4" />
+                  {item.label}
+                </Link>
+              );
+            })}
+          </nav>
+
+          <p className="mb-2 mt-6 px-2 text-xs font-semibold uppercase tracking-wide text-zinc-400">Help &amp; Support</p>
+          <nav className="space-y-1">
+            {HELP_ITEMS.map((item) => {
+              const active = pathname === item.href;
+              const Icon = item.icon;
+              return (
+                <Link
+                  key={item.href}
+                  href={item.href}
+                  className={`flex items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-medium transition ${
+                    active ? "bg-brand-light text-brand-dark" : "text-foreground/70 hover:bg-zinc-50"
+                  }`}
+                >
+                  <Icon className="h-4 w-4" />
+                  {item.label}
+                </Link>
+              );
+            })}
+          </nav>
+        </div>
+
+        <div className="flex items-center justify-between rounded-2xl border border-zinc-100 bg-white p-3 shadow-sm">
+          <div className="min-w-0">
+            <p className="truncate text-sm font-semibold text-foreground">{profile?.displayName ?? user?.email}</p>
+            <p className="truncate text-xs text-zinc-400">{user?.email}</p>
+          </div>
+          <button onClick={handleSignOut} className="shrink-0 rounded-full p-2 text-zinc-400 hover:bg-zinc-50 hover:text-red-500" aria-label="Sign out">
+            <LogOut className="h-4 w-4" />
+          </button>
+        </div>
+      </aside>
+
+      <main className="min-w-0 flex-1">{children}</main>
+    </div>
+  );
+}

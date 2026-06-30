@@ -1,0 +1,23 @@
+{
+  "_comment": "Edit these numbers to update cost-of-living figures site-wide. nationalBaseline.rent is averaged across all cities currently in researched-rent.json (21 as of last edit) - recompute this average whenever a city is added to or removed from that file. categoryDampening controls how much each category swings relative to a city's overall costOfLivingIndex (1.0 = same swing as overall, lower = more stable than overall, higher = more volatile than overall).",
+  "nationalBaseline": {
+    "singleMonthly": 250000,
+    "familyMonthly": 750000,
+    "medianHomeCost": 35000000,
+    "rent": {
+      "selfContain": 393000,
+      "oneBedroom": 706000,
+      "twoBedroom": 1123000,
+      "threeBedroom": 1608000,
+      "shop": 719000
+    }
+  },
+  "categoryDampening": {
+    "housing": 1.3,
+    "grocery": 0.6,
+    "health": 0.7,
+    "utilities": 0.8,
+    "transportation": 0.9,
+    "miscellaneous": 1.0
+  }
+}

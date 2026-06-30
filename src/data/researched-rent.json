@@ -1,0 +1,23 @@
+{
+  "lagos-lagos": { "selfContain": 2100000, "oneBedroom": 3200000, "twoBedroom": 5200000, "threeBedroom": 6000000, "shop": 4000000, "asOf": "2025/2026" },
+  "abuja-fct": { "selfContain": 1200000, "oneBedroom": 2400000, "twoBedroom": 4000000, "threeBedroom": 6200000, "shop": 3000000, "asOf": "2025/2026" },
+  "kano-kano": { "selfContain": 250000, "oneBedroom": 550000, "twoBedroom": 1000000, "threeBedroom": 1500000, "shop": 400000, "asOf": "2025/2026" },
+  "port-harcourt-rivers": { "selfContain": 400000, "oneBedroom": 750000, "twoBedroom": 1000000, "threeBedroom": 1200000, "shop": 600000, "asOf": "2025" },
+  "ibadan-oyo": { "selfContain": 300000, "oneBedroom": 600000, "twoBedroom": 1000000, "threeBedroom": 1400000, "shop": 500000, "asOf": "2025" },
+  "benin-city-edo": { "selfContain": 300000, "oneBedroom": 500000, "twoBedroom": 800000, "threeBedroom": 1200000, "shop": 450000, "asOf": "2025" },
+  "enugu-enugu": { "selfContain": 225000, "oneBedroom": 450000, "twoBedroom": 800000, "threeBedroom": 1200000, "shop": 400000, "asOf": "2025" },
+  "calabar-cross-river": { "selfContain": 250000, "oneBedroom": 450000, "twoBedroom": 800000, "threeBedroom": 1200000, "shop": 400000, "asOf": "2025" },
+  "kaduna-kaduna": { "selfContain": 300000, "oneBedroom": 600000, "twoBedroom": 700000, "threeBedroom": 1200000, "shop": 450000, "asOf": "2025" },
+  "jos-plateau": { "selfContain": 220000, "oneBedroom": 400000, "twoBedroom": 800000, "threeBedroom": 1100000, "shop": 350000, "asOf": "2025" },
+  "owerri-imo": { "selfContain": 280000, "oneBedroom": 500000, "twoBedroom": 800000, "threeBedroom": 1300000, "shop": 450000, "asOf": "2025" },
+  "uyo-akwa-ibom": { "selfContain": 400000, "oneBedroom": 700000, "twoBedroom": 1200000, "threeBedroom": 1800000, "shop": 600000, "asOf": "2025" },
+  "awka-anambra": { "selfContain": 150000, "oneBedroom": 250000, "twoBedroom": 350000, "threeBedroom": 500000, "shop": 300000, "asOf": "2025" },
+  "onitsha-anambra": { "selfContain": 90000, "oneBedroom": 130000, "twoBedroom": 180000, "threeBedroom": 260000, "shop": 150000, "asOf": "2025" },
+  "umuahia-abia": { "selfContain": 300000, "oneBedroom": 600000, "twoBedroom": 700000, "threeBedroom": 1000000, "shop": 450000, "asOf": "2025" },
+  "aba-abia": { "selfContain": 300000, "oneBedroom": 600000, "twoBedroom": 700000, "threeBedroom": 1000000, "shop": 450000, "asOf": "2025" },
+  "asaba-delta": { "selfContain": 250000, "oneBedroom": 400000, "twoBedroom": 600000, "threeBedroom": 900000, "shop": 450000, "asOf": "2025" },
+  "warri-delta": { "selfContain": 220000, "oneBedroom": 350000, "twoBedroom": 550000, "threeBedroom": 900000, "shop": 400000, "asOf": "2025" },
+  "akure-ondo": { "selfContain": 350000, "oneBedroom": 700000, "twoBedroom": 1200000, "threeBedroom": 2000000, "shop": 600000, "asOf": "2025" },
+  "osogbo-osun": { "selfContain": 150000, "oneBedroom": 350000, "twoBedroom": 600000, "threeBedroom": 1000000, "shop": 300000, "asOf": "2025" },
+  "abeokuta-ogun": { "selfContain": 220000, "oneBedroom": 350000, "twoBedroom": 600000, "threeBedroom": 900000, "shop": 400000, "asOf": "2025" }
+}

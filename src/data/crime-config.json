@@ -1,0 +1,5 @@
+{
+  "_comment": "National average crime index figures (1-100 scale, higher = more crime), used to compare every city against. Edit here to update site-wide.",
+  "nationalAvgViolentCrimeIndex": 47,
+  "nationalAvgPropertyCrimeIndex": 41
+}

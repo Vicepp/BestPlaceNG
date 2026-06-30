@@ -1,0 +1,242 @@
+{
+  "lagos-lagos": {
+    "population": 14881845,
+    "growthRatePercent": 2.5,
+    "populationYear": 2026
+  },
+  "kano-kano": {
+    "population": 17510247,
+    "growthRatePercent": 3.2,
+    "populationYear": 2026
+  },
+  "ibadan-oyo": {
+    "population": 2098855,
+    "growthRatePercent": 2.3,
+    "populationYear": 2026
+  },
+  "benin-city-edo": {
+    "population": 1770251,
+    "growthRatePercent": 2.5,
+    "populationYear": 2026
+  },
+  "port-harcourt-rivers": {
+    "population": 1576535,
+    "growthRatePercent": 2.3,
+    "populationYear": 2026
+  },
+  "kaduna-kaduna": {
+    "population": 1249777,
+    "growthRatePercent": 2.5,
+    "populationYear": 2026
+  },
+  "abuja-fct": {
+    "population": 2057985,
+    "growthRatePercent": 5,
+    "populationYear": 2026
+  },
+  "onitsha-anambra": {
+    "population": 409600,
+    "growthRatePercent": 2.2,
+    "populationYear": 2026
+  },
+  "aba-abia": {
+    "population": 854644,
+    "growthRatePercent": 2.4,
+    "populationYear": 2026
+  },
+  "nnewi-anambra": {
+    "population": 605277,
+    "growthRatePercent": 2.2,
+    "populationYear": 2026
+  },
+  "ilorin-kwara": {
+    "population": 1299410,
+    "growthRatePercent": 2.6,
+    "populationYear": 2026
+  },
+  "warri-delta": {
+    "population": 837355,
+    "growthRatePercent": 2,
+    "populationYear": 2026
+  },
+  "enugu-enugu": {
+    "population": 1126694,
+    "growthRatePercent": 2.3,
+    "populationYear": 2026
+  },
+  "owerri-imo": {
+    "population": 608797,
+    "growthRatePercent": 2.1,
+    "populationYear": 2026
+  },
+  "jos-plateau": {
+    "population": 1355941,
+    "growthRatePercent": 2.4,
+    "populationYear": 2026
+  },
+  "umuahia-abia": {
+    "population": 579349,
+    "growthRatePercent": 2.4,
+    "populationYear": 2026
+  },
+  "abeokuta-ogun": {
+    "population": 872251,
+    "growthRatePercent": 3.4,
+    "populationYear": 2026
+  },
+  "oyo-oyo": {
+    "population": 407181,
+    "growthRatePercent": 2.3,
+    "populationYear": 2026
+  },
+  "sokoto-sokoto": {
+    "population": 852088,
+    "growthRatePercent": 3.5,
+    "populationYear": 2026
+  },
+  "yola-adamawa": {
+    "population": 680189,
+    "growthRatePercent": 2.7,
+    "populationYear": 2026
+  },
+  "ogbomosho-oyo": {
+    "population": 467648,
+    "growthRatePercent": 2.3,
+    "populationYear": 2026
+  },
+  "calabar-cross-river": {
+    "population": 634901,
+    "growthRatePercent": 2.7,
+    "populationYear": 2026
+  },
+  "ondo-ondo": {
+    "population": 624240,
+    "growthRatePercent": 2.7,
+    "populationYear": 2026
+  },
+  "ife-osun": {
+    "population": 891963,
+    "growthRatePercent": 1.6,
+    "populationYear": 2026
+  },
+  "awka-anambra": {
+    "population": 470047,
+    "growthRatePercent": 2.2,
+    "populationYear": 2026
+  },
+  "uyo-akwa-ibom": {
+    "population": 414926,
+    "growthRatePercent": 1.5,
+    "populationYear": 2026
+  },
+  "zaria-kaduna": {
+    "population": 662930,
+    "growthRatePercent": 2.5,
+    "populationYear": 2026
+  },
+  "akure-ondo": {
+    "population": 616088,
+    "growthRatePercent": 2.7,
+    "populationYear": 2026
+  },
+  "gusau-zamfara": {
+    "population": 788471,
+    "growthRatePercent": 3.7,
+    "populationYear": 2026
+  },
+  "osogbo-osun": {
+    "population": 215518,
+    "growthRatePercent": 1.6,
+    "populationYear": 2026
+  },
+  "yenagoa-bayelsa": {
+    "population": 579235,
+    "growthRatePercent": 2.5,
+    "populationYear": 2026
+  },
+  "katsina-katsina": {
+    "population": 657441,
+    "growthRatePercent": 3.7,
+    "populationYear": 2026
+  },
+  "minna-niger": {
+    "population": 396756,
+    "growthRatePercent": 3.4,
+    "populationYear": 2026
+  },
+  "okene-kogi": {
+    "population": 472910,
+    "growthRatePercent": 1.9,
+    "populationYear": 2026
+  },
+  "makurdi-benue": {
+    "population": 475412,
+    "growthRatePercent": 2.3,
+    "populationYear": 2026
+  },
+  "lafia-nasarawa": {
+    "population": 567694,
+    "growthRatePercent": 2.8,
+    "populationYear": 2026
+  },
+  "asaba-delta": {
+    "population": 222450,
+    "growthRatePercent": 2,
+    "populationYear": 2026
+  },
+  "ado-ekiti-ekiti": {
+    "population": 519578,
+    "growthRatePercent": 2.6,
+    "populationYear": 2026
+  },
+  "abakaliki-ebonyi": {
+    "population": 246370,
+    "growthRatePercent": 2.5,
+    "populationYear": 2026
+  },
+  "gombe-gombe": {
+    "population": 508249,
+    "growthRatePercent": 3.3,
+    "populationYear": 2026
+  },
+  "dutse-jigawa": {
+    "population": 494454,
+    "growthRatePercent": 3.4,
+    "populationYear": 2026
+  },
+  "birnin-kebbi-kebbi": {
+    "population": 524642,
+    "growthRatePercent": 3.4,
+    "populationYear": 2026
+  },
+  "jalingo-taraba": {
+    "population": 247158,
+    "growthRatePercent": 2.9,
+    "populationYear": 2026
+  },
+  "damaturu-yobe": {
+    "population": 154418,
+    "growthRatePercent": 2.9,
+    "populationYear": 2026
+  },
+  "okpoko-anambra": {
+    "population": 347652,
+    "growthRatePercent": 2.2,
+    "populationYear": 2026
+  },
+  "lokoja-kogi": {
+    "population": 285521,
+    "growthRatePercent": 1.9,
+    "populationYear": 2026
+  },
+  "maiduguri-borno": {
+    "population": 870475,
+    "growthRatePercent": 2.4,
+    "populationYear": 2026
+  },
+  "bauchi-bauchi": {
+    "population": 1019100,
+    "growthRatePercent": 3.7,
+    "populationYear": 2026
+  }
+}

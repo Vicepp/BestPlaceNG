@@ -1,0 +1,355 @@
+{
+  "lagos-lagos": {
+    "violentCrimeIndex": 69,
+    "propertyCrimeIndex": 65,
+    "kidnappingRisk": "Moderate",
+    "kidnappingNote": "Lagos sees occasional kidnap-for-ransom and abduction cases, mostly opportunistic rather than the organized banditry seen in North West Nigeria.",
+    "terrorismRisk": "Low",
+    "terrorismNote": "No significant insurgency activity, but isolated security alerts occur in a city this size.",
+    "policeConductNote": "Lagos was the site of the most severe single incident of the 2020 #EndSARS crackdown — the Lekki toll gate shooting, where Amnesty International says security forces killed at least 12 peaceful protesters.",
+    "source": "researched",
+    "asOf": "2025 (Numbeo)"
+  },
+  "abuja-fct": {
+    "violentCrimeIndex": 58,
+    "propertyCrimeIndex": 50,
+    "kidnappingRisk": "Moderate",
+    "kidnappingNote": "Abuja itself is comparatively well-policed, but its highway approaches (notably the Abuja-Kaduna road) are among the most dangerous kidnapping corridors in Nigeria.",
+    "terrorismRisk": "Low",
+    "terrorismNote": "The FCT has tightened security since past attacks; isolated alerts still occur near its borders with Niger and Kaduna States.",
+    "policeConductNote": "Abuja saw #EndSARS protests in 2020 with reports of excessive force, including tear gas and live rounds used against demonstrators.",
+    "source": "researched",
+    "asOf": "2025 (Numbeo)"
+  },
+  "port-harcourt-rivers": {
+    "violentCrimeIndex": 61,
+    "propertyCrimeIndex": 58,
+    "kidnappingRisk": "High",
+    "kidnappingNote": "Rivers State has a long-running history of kidnap-for-ransom tied to the oil and gas sector, alongside cult-related violence.",
+    "terrorismRisk": "Low",
+    "policeConductNote": "Port Harcourt saw #EndSARS protests and crackdowns in 2020 alongside other major cities.",
+    "source": "researched",
+    "asOf": "2025 (Numbeo)"
+  },
+  "ibadan-oyo": {
+    "violentCrimeIndex": 57,
+    "propertyCrimeIndex": 50,
+    "kidnappingRisk": "Low",
+    "terrorismRisk": "Low",
+    "policeConductNote": "Ibadan saw #EndSARS protests in 2020.",
+    "source": "researched",
+    "asOf": "2025 (Numbeo)"
+  },
+  "kano-kano": {
+    "violentCrimeIndex": 55,
+    "propertyCrimeIndex": 45,
+    "kidnappingRisk": "Moderate",
+    "kidnappingNote": "Kano State, part of the North West zone, records armed robbery and occasional kidnapping; the city itself has seen reduced extremist activity in recent years compared to the early 2010s.",
+    "terrorismRisk": "Low",
+    "policeConductNote": "Kano saw #EndSARS protests in 2020.",
+    "source": "qualitative",
+    "asOf": "2025"
+  },
+  "benin-city-edo": {
+    "violentCrimeIndex": 60,
+    "propertyCrimeIndex": 55,
+    "kidnappingRisk": "Moderate",
+    "terrorismRisk": "None",
+    "policeConductNote": "Benin City saw #EndSARS protests in 2020.",
+    "source": "qualitative",
+    "asOf": "2025"
+  },
+  "enugu-enugu": {
+    "violentCrimeIndex": 42,
+    "propertyCrimeIndex": 38,
+    "kidnappingRisk": "Low",
+    "terrorismRisk": "None",
+    "source": "qualitative",
+    "asOf": "2025"
+  },
+  "calabar-cross-river": {
+    "violentCrimeIndex": 40,
+    "propertyCrimeIndex": 35,
+    "kidnappingRisk": "Low",
+    "terrorismRisk": "None",
+    "policeConductNote": "Calabar saw #EndSARS protests in 2020.",
+    "source": "qualitative",
+    "asOf": "2025"
+  },
+  "kaduna-kaduna": {
+    "violentCrimeIndex": 58,
+    "propertyCrimeIndex": 48,
+    "kidnappingRisk": "Severe",
+    "kidnappingNote": "Kaduna State recorded 629 kidnap victims between July 2024 and June 2025 — the second-highest of any Nigerian state — driven by banditry and intercommunal violence, especially along the Abuja-Kaduna and Birnin Gwari roads.",
+    "terrorismRisk": "Moderate",
+    "terrorismNote": "Parts of southern Kaduna State have seen banditry sometimes described as terrorism-adjacent violence.",
+    "policeConductNote": "Kaduna saw #EndSARS protests in 2020.",
+    "source": "qualitative",
+    "asOf": "2025 (SBM Intelligence)"
+  },
+  "jos-plateau": {
+    "violentCrimeIndex": 50,
+    "propertyCrimeIndex": 42,
+    "kidnappingRisk": "Low",
+    "terrorismRisk": "Low",
+    "terrorismNote": "Plateau State has a history of intercommunal and religious clashes, though Jos itself has been calmer in recent years.",
+    "policeConductNote": "Jos saw #EndSARS protests in 2020.",
+    "source": "qualitative",
+    "asOf": "2025"
+  },
+  "owerri-imo": {
+    "violentCrimeIndex": 48,
+    "propertyCrimeIndex": 42,
+    "kidnappingRisk": "Moderate",
+    "kidnappingNote": "Imo State has seen periodic kidnapping and unrest tied to separatist agitation in the South East.",
+    "terrorismRisk": "None",
+    "policeConductNote": "Owerri saw #EndSARS protests in 2020.",
+    "source": "qualitative",
+    "asOf": "2025"
+  },
+  "uyo-akwa-ibom": {
+    "violentCrimeIndex": 38,
+    "propertyCrimeIndex": 33,
+    "kidnappingRisk": "Low",
+    "terrorismRisk": "None",
+    "source": "qualitative",
+    "asOf": "2025"
+  },
+  "awka-anambra": {
+    "violentCrimeIndex": 46,
+    "propertyCrimeIndex": 42,
+    "kidnappingRisk": "Moderate",
+    "kidnappingNote": "Anambra State has experienced kidnapping and unrest tied to separatist agitation and cult violence in the wider South East.",
+    "terrorismRisk": "None",
+    "source": "qualitative",
+    "asOf": "2025"
+  },
+  "onitsha-anambra": {
+    "violentCrimeIndex": 58,
+    "propertyCrimeIndex": 55,
+    "kidnappingRisk": "Moderate",
+    "kidnappingNote": "Onitsha has a reputation for armed robbery, kidnapping, and cult-related violence linked to its dense commercial activity.",
+    "terrorismRisk": "None",
+    "source": "qualitative",
+    "asOf": "2025"
+  },
+  "umuahia-abia": {
+    "violentCrimeIndex": 50,
+    "propertyCrimeIndex": 44,
+    "kidnappingRisk": "Moderate",
+    "terrorismRisk": "None",
+    "source": "qualitative",
+    "asOf": "2025"
+  },
+  "aba-abia": {
+    "violentCrimeIndex": 56,
+    "propertyCrimeIndex": 50,
+    "kidnappingRisk": "Moderate",
+    "kidnappingNote": "Aba has documented issues with robbery, cultism, and periodic unrest as a dense commercial city.",
+    "terrorismRisk": "None",
+    "source": "qualitative",
+    "asOf": "2025"
+  },
+  "asaba-delta": {
+    "violentCrimeIndex": 50,
+    "propertyCrimeIndex": 45,
+    "kidnappingRisk": "Moderate",
+    "terrorismRisk": "None",
+    "source": "qualitative",
+    "asOf": "2025"
+  },
+  "warri-delta": {
+    "violentCrimeIndex": 60,
+    "propertyCrimeIndex": 52,
+    "kidnappingRisk": "High",
+    "kidnappingNote": "Warri has a documented history of armed robbery, kidnapping, cult activity, and ethnic/community clashes tied to oil-sector resource tension in the Niger Delta.",
+    "terrorismRisk": "Low",
+    "policeConductNote": "Warri saw #EndSARS protests in 2020.",
+    "source": "qualitative",
+    "asOf": "2025"
+  },
+  "akure-ondo": {
+    "violentCrimeIndex": 45,
+    "propertyCrimeIndex": 40,
+    "kidnappingRisk": "Low",
+    "terrorismRisk": "None",
+    "source": "qualitative",
+    "asOf": "2025"
+  },
+  "osogbo-osun": {
+    "violentCrimeIndex": 42,
+    "propertyCrimeIndex": 38,
+    "kidnappingRisk": "Low",
+    "terrorismRisk": "None",
+    "source": "qualitative",
+    "asOf": "2025"
+  },
+  "bauchi-bauchi": {
+    "violentCrimeIndex": 62,
+    "propertyCrimeIndex": 50,
+    "kidnappingRisk": "Moderate",
+    "terrorismRisk": "Moderate",
+    "terrorismNote": "Bauchi State borders the North East insurgency zone and has experienced Boko Haram-linked attacks historically, though less severely than Borno or Yobe.",
+    "source": "qualitative",
+    "asOf": "2025"
+  },
+  "maiduguri-borno": {
+    "violentCrimeIndex": 78,
+    "propertyCrimeIndex": 60,
+    "kidnappingRisk": "Severe",
+    "kidnappingNote": "Abductions by Boko Haram/ISWAP have been a recurring feature of the insurgency in and around Maiduguri.",
+    "terrorismRisk": "Severe",
+    "terrorismNote": "Maiduguri is widely cited as Nigeria's most dangerous city due to the prolonged Boko Haram/ISWAP insurgency, which has caused over 38,000 deaths in Borno State alone since it began. ISWAP escalated attacks again in 2025, including drone strikes on military positions.",
+    "source": "qualitative",
+    "asOf": "2025"
+  },
+  "damaturu-yobe": {
+    "violentCrimeIndex": 74,
+    "propertyCrimeIndex": 55,
+    "kidnappingRisk": "Severe",
+    "terrorismRisk": "Severe",
+    "terrorismNote": "Yobe State has suffered repeated Boko Haram bombings and attacks; a September 2024 ISWAP attack killed at least 170 villagers in Mafa ward, Yobe.",
+    "source": "qualitative",
+    "asOf": "2025"
+  },
+  "yola-adamawa": {
+    "violentCrimeIndex": 58,
+    "propertyCrimeIndex": 46,
+    "kidnappingRisk": "Moderate",
+    "terrorismRisk": "Moderate",
+    "terrorismNote": "Adamawa State has experienced Boko Haram attacks on villages, markets, and churches, though Yola itself has been comparatively more stable than Maiduguri or Damaturu.",
+    "source": "qualitative",
+    "asOf": "2025"
+  },
+  "gombe-gombe": {
+    "violentCrimeIndex": 52,
+    "propertyCrimeIndex": 44,
+    "kidnappingRisk": "Moderate",
+    "terrorismRisk": "Low",
+    "terrorismNote": "Gombe State neighbors the North East insurgency zone but has seen less direct attack activity than Borno or Yobe in recent years.",
+    "source": "qualitative",
+    "asOf": "2025"
+  },
+  "sokoto-sokoto": {
+    "violentCrimeIndex": 55,
+    "propertyCrimeIndex": 46,
+    "kidnappingRisk": "High",
+    "kidnappingNote": "Sokoto State recorded 358 kidnap victims between July 2024 and June 2025, one of the higher totals in the North West banditry belt.",
+    "terrorismRisk": "Low",
+    "source": "qualitative",
+    "asOf": "2025 (SBM Intelligence)"
+  },
+  "katsina-katsina": {
+    "violentCrimeIndex": 58,
+    "propertyCrimeIndex": 48,
+    "kidnappingRisk": "Severe",
+    "kidnappingNote": "Katsina State recorded 566 kidnap victims between July 2024 and June 2025, among the highest totals nationally, driven by banditry in rural areas.",
+    "terrorismRisk": "Low",
+    "source": "qualitative",
+    "asOf": "2025 (SBM Intelligence)"
+  },
+  "gusau-zamfara": {
+    "violentCrimeIndex": 68,
+    "propertyCrimeIndex": 55,
+    "kidnappingRisk": "Severe",
+    "kidnappingNote": "Zamfara State recorded 1,203 kidnap victims between July 2024 and June 2025 — the highest of any Nigerian state — due to entrenched banditry.",
+    "terrorismRisk": "Moderate",
+    "terrorismNote": "Banditry in Zamfara is sometimes described as terrorism-adjacent given its scale and organization.",
+    "source": "qualitative",
+    "asOf": "2025 (SBM Intelligence)"
+  },
+  "minna-niger": {
+    "violentCrimeIndex": 55,
+    "propertyCrimeIndex": 46,
+    "kidnappingRisk": "High",
+    "kidnappingNote": "Niger State forms part of the Kaduna-Niger-Zamfara forest belt that bandit groups use as a base, contributing to elevated kidnapping risk along its highways.",
+    "terrorismRisk": "Low",
+    "source": "qualitative",
+    "asOf": "2025"
+  },
+  "birnin-kebbi-kebbi": {
+    "violentCrimeIndex": 50,
+    "propertyCrimeIndex": 42,
+    "kidnappingRisk": "Moderate",
+    "kidnappingNote": "Kebbi is part of the North West zone, which accounts for over 60% of Nigeria's reported kidnapping cases, though Kebbi's own totals are lower than Zamfara, Kaduna, or Katsina.",
+    "terrorismRisk": "Low",
+    "source": "qualitative",
+    "asOf": "2025"
+  },
+  "zaria-kaduna": {
+    "violentCrimeIndex": 55,
+    "propertyCrimeIndex": 46,
+    "kidnappingRisk": "High",
+    "kidnappingNote": "Zaria shares Kaduna State's elevated kidnapping risk (629 state-wide victims between July 2024 and June 2025).",
+    "terrorismRisk": "Moderate",
+    "source": "qualitative",
+    "asOf": "2025"
+  },
+  "makurdi-benue": {
+    "violentCrimeIndex": 52,
+    "propertyCrimeIndex": 44,
+    "kidnappingRisk": "Moderate",
+    "kidnappingNote": "Benue State has experienced repeated farmer-herder clashes alongside general kidnapping risk.",
+    "terrorismRisk": "Low",
+    "source": "qualitative",
+    "asOf": "2025"
+  },
+  "lafia-nasarawa": {
+    "violentCrimeIndex": 48,
+    "propertyCrimeIndex": 42,
+    "kidnappingRisk": "Moderate",
+    "terrorismRisk": "Low",
+    "source": "qualitative",
+    "asOf": "2025"
+  },
+  "lokoja-kogi": {
+    "violentCrimeIndex": 45,
+    "propertyCrimeIndex": 40,
+    "kidnappingRisk": "Low",
+    "terrorismRisk": "None",
+    "source": "qualitative",
+    "asOf": "2025"
+  },
+  "ado-ekiti-ekiti": {
+    "violentCrimeIndex": 38,
+    "propertyCrimeIndex": 34,
+    "kidnappingRisk": "Low",
+    "terrorismRisk": "None",
+    "source": "qualitative",
+    "asOf": "2025"
+  },
+  "abakaliki-ebonyi": {
+    "violentCrimeIndex": 42,
+    "propertyCrimeIndex": 38,
+    "kidnappingRisk": "Low",
+    "terrorismRisk": "None",
+    "source": "qualitative",
+    "asOf": "2025"
+  },
+  "dutse-jigawa": {
+    "violentCrimeIndex": 46,
+    "propertyCrimeIndex": 40,
+    "kidnappingRisk": "Moderate",
+    "kidnappingNote": "Jigawa is part of the North West zone, which accounts for over 60% of Nigeria's reported kidnapping cases nationally.",
+    "terrorismRisk": "Low",
+    "source": "qualitative",
+    "asOf": "2025"
+  },
+  "jalingo-taraba": {
+    "violentCrimeIndex": 48,
+    "propertyCrimeIndex": 42,
+    "kidnappingRisk": "Moderate",
+    "terrorismRisk": "Low",
+    "terrorismNote": "Southern Taraba has occasionally seen spillover violence from neighboring conflict zones.",
+    "source": "qualitative",
+    "asOf": "2025"
+  },
+  "okpoko-anambra": {
+    "violentCrimeIndex": 56,
+    "propertyCrimeIndex": 52,
+    "kidnappingRisk": "Moderate",
+    "terrorismRisk": "None",
+    "source": "qualitative",
+    "asOf": "2025"
+  }
+}

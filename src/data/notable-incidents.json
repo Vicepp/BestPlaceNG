@@ -1,0 +1,101 @@
+[
+  {
+    "year": 2020,
+    "month": "December",
+    "citySlug": "katsina-katsina",
+    "place": "Kankara, Katsina State",
+    "type": "Kidnapping",
+    "victimCount": 344,
+    "description": "Gunmen abducted 344 schoolboys from the Government Science Secondary School in Kankara.",
+    "source": "News reports / Wikipedia"
+  },
+  {
+    "year": 2020,
+    "month": "October",
+    "citySlug": "lagos-lagos",
+    "place": "Lekki Toll Gate, Lagos",
+    "type": "Police Conduct",
+    "victimCount": 12,
+    "description": "Security forces opened fire on #EndSARS protesters at the Lekki toll gate. Amnesty International says at least 12 peaceful protesters were killed.",
+    "source": "Amnesty International"
+  },
+  {
+    "year": 2021,
+    "month": "February",
+    "citySlug": "minna-niger",
+    "place": "Kagara, Niger State",
+    "type": "Kidnapping",
+    "victimCount": 42,
+    "description": "Armed bandits raided a state school in Kagara, abducting 42 people including students, teachers, and family members.",
+    "source": "News reports"
+  },
+  {
+    "year": 2021,
+    "month": "February",
+    "citySlug": "gusau-zamfara",
+    "place": "Jangebe, Zamfara State",
+    "type": "Kidnapping",
+    "victimCount": 279,
+    "description": "Armed bandits abducted 279 female students from the Government Girls Science Secondary School in Jangebe. All were later released.",
+    "source": "News reports"
+  },
+  {
+    "year": 2021,
+    "month": "July",
+    "citySlug": "kaduna-kaduna",
+    "place": "Maramara, Kaduna State",
+    "type": "Kidnapping",
+    "victimCount": 121,
+    "description": "Gunmen abducted 121 children from the Bethel Baptist High School in Maramara.",
+    "source": "News reports"
+  },
+  {
+    "year": 2023,
+    "citySlug": "lagos-lagos",
+    "place": "Lagos State",
+    "type": "Murder & Robbery (state total)",
+    "murderCount": 163,
+    "robberyCount": 189,
+    "description": "Lagos State recorded 163 murder cases and 189 armed robbery cases in 2023, among the highest of any state.",
+    "source": "Ministry of Police Affairs / news reports"
+  },
+  {
+    "year": 2024,
+    "month": "March",
+    "citySlug": "kaduna-kaduna",
+    "place": "Kuriga, Kaduna State",
+    "type": "Kidnapping",
+    "victimCount": 287,
+    "description": "Gunmen abducted 287 students and teachers from a school in Kuriga.",
+    "source": "News reports"
+  },
+  {
+    "year": 2024,
+    "citySlug": "sokoto-sokoto",
+    "place": "Gidan Bakuso, Sokoto State",
+    "type": "Kidnapping",
+    "victimCount": null,
+    "description": "Students were abducted from a school in Gidan Bakuso.",
+    "source": "News reports"
+  },
+  {
+    "year": 2024,
+    "month": "September",
+    "citySlug": "damaturu-yobe",
+    "place": "Mafa, Yobe State",
+    "type": "Terrorism",
+    "victimCount": 170,
+    "description": "ISWAP killed at least 170 villagers from Mafa ward, Yobe State, after warning residents not to return to their village.",
+    "source": "News reports"
+  },
+  {
+    "year": 2025,
+    "month": "January",
+    "citySlug": "maiduguri-borno",
+    "place": "Timbuktu Triangle, Borno/Yobe border",
+    "type": "Terrorism",
+    "victimCount": 25,
+    "description": "ISWAP carried out a suicide attack on a Nigerian military convoy in the Timbuktu Triangle between Borno and Yobe states, killing 25 soldiers.",
+    "source": "News reports"
+  }
+]

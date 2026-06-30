@@ -1,0 +1,13 @@
+{
+  "_comment": "Real year-over-year Nigeria crime statistics. 'national' rows are official Ministry of Police Affairs annual crime summaries (categories Nigeria actually tracks - not the same categories as US FBI reports, since Nigeria doesn't publish separate Rape/Burglary national totals). 'kidnappingTrend' rows are independent SBM Intelligence tracking (12-month rolling windows, not calendar years, since that's how SBM publishes them) - kept as a separate series because it uses different methodology (open-source incident tracking vs. official police case counts) and shouldn't be merged with the 'national' rows.",
+  "national": [
+    { "year": 2021, "murder": 1731, "armedRobbery": 760, "source": "Ministry of Police Affairs" },
+    { "year": 2022, "murder": 1722, "armedRobbery": 679, "source": "Ministry of Police Affairs" },
+    { "year": 2023, "murder": 1738, "armedRobbery": 320, "kidnapping": 2149, "otherOffences": 1161, "banditry": 138, "terrorism": 141, "total": 5647, "source": "Ministry of Police Affairs" }
+  ],
+  "kidnappingTrend": [
+    { "period": "Jul 2022 - Jun 2023", "endYear": 2023, "victims": 3620, "incidents": 582, "source": "SBM Intelligence" },
+    { "period": "Jul 2023 - Jun 2024", "endYear": 2024, "victims": 7568, "incidents": 1130, "killed": 1056, "source": "SBM Intelligence" },
+    { "period": "Jul 2024 - Jun 2025", "endYear": 2025, "victims": 4722, "incidents": 997, "killed": 762, "source": "SBM Intelligence" }
+  ]
+}
