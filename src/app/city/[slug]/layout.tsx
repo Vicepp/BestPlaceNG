@@ -1,7 +1,7 @@
 import { notFound } from "next/navigation";
 import Link from "next/link";
 import { getCityBySlug } from "@/data/cities";
-import CitySidebar from "@/components/CitySidebar";
+import CitySidebar, { MobileTabStrip } from "@/components/CitySidebar";
 import CitySearchBar from "@/components/CitySearchBar";
 
 export default async function CityLayout({
@@ -41,7 +41,13 @@ export default async function CityLayout({
         </div>
       </div>
 
-      <div className="mx-auto flex max-w-7xl flex-col gap-8 px-4 py-10 sm:px-6 lg:flex-row lg:px-8">
+      {/* Mobile: sticky auto-scrolling tab strip, full width, sits just below the header */}
+      <div className="sticky top-16 z-30 border-b border-zinc-100 bg-white/95 backdrop-blur lg:hidden">
+        <MobileTabStrip citySlug={city.slug} />
+      </div>
+
+      <div className="mx-auto flex max-w-7xl flex-col px-4 py-6 sm:px-6 lg:flex-row lg:gap-8 lg:py-10 lg:px-8">
+        {/* Desktop: vertical sidebar in the left column */}
         <CitySidebar citySlug={city.slug} />
         <div className="flex-1">{children}</div>
       </div>
