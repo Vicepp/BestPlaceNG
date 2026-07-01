@@ -175,12 +175,16 @@ export default function Header() {
           </Link>
         </div>
 
-        <button
-          className="flex h-9 w-9 items-center justify-center rounded-lg border border-zinc-200 md:hidden"
-          onClick={() => setMobileOpen((v) => !v)}
-        >
-          {mobileOpen ? <X className="h-5 w-5" /> : <Menu className="h-5 w-5" />}
-        </button>
+        {/* Mobile right side: bell + hamburger */}
+        <div className="flex items-center gap-2 md:hidden">
+          {user && <NotificationDrawer unreadCount={unreadCount} />}
+          <button
+            className="flex h-9 w-9 items-center justify-center rounded-lg border border-zinc-200"
+            onClick={() => setMobileOpen((v) => !v)}
+          >
+            {mobileOpen ? <X className="h-5 w-5" /> : <Menu className="h-5 w-5" />}
+          </button>
+        </div>
       </div>
 
       <AnimatePresence>
