@@ -1,6 +1,15 @@
 import { collection, addDoc, doc, setDoc, query, where, getDocs } from "firebase/firestore";
 import { getDb, isFirebaseConfigured } from "./firebase";
 
+/**
+ * Firestore rejects `undefined` values — strip them before every write so no
+ * optional field that was never filled in causes an invalid-argument error.
+ * `null` is allowed and preserved; only `undefined` is removed.
+ */
+function clean(data: Record<string, unknown>): Record<string, unknown> {
+  return Object.fromEntries(Object.entries(data).filter(([, v]) => v !== undefined));
+}
+
 export type WriteResult = { ok: true; id: string } | { ok: false; error: string };
 
 /**
@@ -35,7 +44,7 @@ export async function addFirestoreDoc(col: string, data: Record<string, unknown>
     return { ok: false, error: "This feature isn't available right now. Please try again later." };
   }
   try {
-    const ref = await addDoc(collection(getDb(), col), data);
+    const ref = await addDoc(collection(getDb(), col), clean(data));
     return { ok: true, id: ref.id };
   } catch (e) {
     return firestoreError(col, e);
@@ -55,7 +64,7 @@ export async function addFirestoreDocWithId(col: string, data: Record<string, un
   }
   try {
     const ref = doc(collection(getDb(), col));
-    await setDoc(ref, { ...data, id: ref.id });
+    await setDoc(ref, clean({ ...data, id: ref.id }));
     return { ok: true, id: ref.id };
   } catch (e) {
     return firestoreError(col, e);
@@ -68,7 +77,7 @@ export async function setFirestoreDoc(col: string, id: string, data: Record<stri
     return { ok: false, error: "This feature isn't available right now. Please try again later." };
   }
   try {
-    await setDoc(doc(getDb(), col, id), data, { merge: true });
+    await setDoc(doc(getDb(), col, id), clean(data), { merge: true });
     return { ok: true, id };
   } catch (e) {
     return firestoreError(`${col}/${id}`, e);
