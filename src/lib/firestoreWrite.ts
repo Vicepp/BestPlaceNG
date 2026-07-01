@@ -9,6 +9,21 @@ export type WriteResult = { ok: true; id: string } | { ok: false; error: string 
  * and needs to know whether it actually saved, so failures are surfaced as a
  * `{ ok: false, error }` result instead of swallowed.
  */
+function firestoreError(col: string, e: unknown): WriteResult {
+  const code = (e as { code?: string }).code ?? "";
+  console.error(`[firestore] write to "${col}" failed (${code}):`, e);
+  if (code === "permission-denied" || code === "PERMISSION_DENIED") {
+    return {
+      ok: false,
+      error: "Permission denied — your Firestore security rules may not be published yet. Go to the Firebase console → Firestore → Rules and publish the latest rules.",
+    };
+  }
+  if (code === "unauthenticated" || code === "UNAUTHENTICATED") {
+    return { ok: false, error: "You need to be logged in to do that." };
+  }
+  return { ok: false, error: "Couldn't save that just now. Please try again." };
+}
+
 export async function addFirestoreDoc(col: string, data: Record<string, unknown>): Promise<WriteResult> {
   if (!isFirebaseConfigured()) {
     return { ok: false, error: "This feature isn't available right now. Please try again later." };
@@ -17,8 +32,7 @@ export async function addFirestoreDoc(col: string, data: Record<string, unknown>
     const ref = await addDoc(collection(getDb(), col), data);
     return { ok: true, id: ref.id };
   } catch (e) {
-    console.error(`[firestore] write to "${col}" failed:`, e);
-    return { ok: false, error: "Couldn't save that just now. Please try again." };
+    return firestoreError(col, e);
   }
 }
 
@@ -38,8 +52,7 @@ export async function addFirestoreDocWithId(col: string, data: Record<string, un
     await setDoc(ref, { ...data, id: ref.id });
     return { ok: true, id: ref.id };
   } catch (e) {
-    console.error(`[firestore] write to "${col}" failed:`, e);
-    return { ok: false, error: "Couldn't save that just now. Please try again." };
+    return firestoreError(col, e);
   }
 }
 
@@ -52,8 +65,7 @@ export async function setFirestoreDoc(col: string, id: string, data: Record<stri
     await setDoc(doc(getDb(), col, id), data, { merge: true });
     return { ok: true, id };
   } catch (e) {
-    console.error(`[firestore] write to "${col}/${id}" failed:`, e);
-    return { ok: false, error: "Couldn't save that just now. Please try again." };
+    return firestoreError(`${col}/${id}`, e);
   }
 }
 

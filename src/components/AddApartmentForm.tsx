@@ -4,9 +4,10 @@ import { useEffect, useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { cities } from "@/data/cities";
 import type { ApartmentListing } from "@/data/apartments";
-import { addFirestoreDocWithId } from "@/lib/firestoreWrite";
+import { addFirestoreDocWithId, setFirestoreDoc } from "@/lib/firestoreWrite";
 import { useAuth } from "@/context/AuthContext";
 import { getPropertyById, type Property } from "@/data/properties";
+import { getFirestoreDoc } from "@/lib/firestoreData";
 import ImageUploader from "@/components/ImageUploader";
 import { Info } from "lucide-react";
 
@@ -20,8 +21,10 @@ export default function AddApartmentForm() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const propertyIdParam = searchParams.get("propertyId");
+  const editId = searchParams.get("edit"); // editing an existing listing
 
   const [parentProperty, setParentProperty] = useState<Property | null>(null);
+  const [isEditing, setIsEditing] = useState(false);
   const [citySlug, setCitySlug] = useState(sortedCities[0]?.slug ?? "");
   const [title, setTitle] = useState("");
   const [type, setType] = useState<ApartmentListing["type"]>("Apartment");
@@ -55,12 +58,40 @@ export default function AddApartmentForm() {
         setCitySlug(p.citySlug || citySlug);
         setArea(p.area);
         setFullAddress(p.fullAddress ?? "");
-        if (p.images?.length) setImages(p.images); // inherit property photos
+        if (p.images?.length) setImages(p.images);
         if (p.youtubeUrl) setYoutubeUrl(p.youtubeUrl);
       }
     });
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [propertyIdParam]);
+
+  // Pre-fill form when editing an existing listing
+  useEffect(() => {
+    if (!editId) return;
+    getFirestoreDoc<import("@/data/apartments").ApartmentListing>("apartments", editId).then((listing) => {
+      if (!listing) return;
+      setIsEditing(true);
+      setTitle(listing.title);
+      setCitySlug(listing.citySlug);
+      setArea(listing.area);
+      setFullAddress(listing.fullAddress ?? "");
+      setType(listing.type);
+      setPurpose(listing.purpose);
+      setBedrooms(listing.bedrooms);
+      setBathrooms(listing.bathrooms);
+      setPriceNaira(String(listing.priceNaira));
+      setPricePeriod(listing.pricePeriod ?? "year");
+      setDescription(listing.description);
+      setAmenities(listing.amenities?.join(", ") ?? "");
+      setImages(listing.images ?? []);
+      setYoutubeUrl(listing.youtubeUrl ?? "");
+      setCautionFee(listing.cautionFee ? String(listing.cautionFee) : "");
+      setAgencyFee(listing.agencyFee ? String(listing.agencyFee) : "");
+      setAgreementFee(listing.agreementFee ? String(listing.agreementFee) : "");
+      setLegalFee(listing.legalFee ? String(listing.legalFee) : "");
+    });
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [editId]);
 
   const totalFirstYear =
     Number(priceNaira || 0) +
@@ -82,7 +113,7 @@ export default function AddApartmentForm() {
 
     const cityData = cities.find((c) => c.slug === citySlug);
 
-    const result = await addFirestoreDocWithId("apartments", {
+    const payload: Record<string, unknown> = {
       citySlug,
       title: title.trim(),
       type,
@@ -102,20 +133,32 @@ export default function AddApartmentForm() {
       agencyFee: agencyFee ? Number(agencyFee) : undefined,
       agreementFee: agreementFee ? Number(agreementFee) : undefined,
       legalFee: legalFee ? Number(legalFee) : undefined,
-      ownerId: user.uid,
-      ownerName: profile?.displayName ?? user.email ?? "",
-      businessName: profile?.businessName,
-      ownerContact: user.email ?? "",
-      propertyId: propertyIdParam || undefined,
-      propertyName: parentProperty?.name,
-      status: "active",
-      createdAt: new Date().toISOString(),
-    });
+    };
+
+    let result;
+    if (editId) {
+      // Editing — patch only the editable fields (keep ownerId, createdAt, status unchanged)
+      result = await setFirestoreDoc("apartments", editId, payload);
+    } else {
+      // New listing
+      result = await addFirestoreDocWithId("apartments", {
+        ...payload,
+        ownerId: user.uid,
+        ownerName: profile?.displayName ?? user.email ?? "",
+        businessName: profile?.businessName,
+        ownerContact: user.email ?? "",
+        propertyId: propertyIdParam || undefined,
+        propertyName: parentProperty?.name,
+        status: "active",
+        createdAt: new Date().toISOString(),
+      });
+    }
     setSubmitting(false);
     if (!result.ok) { setError(result.error); return; }
     setSuccess(true);
     setTimeout(() => {
-      if (propertyIdParam) router.push("/dashboard/properties");
+      if (editId) router.push("/dashboard/properties");
+      else if (propertyIdParam) router.push(`/dashboard/buildings/${propertyIdParam}`);
       else router.push(`/city/${citySlug}/apartments`);
     }, 1200);
   }
@@ -278,7 +321,7 @@ export default function AddApartmentForm() {
 
       <button type="submit" disabled={submitting}
         className="w-full rounded-full bg-brand px-5 py-2.5 text-sm font-semibold text-white transition hover:bg-brand-dark disabled:opacity-60">
-        {submitting ? "Publishing..." : "Publish Listing"}
+        {submitting ? (isEditing ? "Saving…" : "Publishing…") : (isEditing ? "Save Changes" : "Publish Listing")}
       </button>
     </form>
   );

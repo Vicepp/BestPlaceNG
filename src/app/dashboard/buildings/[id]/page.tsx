@@ -172,7 +172,7 @@ export default function BuildingDetailPage() {
           </div>
         </div>
         <div className="flex flex-wrap gap-2">
-          <Link href={`/create-property?edit=${id}`}
+          <Link href={`/edit-property/${id}`}
             className="flex items-center gap-1.5 rounded-full border border-zinc-200 px-4 py-2 text-sm font-semibold text-zinc-600 hover:border-brand hover:text-brand">
             <Pencil className="h-4 w-4" /> Edit Building
           </Link>
