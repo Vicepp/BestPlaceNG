@@ -74,9 +74,29 @@ export async function sendMessage(conversationId: string, senderId: string, send
   await addDoc(collection(getDb(), "conversations", conversationId, "messages"), {
     senderId, senderName, text, type: "text", createdAt: now,
   });
-  await updateDoc(doc(getDb(), "conversations", conversationId), {
-    lastMessageText: text, lastMessageAt: now,
-  });
+  const convoRef = doc(getDb(), "conversations", conversationId);
+  await updateDoc(convoRef, { lastMessageText: text, lastMessageAt: now });
+
+  // Notify all other participants about the new message
+  try {
+    const convoSnap = await getDoc(convoRef);
+    const convoData = convoSnap.data() as Conversation;
+    const others = (convoData.participantIds ?? []).filter((id) => id !== senderId);
+    const { addFirestoreDoc } = await import("@/lib/firestoreWrite");
+    await Promise.all(
+      others.map((uid) =>
+        addFirestoreDoc("notifications", {
+          userId: uid,
+          type: "message",
+          title: `New message from ${senderName}`,
+          body: text.length > 80 ? text.slice(0, 77) + "..." : text,
+          link: `/dashboard/messages?c=${conversationId}`,
+          read: false,
+          createdAt: now,
+        })
+      )
+    );
+  } catch { /* notification failure should never break the send */ }
 }
 
 export async function sendPropertyCard(

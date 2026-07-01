@@ -2,12 +2,13 @@
 
 import { useEffect, useState } from "react";
 import Link from "next/link";
-import { Home, Calendar, Wrench } from "lucide-react";
+import { Home, Calendar, Wrench, Zap } from "lucide-react";
 import { useAuth } from "@/context/AuthContext";
 import { formatNaira } from "@/data/apartments";
 import { getTenanciesForTenantLive, type Tenancy } from "@/data/tenancies";
 import { getPaymentsForTenantLive, type Payment } from "@/data/payments";
 import { getTicketsForTenantLive, type MaintenanceTicket } from "@/data/maintenanceTickets";
+import { getUtilityFeesForTenant, getUtilityRequestsForTenant, type UtilityFee, type UtilityPaymentRequest } from "@/data/utilityFees";
 import PayNowButton from "@/components/dashboard/PayNowButton";
 
 export default function TenantDashboard() {
@@ -15,19 +16,27 @@ export default function TenantDashboard() {
   const [tenancies, setTenancies] = useState<Tenancy[]>([]);
   const [payments, setPayments] = useState<Payment[]>([]);
   const [tickets, setTickets] = useState<MaintenanceTicket[]>([]);
+  const [utilityFees, setUtilityFees] = useState<UtilityFee[]>([]);
+  const [utilityRequests, setUtilityRequests] = useState<UtilityPaymentRequest[]>([]);
   const [loading, setLoading] = useState(true);
 
   function refresh() {
     if (!user) return;
     setLoading(true);
-    Promise.all([getTenanciesForTenantLive(user.uid), getPaymentsForTenantLive(user.uid), getTicketsForTenantLive(user.uid)]).then(
-      ([t, p, tk]) => {
-        setTenancies(t);
-        setPayments(p);
-        setTickets(tk);
-        setLoading(false);
-      }
-    );
+    Promise.all([
+      getTenanciesForTenantLive(user.uid),
+      getPaymentsForTenantLive(user.uid),
+      getTicketsForTenantLive(user.uid),
+      getUtilityFeesForTenant(user.uid),
+      getUtilityRequestsForTenant(user.uid),
+    ]).then(([t, p, tk, uf, ur]) => {
+      setTenancies(t);
+      setPayments(p);
+      setTickets(tk);
+      setUtilityFees(uf.filter((f) => f.status === "active"));
+      setUtilityRequests(ur.filter((r) => r.status === "pending"));
+      setLoading(false);
+    });
   }
 
   useEffect(() => {
@@ -139,6 +148,42 @@ export default function TenantDashboard() {
           </div>
         )}
       </div>
+
+      {/* Utility fees from landlord */}
+      {(utilityFees.length > 0 || utilityRequests.length > 0) && (
+        <div>
+          <h2 className="mb-3 text-sm font-bold text-foreground">Utility Fees</h2>
+          {utilityRequests.length > 0 && (
+            <div className="mb-3 space-y-2">
+              <p className="text-xs font-semibold text-zinc-500">Payment requests from your landlord</p>
+              {utilityRequests.map((r) => (
+                <div key={r.id} className="flex flex-wrap items-center justify-between gap-3 rounded-2xl border border-zinc-100 bg-white p-4 shadow-sm">
+                  <div>
+                    <p className="text-sm font-semibold text-foreground">{r.feeName}</p>
+                    <p className="text-xs text-zinc-400">{r.period} · Due {new Date(r.dueDate).toLocaleDateString()}</p>
+                  </div>
+                  <p className="text-lg font-bold text-brand-dark">{formatNaira(r.amount)}</p>
+                </div>
+              ))}
+            </div>
+          )}
+          {utilityFees.length > 0 && (
+            <div className="rounded-2xl border border-zinc-100 bg-white p-4 shadow-sm">
+              <p className="mb-2 text-xs font-semibold text-zinc-500">Active recurring charges</p>
+              <div className="space-y-1.5">
+                {utilityFees.map((f) => (
+                  <div key={f.id} className="flex items-center justify-between text-sm">
+                    <span className="flex items-center gap-1.5 text-foreground">
+                      <Zap className="h-3.5 w-3.5 text-accent" /> {f.name}
+                    </span>
+                    <span className="text-zinc-500">{formatNaira(f.amount)}/{f.period}</span>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
+        </div>
+      )}
     </div>
   );
 }

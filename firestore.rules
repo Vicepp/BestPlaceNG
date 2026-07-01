@@ -164,6 +164,27 @@ service cloud.firestore {
       allow delete: if false;
     }
 
+    // --- Utility fees (per-tenancy recurring charges set by landlord) ---
+    match /utilityFees/{id} {
+      allow read: if request.auth != null
+        && (resource.data.landlordId == request.auth.uid || resource.data.tenantId == request.auth.uid);
+      allow create: if request.auth != null && request.resource.data.landlordId == request.auth.uid;
+      allow update: if request.auth != null && resource.data.landlordId == request.auth.uid
+        && request.resource.data.diff(resource.data).affectedKeys().hasOnly(["status"]);
+      allow delete: if false;
+    }
+
+    // --- Utility payment requests ---
+    match /utilityPaymentRequests/{id} {
+      allow read: if request.auth != null
+        && (resource.data.landlordId == request.auth.uid || resource.data.tenantId == request.auth.uid);
+      allow create: if request.auth != null && request.resource.data.landlordId == request.auth.uid;
+      allow update: if request.auth != null
+        && (resource.data.landlordId == request.auth.uid || resource.data.tenantId == request.auth.uid)
+        && request.resource.data.diff(resource.data).affectedKeys().hasOnly(["status", "paidAt"]);
+      allow delete: if false;
+    }
+
     // --- AI chatbot training data (write-only log per user) ---
     match /chatTrainingData/{uid} {
       allow read: if false;

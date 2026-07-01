@@ -49,6 +49,13 @@ export async function getPropertiesForOwner(ownerId: string): Promise<Property[]
   return result ?? [];
 }
 
+/** All public properties — for the /apartments listing page */
+export async function getAllPropertiesLive(): Promise<Property[]> {
+  const { getFirestoreCollection } = await import("@/lib/firestoreData");
+  const r = await getFirestoreCollection<Property>("properties");
+  return r ?? [];
+}
+
 /** Extract YouTube video ID from any YouTube URL format */
 export function extractYouTubeId(url: string): string | null {
   if (!url) return null;

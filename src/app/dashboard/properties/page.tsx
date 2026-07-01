@@ -2,10 +2,10 @@
 
 import { useEffect, useState, useRef } from "react";
 import Link from "next/link";
-import { Plus, Building2, Home, MoreVertical, Eye, EyeOff, Archive, RotateCcw, ChevronDown } from "lucide-react";
+import { Plus, Building2, Home, MoreVertical, Eye, EyeOff, Archive, RotateCcw, ChevronDown, ArchiveIcon } from "lucide-react";
 import { useAuth } from "@/context/AuthContext";
 import { getPropertiesForOwner, type Property } from "@/data/properties";
-import { getApartmentsByOwnerLive, formatNaira, setListingStatus, type ApartmentListing, type ListingStatus } from "@/data/apartments";
+import { getApartmentsByOwnerLive, formatNaira, setListingStatus, assignUnitToProperty, removeUnitFromProperty, type ApartmentListing, type ListingStatus } from "@/data/apartments";
 
 const STATUS_STYLES: Record<ListingStatus, string> = {
   active: "bg-green-100 text-green-700",
@@ -13,8 +13,17 @@ const STATUS_STYLES: Record<ListingStatus, string> = {
   archived: "bg-zinc-100 text-zinc-500",
 };
 
-function UnitDotMenu({ unit, onRefresh }: { unit: ApartmentListing; onRefresh: () => void }) {
+function UnitDotMenu({
+  unit,
+  onRefresh,
+  availableProperties = [],
+}: {
+  unit: ApartmentListing;
+  onRefresh: () => void;
+  availableProperties?: Property[];
+}) {
   const [open, setOpen] = useState(false);
+  const [showAssign, setShowAssign] = useState(false);
   const ref = useRef<HTMLDivElement>(null);
   const status = unit.status ?? "active";
 
@@ -60,13 +69,47 @@ function UnitDotMenu({ unit, onRefresh }: { unit: ApartmentListing; onRefresh: (
           <Link href={`/dashboard/properties/${unit.id}`} className="flex items-center gap-2 px-3 py-2 text-sm text-foreground hover:bg-zinc-50">
             <Building2 className="h-4 w-4 text-zinc-400" /> Manage Unit
           </Link>
+          {/* Assign to / Remove from building */}
+          {unit.propertyId ? (
+            <button
+              onClick={async () => { await removeUnitFromProperty(unit.id); setOpen(false); onRefresh(); }}
+              className="flex w-full items-center gap-2 px-3 py-2 text-sm text-zinc-500 hover:bg-zinc-50"
+            >
+              <Building2 className="h-4 w-4" /> Remove from building
+            </button>
+          ) : availableProperties.length > 0 && (
+            <button
+              onClick={() => { setShowAssign(true); setOpen(false); }}
+              className="flex w-full items-center gap-2 px-3 py-2 text-sm text-foreground hover:bg-zinc-50"
+            >
+              <Building2 className="h-4 w-4 text-brand" /> Assign to building
+            </button>
+          )}
+        </div>
+      )}
+      {/* Assign picker */}
+      {showAssign && (
+        <div className="absolute right-0 top-full z-30 mt-1 w-56 overflow-hidden rounded-xl border border-zinc-100 bg-white py-1 shadow-xl">
+          <p className="px-3 py-2 text-[10px] font-semibold uppercase tracking-wide text-zinc-400">Pick a building</p>
+          {availableProperties.map((p) => (
+            <button
+              key={p.id}
+              onClick={async () => { await assignUnitToProperty(unit.id, p.id, p.name); setShowAssign(false); onRefresh(); }}
+              className="flex w-full items-center gap-2 px-3 py-2 text-sm text-foreground hover:bg-brand-light hover:text-brand"
+            >
+              <Building2 className="h-4 w-4" /> {p.name}
+            </button>
+          ))}
+          <button onClick={() => setShowAssign(false)} className="flex w-full items-center gap-2 px-3 py-2 text-xs text-zinc-400 hover:bg-zinc-50">
+            Cancel
+          </button>
         </div>
       )}
     </div>
   );
 }
 
-function PropertyCard({ property, units, onRefresh }: { property: Property; units: ApartmentListing[]; onRefresh: () => void }) {
+function PropertyCard({ property, units, onRefresh, allProperties }: { property: Property; units: ApartmentListing[]; onRefresh: () => void; allProperties: Property[] }) {
   const [expanded, setExpanded] = useState(true);
   const activeUnits = units.filter((u) => (u.status ?? "active") === "active").length;
 
@@ -124,7 +167,7 @@ function PropertyCard({ property, units, onRefresh }: { property: Property; unit
                     </div>
                     <div className="flex shrink-0 items-center gap-2">
                       <span className={`rounded-full px-2.5 py-0.5 text-[10px] font-semibold capitalize ${STATUS_STYLES[status]}`}>{status}</span>
-                      <UnitDotMenu unit={unit} onRefresh={onRefresh} />
+                      <UnitDotMenu unit={unit} onRefresh={onRefresh} availableProperties={allProperties.filter(p => p.id !== property.id)} />
                     </div>
                   </div>
                 );
@@ -156,8 +199,11 @@ export default function PropertiesPage() {
 
   useEffect(() => { load(); }, [user]); // eslint-disable-line react-hooks/exhaustive-deps
 
+  const [showArchived, setShowArchived] = useState(false);
+
   // Standalone units (no propertyId) — listed individually
-  const standaloneUnits = units.filter((u) => !u.propertyId);
+  const standaloneUnits = units.filter((u) => !u.propertyId && (u.status ?? "active") !== "archived");
+  const archivedUnits = units.filter((u) => (u.status ?? "active") === "archived");
 
   return (
     <div className="space-y-5">
@@ -168,9 +214,17 @@ export default function PropertiesPage() {
             {properties.length} building{properties.length !== 1 ? "s" : ""} · {units.length} unit{units.length !== 1 ? "s" : ""} total
           </p>
         </div>
-        <div className="flex gap-3">
+        <div className="flex flex-wrap gap-2">
+          {archivedUnits.length > 0 && (
+            <button
+              onClick={() => setShowArchived((v) => !v)}
+              className={`flex items-center gap-1.5 rounded-full border px-4 py-2 text-sm font-semibold transition ${showArchived ? "border-brand bg-brand-light text-brand-dark" : "border-zinc-200 text-zinc-500 hover:border-zinc-400"}`}
+            >
+              <ArchiveIcon className="h-4 w-4" /> Archive ({archivedUnits.length})
+            </button>
+          )}
           <Link href="/list-property" className="flex items-center gap-1.5 rounded-full border border-zinc-200 px-4 py-2 text-sm font-semibold text-zinc-600 hover:border-brand hover:text-brand">
-            <Plus className="h-4 w-4" /> Add Standalone Unit
+            <Plus className="h-4 w-4" /> Add Unit
           </Link>
           <Link href="/create-property" className="flex items-center gap-1.5 rounded-full bg-brand px-4 py-2 text-sm font-semibold text-white hover:bg-brand-dark">
             <Building2 className="h-4 w-4" /> New Building
@@ -189,6 +243,7 @@ export default function PropertiesPage() {
               property={p}
               units={units.filter((u) => u.propertyId === p.id)}
               onRefresh={load}
+              allProperties={properties}
             />
           ))}
 
@@ -211,11 +266,29 @@ export default function PropertiesPage() {
                       </div>
                       <div className="flex shrink-0 items-center gap-2">
                         <span className={`rounded-full px-2.5 py-0.5 text-[10px] font-semibold capitalize ${STATUS_STYLES[status]}`}>{status}</span>
-                        <UnitDotMenu unit={unit} onRefresh={load} />
+                        <UnitDotMenu unit={unit} onRefresh={load} availableProperties={properties} />
                       </div>
                     </div>
                   );
                 })}
+              </div>
+            </div>
+          )}
+
+          {/* Archived units section */}
+          {showArchived && archivedUnits.length > 0 && (
+            <div className="overflow-hidden rounded-2xl border border-zinc-200 bg-zinc-50 shadow-sm">
+              <p className="px-5 pt-4 text-sm font-bold text-zinc-500">Archived / Delisted Units</p>
+              <div className="mt-2 border-t border-zinc-200 divide-y divide-zinc-100">
+                {archivedUnits.map((unit) => (
+                  <div key={unit.id} className="flex items-center justify-between gap-3 px-5 py-3 opacity-70">
+                    <div className="min-w-0">
+                      <p className="truncate text-sm font-medium text-zinc-600">{unit.title}</p>
+                      <p className="text-xs text-zinc-400">{unit.area} · {formatNaira(unit.priceNaira)}</p>
+                    </div>
+                    <UnitDotMenu unit={unit} onRefresh={load} availableProperties={properties} />
+                  </div>
+                ))}
               </div>
             </div>
           )}

@@ -106,6 +106,20 @@ export async function setListingStatus(id: string, status: ListingStatus): Promi
   return setFirestoreDoc("apartments", id, { status });
 }
 
+/** Assign a standalone unit to a parent Property building */
+export async function assignUnitToProperty(
+  unitId: string,
+  propertyId: string,
+  propertyName: string
+): Promise<WriteResult> {
+  return setFirestoreDoc("apartments", unitId, { propertyId, propertyName });
+}
+
+/** Remove a unit from its parent property (make standalone again) */
+export async function removeUnitFromProperty(unitId: string): Promise<WriteResult> {
+  return setFirestoreDoc("apartments", unitId, { propertyId: null, propertyName: null });
+}
+
 /** Public-facing query — only returns active listings (hides rented/archived) */
 export async function getApartmentsPublicLive(): Promise<ApartmentListing[]> {
   const all = await getApartmentsLive();

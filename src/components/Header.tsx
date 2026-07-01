@@ -4,9 +4,10 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 import { AnimatePresence, motion } from "framer-motion";
-import { Bell, ChevronDown, MapPin, Menu, User, X } from "lucide-react";
+import { ChevronDown, MapPin, Menu, User, X } from "lucide-react";
 import { useAuth } from "@/context/AuthContext";
 import { subscribeToUnreadCount } from "@/data/notifications";
+import NotificationDrawer from "@/components/NotificationDrawer";
 
 interface DropdownItem {
   label: string;
@@ -107,17 +108,8 @@ export default function Header() {
         </nav>
 
         <div className="hidden items-center gap-3 md:flex">
-          {/* Notification bell — only for logged-in users */}
-          {user && (
-            <Link href="/dashboard/messages" className="relative flex h-9 w-9 items-center justify-center rounded-full border border-zinc-200 text-foreground/70 hover:border-brand hover:text-brand">
-              <Bell className="h-4 w-4" />
-              {unreadCount > 0 && (
-                <span className="absolute -right-1 -top-1 flex h-4 w-4 items-center justify-center rounded-full bg-red-500 text-[9px] font-bold text-white">
-                  {unreadCount > 9 ? "9+" : unreadCount}
-                </span>
-              )}
-            </Link>
-          )}
+          {/* Notification bell with full drawer */}
+          {user && <NotificationDrawer unreadCount={unreadCount} />}
           <div
             className="relative"
             onMouseEnter={() => setAccountOpen(true)}

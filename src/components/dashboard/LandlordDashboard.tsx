@@ -113,13 +113,18 @@ export default function LandlordDashboard() {
         <StatCard label="Open Tickets" value={String(openTickets.length)} icon={<Wrench className="h-4 w-4 text-zinc-300" />} />
       </div>
 
-      {pendingRequests.length > 0 && (
+      {/* Action-required banner — shown prominently so nothing is missed */}
+      {(pendingRequests.length > 0) && (
         <div className="rounded-2xl border border-accent/30 bg-accent/10 p-4 text-sm text-accent-dark">
-          You have <strong>{pendingRequests.length}</strong> pending tenant {pendingRequests.length === 1 ? "request" : "requests"} waiting for
-          approval.{" "}
-          <Link href="/dashboard/tenants" className="font-semibold underline">
-            Review now
-          </Link>
+          <p className="font-semibold">⚡ Action required</p>
+          <ul className="mt-1.5 space-y-0.5 pl-1">
+            {pendingRequests.length > 0 && (
+              <li>
+                <strong>{pendingRequests.length}</strong> tenant rental {pendingRequests.length === 1 ? "request" : "requests"} waiting for your approval.{" "}
+                <Link href="/dashboard/tenants" className="font-semibold underline">Review now →</Link>
+              </li>
+            )}
+          </ul>
         </div>
       )}
 

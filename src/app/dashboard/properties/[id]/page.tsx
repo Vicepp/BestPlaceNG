@@ -13,6 +13,16 @@ import {
   type Tenancy,
 } from "@/data/tenancies";
 import { getTicketsForLandlordLive, updateTicketStatus, type MaintenanceTicket } from "@/data/maintenanceTickets";
+import {
+  getUtilityFeesForTenancy,
+  createUtilityFee,
+  removeUtilityFee,
+  reactivateUtilityFee,
+  requestUtilityPayment,
+  type UtilityFee,
+  type UtilityPeriod,
+} from "@/data/utilityFees";
+import { createNotification } from "@/data/notifications";
 
 const TICKET_STYLES: Record<string, string> = {
   pending: "bg-red-100 text-red-700",
@@ -241,6 +251,202 @@ export default function PropertyDetailPage() {
             ))}
           </div>
         )}
+      </div>
+
+      {/* ── Utility Fees per tenancy ─────────────────────────── */}
+      {activeT.length > 0 && (
+        <UtilityFeesSection
+          tenancies={activeT}
+          landlordId={user?.uid ?? ""}
+          apartmentTitle={apartment?.title ?? ""}
+          apartmentId={id}
+        />
+      )}
+    </div>
+  );
+}
+
+/** Per-tenancy utility fee management for the landlord */
+function UtilityFeesSection({
+  tenancies,
+  landlordId,
+  apartmentTitle,
+  apartmentId,
+}: {
+  tenancies: import("@/data/tenancies").Tenancy[];
+  landlordId: string;
+  apartmentTitle: string;
+  apartmentId: string;
+}) {
+  const [feesByTenancy, setFeesByTenancy] = useState<Record<string, UtilityFee[]>>({});
+  const [newName, setNewName] = useState<Record<string, string>>({});
+  const [newAmount, setNewAmount] = useState<Record<string, string>>({});
+  const [newPeriod, setNewPeriod] = useState<Record<string, UtilityPeriod>>({});
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    Promise.all(tenancies.map((t) => getUtilityFeesForTenancy(t.id).then((fees) => ({ id: t.id, fees })))).then((results) => {
+      const map: Record<string, UtilityFee[]> = {};
+      results.forEach(({ id, fees }) => { map[id] = fees; });
+      setFeesByTenancy(map);
+      setLoading(false);
+    });
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+  async function handleAdd(tenancy: import("@/data/tenancies").Tenancy) {
+    const name = newName[tenancy.id]?.trim();
+    const amount = Number(newAmount[tenancy.id]);
+    const period = newPeriod[tenancy.id] ?? "monthly";
+    if (!name || !amount || !tenancy.tenantId) return;
+
+    await createUtilityFee({
+      tenancyId: tenancy.id,
+      apartmentId,
+      apartmentTitle,
+      landlordId,
+      tenantId: tenancy.tenantId,
+      tenantName: tenancy.tenantName,
+      name,
+      amount,
+      period,
+    });
+    setNewName((p) => ({ ...p, [tenancy.id]: "" }));
+    setNewAmount((p) => ({ ...p, [tenancy.id]: "" }));
+    const fees = await getUtilityFeesForTenancy(tenancy.id);
+    setFeesByTenancy((p) => ({ ...p, [tenancy.id]: fees }));
+  }
+
+  async function handleRequestPayment(fee: UtilityFee) {
+    const dueDate = new Date();
+    dueDate.setDate(dueDate.getDate() + 7); // 7 days to pay
+    await requestUtilityPayment({
+      utilityFeeId: fee.id,
+      tenancyId: fee.tenancyId,
+      apartmentId,
+      apartmentTitle,
+      landlordId,
+      tenantId: fee.tenantId,
+      tenantName: fee.tenantName,
+      feeName: fee.name,
+      amount: fee.amount,
+      period: fee.period,
+      dueDate: dueDate.toISOString(),
+    });
+    // Notify the tenant
+    await createNotification({
+      userId: fee.tenantId,
+      type: "payment_made",
+      title: `Utility payment requested: ${fee.name}`,
+      body: `Your landlord has requested ₦${fee.amount.toLocaleString()} for ${fee.name} (${fee.period}). Due in 7 days.`,
+      link: "/dashboard",
+    });
+  }
+
+  if (loading) return null;
+
+  return (
+    <div className="rounded-2xl border border-zinc-100 bg-white p-5 shadow-sm">
+      <h2 className="text-sm font-bold text-foreground">Utility Fees</h2>
+      <p className="mt-0.5 text-xs text-zinc-400">
+        Per-tenant recurring charges (electricity, water, service charge, etc.) — only visible to the tenant after their tenancy is active.
+      </p>
+
+      <div className="mt-4 space-y-6">
+        {tenancies.map((tenancy) => {
+          const fees = feesByTenancy[tenancy.id] ?? [];
+          const active = fees.filter((f) => f.status === "active");
+          const removed = fees.filter((f) => f.status === "removed");
+
+          return (
+            <div key={tenancy.id} className="rounded-xl border border-zinc-100 bg-zinc-50 p-4">
+              <p className="text-sm font-semibold text-foreground">{tenancy.tenantName}</p>
+              <p className="text-xs text-zinc-400">{tenancy.tenantEmail}</p>
+
+              {active.length > 0 && (
+                <div className="mt-3 space-y-2">
+                  {active.map((fee) => (
+                    <div key={fee.id} className="flex flex-wrap items-center justify-between gap-2 rounded-lg border border-zinc-200 bg-white px-3 py-2">
+                      <div>
+                        <p className="text-sm font-medium text-foreground">{fee.name}</p>
+                        <p className="text-xs text-zinc-400">{formatNaira(fee.amount)} / {fee.period}</p>
+                      </div>
+                      <div className="flex gap-2">
+                        <button
+                          onClick={() => handleRequestPayment(fee)}
+                          className="rounded-full bg-brand px-3 py-1 text-xs font-semibold text-white hover:bg-brand-dark"
+                        >
+                          Request payment
+                        </button>
+                        <button
+                          onClick={async () => {
+                            await removeUtilityFee(fee.id);
+                            const f = await getUtilityFeesForTenancy(tenancy.id);
+                            setFeesByTenancy((p) => ({ ...p, [tenancy.id]: f }));
+                          }}
+                          className="rounded-full border border-zinc-200 px-3 py-1 text-xs font-semibold text-zinc-500 hover:border-red-300 hover:text-red-500"
+                        >
+                          Remove
+                        </button>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              )}
+
+              {removed.length > 0 && (
+                <div className="mt-2 space-y-1">
+                  {removed.map((fee) => (
+                    <div key={fee.id} className="flex items-center justify-between rounded-lg px-3 py-1.5 opacity-50">
+                      <p className="text-xs text-zinc-500 line-through">{fee.name} — {formatNaira(fee.amount)}/{fee.period}</p>
+                      <button
+                        onClick={async () => {
+                          await reactivateUtilityFee(fee.id);
+                          const f = await getUtilityFeesForTenancy(tenancy.id);
+                          setFeesByTenancy((p) => ({ ...p, [tenancy.id]: f }));
+                        }}
+                        className="text-[10px] font-semibold text-brand hover:underline"
+                      >
+                        Re-add
+                      </button>
+                    </div>
+                  ))}
+                </div>
+              )}
+
+              {/* Add a new fee */}
+              <div className="mt-3 grid grid-cols-3 gap-2">
+                <input
+                  value={newName[tenancy.id] ?? ""}
+                  onChange={(e) => setNewName((p) => ({ ...p, [tenancy.id]: e.target.value }))}
+                  placeholder="Fee name"
+                  className="col-span-1 rounded-lg border border-zinc-200 px-2.5 py-1.5 text-xs outline-none focus:border-brand"
+                />
+                <input
+                  value={newAmount[tenancy.id] ?? ""}
+                  onChange={(e) => setNewAmount((p) => ({ ...p, [tenancy.id]: e.target.value }))}
+                  type="number"
+                  placeholder="₦ Amount"
+                  className="rounded-lg border border-zinc-200 px-2.5 py-1.5 text-xs outline-none focus:border-brand"
+                />
+                <select
+                  value={newPeriod[tenancy.id] ?? "monthly"}
+                  onChange={(e) => setNewPeriod((p) => ({ ...p, [tenancy.id]: e.target.value as UtilityPeriod }))}
+                  className="rounded-lg border border-zinc-200 px-2.5 py-1.5 text-xs outline-none focus:border-brand"
+                >
+                  <option value="monthly">Monthly</option>
+                  <option value="yearly">Yearly</option>
+                </select>
+              </div>
+              <button
+                onClick={() => handleAdd(tenancy)}
+                className="mt-2 rounded-full bg-zinc-800 px-4 py-1.5 text-xs font-semibold text-white hover:bg-brand"
+              >
+                + Add fee
+              </button>
+            </div>
+          );
+        })}
       </div>
     </div>
   );
