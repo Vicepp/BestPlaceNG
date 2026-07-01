@@ -1,6 +1,7 @@
 import { addFirestoreDoc, setFirestoreDoc, queryFirestoreCollection, type WriteResult } from "@/lib/firestoreWrite";
 import { getFirestoreDoc } from "@/lib/firestoreData";
 import { ensurePropertyGroupConversation } from "@/data/conversations";
+import { createNotification } from "@/data/notifications";
 
 async function landlordDisplayName(landlordId: string): Promise<string> {
   const doc = await getFirestoreDoc<{ displayName?: string }>("users", landlordId);
@@ -117,6 +118,14 @@ export async function claimPendingInvitesForEmail(uid: string, email: string): P
   for (const t of matches) {
     if (t.status !== "invited") continue;
     await setFirestoreDoc("tenancies", t.id, { tenantId: uid, status: "active" });
+    // Notify the tenant they've been confirmed as a tenant
+    createNotification({
+      userId: uid,
+      type: "tenancy",
+      title: "You're now a tenant 🏠",
+      body: `Your tenancy at ${t.apartmentTitle} is confirmed. Check your dashboard for rent and payment details.`,
+      link: "/dashboard",
+    }).catch(() => {});
     const landlordName = await landlordDisplayName(t.landlordId);
     await ensurePropertyGroupConversation({
       apartmentId: t.apartmentId,
