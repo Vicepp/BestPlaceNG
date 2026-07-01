@@ -5,19 +5,30 @@ import { getFirebaseStorage, isFirebaseConfigured } from "./firebase";
 
 export type UploadResult = { ok: true; url: string } | { ok: false; error: string };
 
-/** Upload a File to Firebase Storage under `path` and return the public download URL. */
+/** Upload a File to Firebase Storage under `path` and return the public download URL.
+ *  Times out after 30s so the UI never hangs indefinitely. */
 export async function uploadFile(file: File, path: string): Promise<UploadResult> {
-  if (!isFirebaseConfigured()) return { ok: false, error: "Storage not configured." };
-  if (file.size > 10 * 1024 * 1024) return { ok: false, error: "File too large — max 10 MB." };
+  if (!isFirebaseConfigured()) return { ok: false, error: "Storage not configured. Check Firebase settings." };
+  if (file.size > 10 * 1024 * 1024) return { ok: false, error: "File too large — max 10 MB per image." };
+
+  const timeout = new Promise<UploadResult>((_, reject) =>
+    setTimeout(() => reject(new Error("timeout")), 30_000)
+  );
 
   try {
-    const storageRef = ref(getFirebaseStorage(), path);
-    await uploadBytes(storageRef, file);
-    const url = await getDownloadURL(storageRef);
-    return { ok: true, url };
+    const upload = (async () => {
+      const storageRef = ref(getFirebaseStorage(), path);
+      await uploadBytes(storageRef, file);
+      const url = await getDownloadURL(storageRef);
+      return { ok: true as const, url };
+    })();
+    return await Promise.race([upload, timeout]);
   } catch (e) {
+    const msg = (e as Error).message === "timeout"
+      ? "Upload timed out — check your connection and Firebase Storage rules."
+      : "Upload failed. Make sure Firebase Storage is enabled in the Firebase console.";
     console.error("[storage] upload failed:", e);
-    return { ok: false, error: "Upload failed. Please try again." };
+    return { ok: false, error: msg };
   }
 }
 

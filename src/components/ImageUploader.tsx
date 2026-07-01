@@ -92,7 +92,15 @@ export default function ImageUploader({
           </button>
         </>
       )}
-      {error && <p className="text-xs text-red-600">{error}</p>}
+      {error && (
+        <div className="rounded-xl bg-red-50 px-3 py-2 text-xs text-red-700">
+          <p className="font-semibold">Upload failed</p>
+          <p className="mt-0.5">{error}</p>
+          <p className="mt-1 text-red-500">
+            Make sure Firebase Storage is enabled in your Firebase console (Build → Storage → Get Started) and that your Storage rules allow writes. You can also skip photos and add them later.
+          </p>
+        </div>
+      )}
     </div>
   );
 }
