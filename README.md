@@ -1,36 +1,52 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# BestPlaceNG
+
+Find the best place to live in Nigeria — compare cities by cost of living,
+safety, climate, schools and more, then browse apartments to rent. Inspired
+by BestPlaces.net, built for the Nigerian market.
+
+## Status: Phase 1
+
+This is the first build phase: landing page, Nigeria map, city search (by
+name, state, or ZIP code) with same-name-different-state disambiguation,
+city overview pages with a BestPlaces-style sidebar covering cost of living,
+crime, climate, jobs, schools, economy, housing stats and more, a sample
+apartments section, and a floating AI assistant (chat + voice via the
+browser's built-in Speech Recognition) that recommends cities and links
+only to internal city pages.
+
+City data (population, state, LGA, ZIP) covers ~49 major Nigerian cities
+and state capitals as a curated starting dataset — see
+`src/data/cities.ts`. Several sidebar sections (health, religion, politics,
+commute time, etc.) show a "coming soon" placeholder pending verified data.
+
+**Not yet built (Phase 2):** landlord/tenant accounts, real property
+listings (current apartment listings are sample data), and a wired-up AI
+backend for the assistant (it currently uses local keyword matching against
+the city dataset, no external API key required).
 
 ## Getting Started
 
-First, run the development server:
-
 ```bash
+npm install
 npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+Open [http://localhost:3000](http://localhost:3000).
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+## Phase 2 setup (when ready)
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+Copy `.env.local.example` to `.env.local` and fill in your Firebase project
+keys. `src/lib/firebase.ts` is scaffolded but not wired into any UI yet.
 
-## Learn More
+## Tech Stack
 
-To learn more about Next.js, take a look at the following resources:
+- Next.js (App Router) + TypeScript
+- Tailwind CSS v4
+- Framer Motion (animations/transitions)
+- `@svg-maps/nigeria` (interactive state map)
+- Firebase (Phase 2 — auth, listings, reviews)
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+## Deploy
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
-
-## Deploy on Vercel
-
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
-
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+Build with `npm run build`. Deploys cleanly to Vercel or any Node hosting
+platform that supports Next.js.

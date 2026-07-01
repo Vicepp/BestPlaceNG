@@ -143,9 +143,19 @@ function parseAssistantJson(raw: string): { reply: string; recommendations: Reco
 
 export async function POST(req: NextRequest) {
   let message: unknown;
+  let history: { role: "user" | "assistant"; content: string }[] = [];
   try {
     const body = await req.json();
     message = body?.message;
+    // Conversation history: array of prior {role, content} pairs so the AI remembers context
+    if (Array.isArray(body?.history)) {
+      history = body.history
+        .filter((h: unknown): h is { role: string; content: string } =>
+          typeof h === "object" && h !== null && "role" in h && "content" in h
+        )
+        .slice(-20) // cap at 20 prior turns to keep prompt size sane
+        .map((h: { role: string; content: string }) => ({ role: h.role === "user" ? "user" as const : "assistant" as const, content: String(h.content) }));
+    }
   } catch {
     return NextResponse.json({ error: "Invalid request body" }, { status: 400 });
   }
@@ -161,6 +171,8 @@ export async function POST(req: NextRequest) {
     { role: "system", content: SYSTEM_PROMPT },
     { role: "system", content: buildCityContext(message) },
     { role: "system", content: await buildListingsContext() },
+    // Inject conversation history so the AI remembers what was already discussed
+    ...history,
     { role: "user", content: message },
   ];
 

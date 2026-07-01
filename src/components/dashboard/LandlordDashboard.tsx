@@ -79,7 +79,34 @@ export default function LandlordDashboard() {
         <p className="mt-1 text-sm text-zinc-500">Here&apos;s the latest snapshot of your properties</p>
       </div>
 
-      <div className="grid grid-cols-2 gap-4 sm:grid-cols-4">
+      {/* Mobile: horizontal swipeable carousel — each card snaps to center */}
+      <div className="sm:hidden">
+        <div
+          className="flex snap-x snap-mandatory gap-3 overflow-x-auto pb-3"
+          style={{ scrollbarWidth: "none" }}
+        >
+          {[
+            { label: "Total Properties", value: String(apartments.length), icon: <Building2 className="h-5 w-5 text-brand" /> },
+            { label: "Active Tenants", value: String(activeTenancies.length), icon: <Users className="h-5 w-5 text-blue-500" /> },
+            { label: "Overdue Payments", value: formatNaira(overdueTotal), icon: <AlertTriangle className="h-5 w-5 text-red-500" /> },
+            { label: "Open Tickets", value: String(openTickets.length), icon: <Wrench className="h-5 w-5 text-accent" /> },
+          ].map((card) => (
+            <div
+              key={card.label}
+              className="w-[72vw] shrink-0 snap-center rounded-2xl border border-zinc-100 bg-white p-5 shadow-sm"
+            >
+              <div className="flex items-center justify-between">
+                <p className="text-xs font-medium text-zinc-400">{card.label}</p>
+                {card.icon}
+              </div>
+              <p className="mt-3 text-3xl font-bold text-foreground">{card.value}</p>
+            </div>
+          ))}
+        </div>
+      </div>
+
+      {/* Desktop: 4-column grid */}
+      <div className="hidden grid-cols-2 gap-4 sm:grid sm:grid-cols-4">
         <StatCard label="Total Properties" value={String(apartments.length)} icon={<Building2 className="h-4 w-4 text-zinc-300" />} />
         <StatCard label="Active Tenants" value={String(activeTenancies.length)} icon={<Users className="h-4 w-4 text-zinc-300" />} />
         <StatCard label="Overdue Payments" value={formatNaira(overdueTotal)} icon={<AlertTriangle className="h-4 w-4 text-zinc-300" />} />

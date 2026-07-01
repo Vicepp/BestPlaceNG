@@ -27,11 +27,24 @@ export interface Conversation {
   createdAt: string;
 }
 
+export type ChatMessageType = "text" | "property_share" | "image";
+
 export interface ChatMessage {
   id: string;
   senderId: string;
   senderName: string;
   text: string;
+  type?: ChatMessageType;
+  // property_share fields
+  propertyId?: string;
+  propertyTitle?: string;
+  propertyType?: string;
+  propertyPurpose?: string;
+  propertyCitySlug?: string;
+  propertyPriceNaira?: number;
+  propertyArea?: string;
+  // image fields
+  imageData?: string; // base64 data URL
   createdAt: string;
 }
 
@@ -59,14 +72,44 @@ export function subscribeToMessages(conversationId: string, onMessages: (message
 export async function sendMessage(conversationId: string, senderId: string, senderName: string, text: string): Promise<void> {
   const now = new Date().toISOString();
   await addDoc(collection(getDb(), "conversations", conversationId, "messages"), {
-    senderId,
-    senderName,
-    text,
+    senderId, senderName, text, type: "text", createdAt: now,
+  });
+  await updateDoc(doc(getDb(), "conversations", conversationId), {
+    lastMessageText: text, lastMessageAt: now,
+  });
+}
+
+export async function sendPropertyCard(
+  conversationId: string,
+  senderId: string,
+  senderName: string,
+  property: { id: string; title: string; type: string; purpose: string; citySlug: string; priceNaira: number; area: string }
+): Promise<void> {
+  const now = new Date().toISOString();
+  await addDoc(collection(getDb(), "conversations", conversationId, "messages"), {
+    senderId, senderName, text: `🏠 ${property.title}`,
+    type: "property_share",
+    propertyId: property.id,
+    propertyTitle: property.title,
+    propertyType: property.type,
+    propertyPurpose: property.purpose,
+    propertyCitySlug: property.citySlug,
+    propertyPriceNaira: property.priceNaira,
+    propertyArea: property.area,
     createdAt: now,
   });
   await updateDoc(doc(getDb(), "conversations", conversationId), {
-    lastMessageText: text,
-    lastMessageAt: now,
+    lastMessageText: `Shared: ${property.title}`, lastMessageAt: now,
+  });
+}
+
+export async function sendImage(conversationId: string, senderId: string, senderName: string, imageData: string): Promise<void> {
+  const now = new Date().toISOString();
+  await addDoc(collection(getDb(), "conversations", conversationId, "messages"), {
+    senderId, senderName, text: "📷 Image", type: "image", imageData, createdAt: now,
+  });
+  await updateDoc(doc(getDb(), "conversations", conversationId), {
+    lastMessageText: "Sent an image", lastMessageAt: now,
   });
 }
 
