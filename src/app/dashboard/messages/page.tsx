@@ -89,7 +89,7 @@ function MessagesContent() {
 
   return (
     /* full-height two-pane layout; on mobile, show only the thread pane when a conversation is open */
-    <div className="flex h-[calc(100dvh-10rem)] overflow-hidden rounded-2xl border border-zinc-100 bg-white shadow-sm md:h-[calc(100vh-8rem)]">
+    <div className="flex h-[calc(100dvh-14rem)] overflow-hidden rounded-2xl border border-zinc-100 bg-white shadow-sm md:h-[calc(100vh-8rem)]">
       {/* Conversation list — hidden on mobile when a chat is open */}
       <div className={`w-full shrink-0 overflow-y-auto border-r border-zinc-100 md:w-72 ${activeId ? "hidden md:block" : "block"}`}>
         <p className="px-4 py-3 text-sm font-bold text-foreground">Messages</p>

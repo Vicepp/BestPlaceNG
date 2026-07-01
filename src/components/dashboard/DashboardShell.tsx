@@ -74,7 +74,9 @@ export default function DashboardShell({ children }: { children: React.ReactNode
   }
 
   return (
-    <div className="relative mx-auto flex min-h-[calc(100vh-4rem)] max-w-7xl gap-6 px-4 py-6 sm:px-6 lg:px-8">
+    /* Mobile: full-screen column, no outer padding (sticky bars + bottom nav handle spacing)
+       Desktop: max-width centred row with sidebar, standard padding */
+    <div className="relative flex min-h-[calc(100vh-4rem)] flex-col md:mx-auto md:max-w-7xl md:flex-row md:gap-6 md:px-4 md:py-6 lg:px-8">
       {/* ── Desktop sidebar ──────────────────────────────────── */}
       <aside className="hidden w-60 shrink-0 flex-col justify-between md:flex">
         <div>
@@ -147,8 +149,8 @@ export default function DashboardShell({ children }: { children: React.ReactNode
         </div>
       </aside>
 
-      {/* ── Mobile top-bar (view switcher) ───────────────────── */}
-      <div className="fixed left-0 right-0 top-16 z-20 border-b border-zinc-100 bg-white/95 px-4 py-2 backdrop-blur md:hidden">
+      {/* ── Mobile top-bar: view switcher, fixed below the site header ─── */}
+      <div className="fixed left-0 right-0 top-16 z-20 border-b border-zinc-100 bg-white/95 px-4 py-2.5 backdrop-blur md:hidden">
         <div className="flex items-center justify-between">
           <span className="text-sm font-bold text-foreground">Dashboard</span>
           <div className="flex rounded-full bg-zinc-100 p-0.5 text-xs font-semibold">
@@ -168,26 +170,27 @@ export default function DashboardShell({ children }: { children: React.ReactNode
       </div>
 
       {/* ── Main content ─────────────────────────────────────── */}
-      {/* On mobile: top padding for the fixed top-bar, bottom padding for the bottom nav */}
-      <main className="min-w-0 flex-1 pt-10 pb-24 md:pb-0 md:pt-0">{children}</main>
+      {/* Mobile: px-4 horizontal padding, pt-14 clears the sticky view-switcher bar (~52px),
+          pb-24 clears the fixed bottom nav (~60px). Desktop resets all three. */}
+      <main className="min-w-0 flex-1 px-4 pb-24 pt-14 md:px-0 md:pb-0 md:pt-0">{children}</main>
 
       {/* ── Mobile bottom navigation ─────────────────────────── */}
-      <nav className="fixed bottom-0 left-0 right-0 z-30 border-t border-zinc-100 bg-white/95 backdrop-blur md:hidden">
-        <div className="flex items-stretch">
+      <nav className="fixed bottom-0 left-0 right-0 z-30 border-t border-zinc-100 bg-white/95 backdrop-blur safe-area-inset-bottom md:hidden">
+        <div className="flex">
           {mobileNavItems.map((item) => {
-            const active = pathname === item.href || pathname.startsWith(item.href + "/");
+            const active = pathname === item.href || (item.href !== "/dashboard" && pathname.startsWith(item.href));
             const Icon = item.icon;
             return (
               <Link
                 key={item.href}
                 href={item.href}
-                className={`flex flex-1 flex-col items-center gap-0.5 py-2.5 text-[10px] font-medium transition ${
+                className={`relative flex flex-1 flex-col items-center gap-1 py-2 text-[10px] font-medium transition ${
                   active ? "text-brand" : "text-zinc-400"
                 }`}
               >
-                <Icon className={`h-5 w-5 ${active ? "text-brand" : ""}`} />
+                {active && <span className="absolute top-0 left-1/2 h-0.5 w-8 -translate-x-1/2 rounded-full bg-brand" />}
+                <Icon className="h-5 w-5" />
                 {item.label}
-                {active && <span className="h-0.5 w-4 rounded-full bg-brand" />}
               </Link>
             );
           })}
