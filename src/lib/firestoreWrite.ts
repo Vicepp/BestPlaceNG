@@ -10,18 +10,24 @@ export type WriteResult = { ok: true; id: string } | { ok: false; error: string 
  * `{ ok: false, error }` result instead of swallowed.
  */
 function firestoreError(col: string, e: unknown): WriteResult {
-  const code = (e as { code?: string }).code ?? "";
-  console.error(`[firestore] write to "${col}" failed (${code}):`, e);
-  if (code === "permission-denied" || code === "PERMISSION_DENIED") {
+  const err = e as { code?: string; message?: string };
+  const code = (err.code ?? "").toLowerCase();
+  const msg  = (err.message ?? "").toLowerCase();
+  console.error(`[firestore] write to "${col}" failed — code: ${err.code}, message: ${err.message}`, e);
+
+  const isPermission = code.includes("permission") || msg.includes("permission") || msg.includes("missing or insufficient");
+  const isUnauth     = code.includes("unauthenticated") || code.includes("auth") || msg.includes("unauthenticated");
+
+  if (isPermission) {
     return {
       ok: false,
-      error: "Permission denied — your Firestore security rules may not be published yet. Go to the Firebase console → Firestore → Rules and publish the latest rules.",
+      error: "⚠️ Permission denied — Firestore rules need to be published. Open the Firebase console → Firestore → Rules tab → paste the full firestore.rules file → click Publish.",
     };
   }
-  if (code === "unauthenticated" || code === "UNAUTHENTICATED") {
+  if (isUnauth) {
     return { ok: false, error: "You need to be logged in to do that." };
   }
-  return { ok: false, error: "Couldn't save that just now. Please try again." };
+  return { ok: false, error: `Couldn't save (${err.code ?? "unknown error"}). Check the browser console for details.` };
 }
 
 export async function addFirestoreDoc(col: string, data: Record<string, unknown>): Promise<WriteResult> {

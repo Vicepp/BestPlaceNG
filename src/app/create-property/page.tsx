@@ -38,6 +38,7 @@ export default function CreatePropertyPage() {
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
     setError("");
+    if (!user) { setError("You must be logged in. Please refresh and sign in again."); return; }
     if (!name.trim() || !area.trim()) { setError("Property name and area are required."); return; }
     setSubmitting(true);
     const result = await createProperty({
@@ -121,7 +122,16 @@ export default function CreatePropertyPage() {
           <p className="mt-1 text-[10px] text-zinc-400">Paste a YouTube link — it will embed as a playable video on the listing page.</p>
         </div>
 
-        {error && <p className="text-sm text-red-600">{error}</p>}
+        {/* Auth status — helps diagnose save failures */}
+        <p className="text-[10px] text-zinc-400">
+          Logged in as: <span className="font-semibold text-zinc-600">{user?.email ?? "Not logged in"}</span>
+        </p>
+
+        {error && (
+          <div className="rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700">
+            {error}
+          </div>
+        )}
 
         <button type="submit" disabled={submitting}
           className="w-full rounded-full bg-brand py-2.5 text-sm font-semibold text-white hover:bg-brand-dark disabled:opacity-60">
