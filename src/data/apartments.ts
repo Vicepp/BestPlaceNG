@@ -1,5 +1,7 @@
 import { getFirestoreCollection } from "@/lib/firestoreData";
-import { queryFirestoreCollection } from "@/lib/firestoreWrite";
+import { queryFirestoreCollection, setFirestoreDoc, type WriteResult } from "@/lib/firestoreWrite";
+
+export type ListingStatus = "active" | "rented" | "archived";
 
 export interface ApartmentListing {
   id: string;
@@ -17,8 +19,30 @@ export interface ApartmentListing {
   /** Firestore auth uid of the landlord/agent who created this listing. Absent on bundled sample listings. */
   ownerId?: string;
   ownerName?: string;
+  businessName?: string;
   ownerContact?: string;
   createdAt?: string;
+
+  // Property/building hierarchy
+  propertyId?: string;       // parent Property building this unit belongs to
+  propertyName?: string;     // denormalised for display
+
+  // Listing lifecycle
+  status?: ListingStatus;    // default "active"; "rented" hides from public; "archived" = delisted
+
+  // Media
+  images?: string[];         // Firebase Storage URLs
+  youtubeUrl?: string;       // YouTube URL — embedded as iframe on the detail view
+
+  // Address (full address private; only area/city shown publicly)
+  fullAddress?: string;      // stored privately, revealed after confirmed payment
+  stateName?: string;
+
+  // Nigerian rental fee structure (first-year only — subsequent years pay rent only)
+  cautionFee?: number;       // refundable security deposit (usually 1-3 months rent)
+  agencyFee?: number;        // non-refundable agent commission
+  agreementFee?: number;     // legal documentation fee
+  legalFee?: number;         // lawyer/notary fee
 }
 
 /**
@@ -70,4 +94,20 @@ export async function getSaleListingsByCityLive(citySlug: string): Promise<Apart
 export async function getApartmentsByOwnerLive(ownerId: string): Promise<ApartmentListing[]> {
   const result = await queryFirestoreCollection<ApartmentListing>("apartments", [["ownerId", ownerId]]);
   return result ?? [];
+}
+
+export async function getApartmentsByPropertyLive(propertyId: string): Promise<ApartmentListing[]> {
+  const result = await queryFirestoreCollection<ApartmentListing>("apartments", [["propertyId", propertyId]]);
+  return result ?? [];
+}
+
+/** Change status: active (public), rented (hidden from public), archived (delisted) */
+export async function setListingStatus(id: string, status: ListingStatus): Promise<WriteResult> {
+  return setFirestoreDoc("apartments", id, { status });
+}
+
+/** Public-facing query — only returns active listings (hides rented/archived) */
+export async function getApartmentsPublicLive(): Promise<ApartmentListing[]> {
+  const all = await getApartmentsLive();
+  return all.filter((a) => !a.status || a.status === "active");
 }

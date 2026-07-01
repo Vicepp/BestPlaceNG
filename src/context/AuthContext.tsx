@@ -22,6 +22,12 @@ export interface UserProfile {
   email: string;
   role: UserRole;
   createdAt: string;
+  // Extended profile fields
+  businessName?: string;
+  phone?: string;
+  address?: string;
+  avatarUrl?: string;
+  lastOnline?: string;
 }
 
 export type DashboardView = "tenant" | "landlord";
@@ -76,6 +82,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       if (firebaseUser) {
         const doc = await getFirestoreDoc<UserProfile>("users", firebaseUser.uid);
         setProfile(doc);
+        // Update lastOnline silently — don't await, best-effort
+        setFirestoreDoc("users", firebaseUser.uid, { lastOnline: new Date().toISOString() }).catch(() => {});
         if (firebaseUser.email) {
           claimPendingInvitesForEmail(firebaseUser.uid, firebaseUser.email).catch((e) =>
             console.error("[auth] claimPendingInvitesForEmail failed:", e)

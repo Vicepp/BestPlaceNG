@@ -2,8 +2,9 @@
 
 import { useEffect, useMemo, useState } from "react";
 import Link from "next/link";
-import { SlidersHorizontal, X, Search, MapPin } from "lucide-react";
-import { getApartmentsLive, formatNaira, type ApartmentListing } from "@/data/apartments";
+import { SlidersHorizontal, X, Search, MapPin, Image as ImageIcon, Play } from "lucide-react";
+import { getApartmentsPublicLive, formatNaira, type ApartmentListing } from "@/data/apartments";
+import { extractYouTubeId } from "@/data/properties";
 import { cities } from "@/data/cities";
 
 const PROPERTY_TYPES: ApartmentListing["type"][] = ["Apartment", "House", "Duplex", "Land", "Self-Contain", "Shop/Office"];
@@ -39,7 +40,7 @@ export default function ApartmentsPage() {
   const [panelOpen, setPanelOpen] = useState(false);
 
   useEffect(() => {
-    getApartmentsLive().then((a) => { setAll(a); setLoading(false); });
+    getApartmentsPublicLive().then((a) => { setAll(a); setLoading(false); });
   }, []);
 
   function set(key: keyof Filters, value: string) {
@@ -195,31 +196,66 @@ export default function ApartmentsPage() {
               <Link
                 key={listing.id}
                 href={`/city/${listing.citySlug}/apartments`}
-                className="flex flex-col rounded-2xl border border-zinc-100 bg-white p-5 shadow-sm transition hover:-translate-y-1 hover:border-brand hover:shadow-lg"
+                className="flex flex-col overflow-hidden rounded-2xl border border-zinc-100 bg-white shadow-sm transition hover:-translate-y-1 hover:border-brand hover:shadow-lg"
               >
-                <div className="flex items-start justify-between gap-2">
-                  <p className="text-xs font-semibold uppercase tracking-wide text-brand">
-                    {listing.type} · For {listing.purpose}
-                  </p>
-                  {listing.bedrooms > 0 && (
-                    <span className="shrink-0 rounded-full bg-zinc-100 px-2 py-0.5 text-xs text-zinc-500">
-                      {listing.bedrooms} bed
-                    </span>
+                {/* Thumbnail: first image, YouTube thumbnail, or nothing */}
+                {(() => {
+                  const img = listing.images?.[0];
+                  const ytId = extractYouTubeId(listing.youtubeUrl ?? "");
+                  if (img) return (
+                    <div className="relative h-40 w-full overflow-hidden bg-zinc-100">
+                      <img src={img} alt={listing.title} className="h-full w-full object-cover" />
+                      {ytId && (
+                        <span className="absolute bottom-2 right-2 flex items-center gap-1 rounded-full bg-black/70 px-2 py-0.5 text-[10px] font-semibold text-white">
+                          <Play className="h-3 w-3 fill-white" /> Video
+                        </span>
+                      )}
+                      {(listing.images?.length ?? 0) > 1 && (
+                        <span className="absolute bottom-2 left-2 flex items-center gap-1 rounded-full bg-black/70 px-2 py-0.5 text-[10px] font-semibold text-white">
+                          <ImageIcon className="h-3 w-3" /> {listing.images!.length}
+                        </span>
+                      )}
+                    </div>
+                  );
+                  if (ytId) return (
+                    <div className="relative h-40 w-full overflow-hidden bg-zinc-900">
+                      <img src={`https://img.youtube.com/vi/${ytId}/mqdefault.jpg`} alt="" className="h-full w-full object-cover opacity-80" />
+                      <div className="absolute inset-0 flex items-center justify-center">
+                        <div className="flex h-10 w-10 items-center justify-center rounded-full bg-red-600 shadow-lg">
+                          <Play className="h-5 w-5 fill-white text-white" />
+                        </div>
+                      </div>
+                    </div>
+                  );
+                  return null;
+                })()}
+
+                <div className="flex flex-col p-4">
+                  <div className="flex items-start justify-between gap-2">
+                    <p className="text-xs font-semibold uppercase tracking-wide text-brand">
+                      {listing.type} · For {listing.purpose}
+                    </p>
+                    {listing.bedrooms > 0 && (
+                      <span className="shrink-0 rounded-full bg-zinc-100 px-2 py-0.5 text-xs text-zinc-500">
+                        {listing.bedrooms} bed
+                      </span>
+                    )}
+                  </div>
+                  {listing.businessName && (
+                    <p className="mt-0.5 text-xs font-semibold text-brand">{listing.businessName}</p>
                   )}
+                  <h3 className="mt-1 text-base font-bold text-foreground line-clamp-2">{listing.title}</h3>
+                  <p className="mt-1 flex items-center gap-1 text-sm text-zinc-500">
+                    <MapPin className="h-3.5 w-3.5 shrink-0" />
+                    {listing.area}{city ? `, ${city.name}` : ""}
+                  </p>
+                  {city?.stateName && <p className="text-xs text-zinc-400">{city.stateName} State</p>}
+                  <p className="mt-auto pt-3 text-lg font-bold text-brand-dark">
+                    {formatNaira(listing.priceNaira)}
+                    {listing.pricePeriod === "year" && <span className="text-xs font-normal text-zinc-400">/year</span>}
+                    {listing.pricePeriod === "month" && <span className="text-xs font-normal text-zinc-400">/month</span>}
+                  </p>
                 </div>
-                <h3 className="mt-1 text-base font-bold text-foreground line-clamp-2">{listing.title}</h3>
-                <p className="mt-1 flex items-center gap-1 text-sm text-zinc-500">
-                  <MapPin className="h-3.5 w-3.5 shrink-0" />
-                  {listing.area}{city ? `, ${city.name}` : ""}
-                </p>
-                {city?.stateName && (
-                  <p className="mt-0.5 text-xs text-zinc-400">{city.stateName} State</p>
-                )}
-                <p className="mt-auto pt-3 text-lg font-bold text-brand-dark">
-                  {formatNaira(listing.priceNaira)}
-                  {listing.pricePeriod === "year" && <span className="text-xs font-normal text-zinc-400">/year</span>}
-                  {listing.pricePeriod === "month" && <span className="text-xs font-normal text-zinc-400">/month</span>}
-                </p>
               </Link>
             );
           })}

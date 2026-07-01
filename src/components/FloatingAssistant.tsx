@@ -201,6 +201,21 @@ export default function FloatingAssistant() {
     const finalMessages = [...newMessages, assistantMsg!];
     setMessages(finalMessages);
 
+    // Persist training data for logged-in users — used for future model improvement
+    if (user && isFirebaseConfigured()) {
+      import("firebase/firestore").then(({ doc, setDoc, arrayUnion }) => {
+        const ref = doc(getDb(), "chatTrainingData", user.uid);
+        setDoc(ref, {
+          uid: user.uid,
+          logs: arrayUnion(
+            { role: "user", content: trimmed, ts: Date.now() },
+            { role: "assistant", content: assistantMsg!.text, ts: Date.now() }
+          ),
+          updatedAt: new Date().toISOString(),
+        }, { merge: true }).catch(() => {});
+      });
+    }
+
     // Save / update the current thread in Firestore
     if (user) {
       const threadMsgs = finalMessages.filter((m) => m.id !== "intro").map((m) => ({ role: m.role, text: m.text }));
