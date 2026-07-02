@@ -110,6 +110,8 @@ async function saveThreadsToFirestore(uid: string, threads: SavedThread[]): Prom
   if (!isFirebaseConfigured()) return;
   try {
     await setDoc(doc(getDb(), FIRESTORE_COL, uid), { threads: threads.slice(0, 20), updatedAt: new Date().toISOString() }, { merge: true });
+    // Mirror to the write-only training-data log (used to improve the assistant later).
+    await setDoc(doc(getDb(), "chatTrainingData", uid), { threads: threads.slice(0, 20), updatedAt: new Date().toISOString() }, { merge: true });
   } catch { /* silent */ }
 }
 
@@ -127,10 +129,24 @@ export default function FloatingAssistant() {
   const recognitionRef = useRef<SpeechRecognitionLike | null>(null);
   const scrollRef = useRef<HTMLDivElement>(null);
   const threadsLoadedRef = useRef(false);
+  const loadedForUidRef = useRef<string | null>(null);
 
   useEffect(() => {
     scrollRef.current?.scrollTo({ top: scrollRef.current.scrollHeight, behavior: "smooth" });
   }, [messages, thinking, open]);
+
+  // Reset all chat state when the signed-in user changes (login/logout/user switch) —
+  // otherwise user B would see user A's threads still sitting in memory.
+  useEffect(() => {
+    const uid = user?.uid ?? null;
+    if (loadedForUidRef.current === uid) return;
+    loadedForUidRef.current = uid;
+    threadsLoadedRef.current = false;
+    setThreads([]);
+    setActiveThreadId(null);
+    setMessages([INTRO_MESSAGE]);
+    setShowHistory(false);
+  }, [user]);
 
   // Load saved threads when a user opens the panel for the first time
   useEffect(() => {

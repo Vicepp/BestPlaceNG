@@ -43,6 +43,9 @@ export async function POST(req: NextRequest) {
   if (verifyJson.data.amount !== expectedKobo) {
     return NextResponse.json({ ok: false, error: "Amount mismatch — transaction amount does not match invoice" }, { status: 409 });
   }
+  if (verifyJson.data.currency && verifyJson.data.currency !== "NGN") {
+    return NextResponse.json({ ok: false, error: "Currency mismatch — expected NGN" }, { status: 409 });
+  }
 
   await paymentRef.update({
     status: "success",

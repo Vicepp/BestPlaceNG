@@ -69,17 +69,10 @@ export function subscribeToMessages(conversationId: string, onMessages: (message
   });
 }
 
-export async function sendMessage(conversationId: string, senderId: string, senderName: string, text: string): Promise<void> {
-  const now = new Date().toISOString();
-  await addDoc(collection(getDb(), "conversations", conversationId, "messages"), {
-    senderId, senderName, text, type: "text", createdAt: now,
-  });
-  const convoRef = doc(getDb(), "conversations", conversationId);
-  await updateDoc(convoRef, { lastMessageText: text, lastMessageAt: now });
-
-  // Notify all other participants about the new message
+/** Notifies every participant except the sender — used by all message types. */
+async function notifyParticipants(conversationId: string, senderId: string, senderName: string, preview: string): Promise<void> {
   try {
-    const convoSnap = await getDoc(convoRef);
+    const convoSnap = await getDoc(doc(getDb(), "conversations", conversationId));
     const convoData = convoSnap.data() as Conversation;
     const others = (convoData.participantIds ?? []).filter((id) => id !== senderId);
     const { addFirestoreDoc } = await import("@/lib/firestoreWrite");
@@ -89,14 +82,23 @@ export async function sendMessage(conversationId: string, senderId: string, send
           userId: uid,
           type: "message",
           title: `New message from ${senderName}`,
-          body: text.length > 80 ? text.slice(0, 77) + "..." : text,
+          body: preview.length > 80 ? preview.slice(0, 77) + "..." : preview,
           link: `/dashboard/messages?c=${conversationId}`,
           read: false,
-          createdAt: now,
+          createdAt: new Date().toISOString(),
         })
       )
     );
   } catch { /* notification failure should never break the send */ }
+}
+
+export async function sendMessage(conversationId: string, senderId: string, senderName: string, text: string): Promise<void> {
+  const now = new Date().toISOString();
+  await addDoc(collection(getDb(), "conversations", conversationId, "messages"), {
+    senderId, senderName, text, type: "text", createdAt: now,
+  });
+  await updateDoc(doc(getDb(), "conversations", conversationId), { lastMessageText: text, lastMessageAt: now });
+  await notifyParticipants(conversationId, senderId, senderName, text);
 }
 
 export async function sendPropertyCard(
@@ -121,6 +123,7 @@ export async function sendPropertyCard(
   await updateDoc(doc(getDb(), "conversations", conversationId), {
     lastMessageText: `Shared: ${property.title}`, lastMessageAt: now,
   });
+  await notifyParticipants(conversationId, senderId, senderName, `🏠 Shared a property: ${property.title}`);
 }
 
 export async function sendImage(conversationId: string, senderId: string, senderName: string, imageData: string): Promise<void> {
@@ -131,6 +134,7 @@ export async function sendImage(conversationId: string, senderId: string, sender
   await updateDoc(doc(getDb(), "conversations", conversationId), {
     lastMessageText: "Sent an image", lastMessageAt: now,
   });
+  await notifyParticipants(conversationId, senderId, senderName, "📷 Sent an image");
 }
 
 /** Finds an existing 1:1 conversation between two users, or creates one - used for
