@@ -3,6 +3,8 @@ import { cities, searchCities, type CityData } from "@/data/cities";
 import { getApartmentsLive } from "@/data/apartments";
 import { getDirectoryListingsLive } from "@/data/directoryListings";
 import { citySections } from "@/data/citySections";
+import jobsConfig from "@/data/jobs-config.json";
+import stateInsights from "@/data/state-insights.json";
 
 export const runtime = "nodejs";
 
@@ -18,8 +20,11 @@ const SYSTEM_PROMPT = `You are the BestPlaceNG assistant, built into a website t
 
 Before answering, think carefully about what the user actually needs and reason about tradeoffs honestly (e.g. a cheap city might also be less safe). Do not just pattern-match keywords.
 
+MOST IMPORTANT: Actually ANSWER the user's question directly using the specific numbers in the data below. If they ask "what is the highest paying job in Uyo", state the actual sector and salary. If they ask "cost of living in Ibadan", give the actual index and what it means. Do NOT reply with a vague "here is a place worth a look" — that is a failure. Lead with the concrete answer, then point them to the relevant city section. Use Nigerian context and plain language (naira, "annual rent", etc.), never American framing.
+
 Hard rules:
-- Only use the data provided to you below (city stats AND the listings inventory). Never invent a city, statistic, listing, or fact not present in that data.
+- Only use the data provided to you below (city stats, jobs/economy figures, state voting & religion data, AND the listings inventory). Never invent a city, statistic, listing, or fact not present in that data.
+- For jobs/salary questions, use the JOBS & ECONOMY data. For voting/politics, use the STATE VOTING data. For religion, use the STATE RELIGION data. City-level stats for smaller towns fall back to their state's reference city — say so when you do.
 - The listings inventory (apartments, jobs, schools, hospitals, etc.) is the live, current, complete set of everything posted on the site right now - nothing more exists beyond what's listed. If a city has no listing in a category, that means there genuinely isn't one yet, not that you lack information.
 - When the user asks about a specific category in a specific city (e.g. "is there a job in X", "find an apartment in Y", "any hospitals in Z"):
   1. Check the listings data for that EXACT city first. If there's a match, mention it specifically by name.
@@ -73,6 +78,29 @@ async function buildListingsContext(): Promise<string> {
     .join("\n");
 
   return `APARTMENT/PROPERTY LISTINGS - the complete live inventory, ${apartments.length} total (categories: Apartment, House, Duplex, Land, Self-Contain, Shop/Office; purpose: Rent or Sale):\n${aptLines || "(none posted yet anywhere on the site)"}\n\nDIRECTORY LISTINGS - the complete live inventory, ${directoryListings.length} total (categories: job, school, hospital, pharmacy, hotel, event, market, shopping-mall, police-station):\n${dirLines || "(none posted yet anywhere on the site)"}`;
+}
+
+function buildInsightsContext(): string {
+  const jc = jobsConfig;
+  const sectorLines = Object.entries(jc.sectorSalariesMonthly)
+    .sort((a, b) => b[1] - a[1])
+    .map(([name, val]) => `${name}: ₦${val.toLocaleString()}/mo (national avg)`)
+    .join("; ");
+
+  const si = stateInsights as Record<string, { elections?: { year: number; party: string; wide: boolean }[]; religion?: { christian: number; muslim: number; other: number } }>;
+  const stateLines = Object.entries(si)
+    .filter(([k]) => k !== "_source")
+    .map(([slug, d]) => {
+      const votes = d.elections?.map((e) => `${e.year}:${e.party}`).join(",") ?? "n/a";
+      const rel = d.religion ? `${d.religion.christian}%C/${d.religion.muslim}%M/${d.religion.other}%other` : "n/a";
+      return `${slug} | presidential winners ${votes} | religion ${rel}`;
+    })
+    .join("\n");
+
+  return `JOBS & ECONOMY (national, ${jc.asOf}): unemployment ${jc.national.unemploymentRate}%, youth unemployment ${jc.national.youthUnemploymentRate}%, minimum wage ₦${jc.national.minimumWageMonthly.toLocaleString()}/mo, median income ₦${jc.national.medianMonthlyIncome.toLocaleString()}/mo. Sector monthly salaries (scale up ~10-20% for high-cost cities like Lagos/Abuja, down for cheaper ones): ${sectorLines}.
+
+STATE VOTING (presidential winners per election) & RELIGION (by state slug — a city inherits its state's figures):
+${stateLines}`;
 }
 
 interface ChatMessage {
@@ -170,6 +198,7 @@ export async function POST(req: NextRequest) {
   const messages: ChatMessage[] = [
     { role: "system", content: SYSTEM_PROMPT },
     { role: "system", content: buildCityContext(message) },
+    { role: "system", content: buildInsightsContext() },
     { role: "system", content: await buildListingsContext() },
     // Inject conversation history so the AI remembers what was already discussed
     ...history,

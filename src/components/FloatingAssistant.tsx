@@ -6,6 +6,7 @@ import { AnimatePresence, motion } from "framer-motion";
 import { Mic, MessageCircle, Send, Square, X, Plus, ChevronLeft, History } from "lucide-react";
 import { cities, type CityData } from "@/data/cities";
 import { citySections } from "@/data/citySections";
+import { answerLocally } from "@/data/localAnswers";
 import { useAuth } from "@/context/AuthContext";
 import { getDb, isFirebaseConfigured } from "@/lib/firebase";
 import { doc, getDoc, setDoc } from "firebase/firestore";
@@ -208,8 +209,22 @@ export default function FloatingAssistant() {
       });
       assistantMsg = { id: `${Date.now()}-a`, role: "assistant", text: data.reply, recommendations: recs };
     } catch {
-      const recs = recommendCitiesOffline(trimmed);
-      assistantMsg = { id: `${Date.now()}-a`, role: "assistant", text: buildOfflineReply(recs), recommendations: recs.map((city) => ({ city })) };
+      // Offline path: first try the local answer engine (real data-grounded answer
+      // for cost/jobs/safety/schools/climate/religion/politics), then fall back to
+      // the keyword city recommender only if no city+intent could be resolved.
+      const local = answerLocally(trimmed);
+      if (local) {
+        const city = local.citySlug ? cities.find((c) => c.slug === local.citySlug) : undefined;
+        assistantMsg = {
+          id: `${Date.now()}-a`,
+          role: "assistant",
+          text: local.reply,
+          recommendations: city ? [{ city, section: local.section }] : [],
+        };
+      } else {
+        const recs = recommendCitiesOffline(trimmed);
+        assistantMsg = { id: `${Date.now()}-a`, role: "assistant", text: buildOfflineReply(recs), recommendations: recs.map((city) => ({ city })) };
+      }
     } finally {
       setThinking(false);
     }
