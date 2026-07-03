@@ -3,12 +3,13 @@
 import { useEffect, useState, useCallback } from "react";
 import { useParams, useRouter } from "next/navigation";
 import Link from "next/link";
-import { Home, MapPin, FileText, Download, Zap, Wrench, ArrowLeft, MapPinned, CheckCircle } from "lucide-react";
+import { Home, MapPin, FileText, Download, Zap, Wrench, ArrowLeft, MapPinned, CheckCircle, CalendarClock, Flag, X } from "lucide-react";
 import { useAuth } from "@/context/AuthContext";
 import { getFirestoreDoc } from "@/lib/firestoreData";
-import { getTenanciesForTenantLive, type Tenancy } from "@/data/tenancies";
+import { getTenanciesForTenantLive, confirmMoveIn, type Tenancy } from "@/data/tenancies";
 import { getPaymentsForTenantLive, createTenantInvoice, type Payment } from "@/data/payments";
 import { getUtilityFeesForTenant, getUtilityRequestsForTenant, markUtilityRequestPaid, type UtilityFee, type UtilityPaymentRequest } from "@/data/utilityFees";
+import { fileReport, type Report } from "@/data/reports";
 import { formatNaira, type ApartmentListing } from "@/data/apartments";
 import { cities } from "@/data/cities";
 import { isPaystackConfigured, payWithPaystack } from "@/lib/paystack";
@@ -16,7 +17,7 @@ import PayNowButton from "@/components/dashboard/PayNowButton";
 
 export default function RentalDetailPage() {
   const { id } = useParams<{ id: string }>();
-  const { user } = useAuth();
+  const { user, profile } = useAuth();
   const router = useRouter();
 
   const [tenancy, setTenancy] = useState<Tenancy | null>(null);
@@ -26,6 +27,11 @@ export default function RentalDetailPage() {
   const [requests, setRequests] = useState<UtilityPaymentRequest[]>([]);
   const [loading, setLoading] = useState(true);
   const [payingReq, setPayingReq] = useState<string | null>(null);
+  const [confirming, setConfirming] = useState(false);
+  const [reportOpen, setReportOpen] = useState(false);
+  const [reportCategory, setReportCategory] = useState<Report["category"]>("cannot-move-in");
+  const [reportMsg, setReportMsg] = useState("");
+  const [reportSent, setReportSent] = useState(false);
 
   const load = useCallback(async () => {
     if (!user) return;
@@ -81,6 +87,68 @@ export default function RentalDetailPage() {
     });
   }
 
+  /** Pay an active recurring utility fee directly (no landlord request needed). */
+  async function payFee(fee: UtilityFee) {
+    if (!user?.email || !tenancy || !isPaystackConfigured()) return;
+    setPayingReq(fee.id);
+    const invoice = await createTenantInvoice({
+      tenancyId: tenancy.id,
+      apartmentId: tenancy.apartmentId,
+      apartmentTitle: `${fee.name} — ${tenancy.apartmentTitle}`,
+      landlordId: tenancy.landlordId,
+      tenantId: user.uid,
+      amount: fee.amount,
+      kind: "utility",
+    });
+    if (!invoice.ok) { setPayingReq(null); return; }
+    payWithPaystack({
+      email: user.email,
+      amountNaira: fee.amount,
+      reference: `bpng-${invoice.id}-${Date.now()}`,
+      paymentId: invoice.id,
+      onSuccess: async (ref) => {
+        await fetch("/api/payments/verify", {
+          method: "POST", headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ reference: ref, paymentId: invoice.id }),
+        });
+        setPayingReq(null);
+        load();
+      },
+      onClose: () => setPayingReq(null),
+    });
+  }
+
+  /** Tenant confirms move-in -> release escrowed rent to the landlord. */
+  async function handleConfirmMoveIn() {
+    if (!tenancy) return;
+    setConfirming(true);
+    await confirmMoveIn(tenancy.id);
+    try {
+      await fetch("/api/payments/release", {
+        method: "POST", headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ tenancyId: tenancy.id }),
+      });
+    } catch { /* release is idempotent; can be retried */ }
+    setConfirming(false);
+    load();
+  }
+
+  async function submitReport() {
+    if (!user || !tenancy || !reportMsg.trim()) return;
+    const res = await fileReport({
+      reporterId: user.uid,
+      reporterName: profile?.displayName ?? user.email ?? "Tenant",
+      reporterEmail: user.email ?? "",
+      landlordId: tenancy.landlordId,
+      apartmentId: tenancy.apartmentId,
+      apartmentTitle: tenancy.apartmentTitle,
+      tenancyId: tenancy.id,
+      category: reportCategory,
+      message: reportMsg.trim(),
+    });
+    if (res.ok) { setReportSent(true); setReportMsg(""); }
+  }
+
   if (loading) return <p className="text-sm text-zinc-400">Loading…</p>;
   if (!tenancy) return (
     <div className="py-16 text-center">
@@ -126,7 +194,34 @@ export default function RentalDetailPage() {
           <Link href="/dashboard/maintenance" className="flex items-center gap-1.5 rounded-full border border-zinc-200 px-4 py-2 text-sm font-semibold text-zinc-600 hover:border-brand hover:text-brand">
             <Wrench className="h-4 w-4" /> Request maintenance
           </Link>
+          <button onClick={() => { setReportOpen(true); setReportSent(false); }} className="flex items-center gap-1.5 rounded-full border border-zinc-200 px-4 py-2 text-sm font-semibold text-zinc-600 hover:border-red-300 hover:text-red-600">
+            <Flag className="h-4 w-4" /> Report a problem
+          </button>
         </div>
+      </div>
+
+      {/* Move-in confirmation (escrow release gate) */}
+      <div className="rounded-2xl border border-zinc-100 bg-white p-6 shadow-sm">
+        <h2 className="flex items-center gap-1.5 text-sm font-bold text-foreground"><CalendarClock className="h-4 w-4 text-brand" /> Move-in &amp; Rent Release</h2>
+        {tenancy.moveInConfirmed ? (
+          <p className="mt-2 flex items-center gap-2 rounded-xl bg-green-50 px-4 py-3 text-sm text-green-700">
+            <CheckCircle className="h-4 w-4 shrink-0" /> You confirmed move-in{tenancy.moveInConfirmedAt ? ` on ${new Date(tenancy.moveInConfirmedAt).toLocaleDateString()}` : ""}. Your rent has been released to the landlord.
+          </p>
+        ) : tenancy.moveInDate ? (
+          <div className="mt-2">
+            <p className="text-sm text-zinc-600">
+              Your landlord set your move-in date to <strong className="text-foreground">{new Date(tenancy.moveInDate).toLocaleDateString()}</strong>.
+              Your rent is being <strong>held safely</strong> — once you&apos;ve moved in, confirm below to release it to the landlord.
+            </p>
+            <button onClick={handleConfirmMoveIn} disabled={confirming} className="mt-3 rounded-full bg-brand px-5 py-2.5 text-sm font-bold text-white hover:bg-brand-dark disabled:opacity-60">
+              {confirming ? "Confirming…" : "I've moved in — release rent"}
+            </button>
+          </div>
+        ) : (
+          <p className="mt-2 rounded-xl bg-zinc-50 px-4 py-3 text-sm text-zinc-500">
+            Your payment is <strong>held safely</strong>. Waiting for the landlord to set your move-in date (you likely agreed one in chat). You&apos;ll confirm move-in here to release the rent.
+          </p>
+        )}
       </div>
 
       {/* Rent payments due */}
@@ -176,11 +271,21 @@ export default function RentalDetailPage() {
           {fees.length > 0 && (
             <div className="rounded-xl bg-zinc-50 p-4">
               <p className="mb-2 text-xs font-semibold text-zinc-500">Recurring charges on this unit</p>
-              <div className="space-y-1.5">
+              <div className="space-y-2">
                 {fees.map((f) => (
-                  <div key={f.id} className="flex items-center justify-between text-sm">
-                    <span className="text-foreground">{f.name}</span>
-                    <span className="text-zinc-500">{formatNaira(f.amount)}/{f.period}</span>
+                  <div key={f.id} className="flex items-center justify-between gap-2 text-sm">
+                    <div className="flex items-center gap-1.5">
+                      <Zap className="h-3.5 w-3.5 text-accent" />
+                      <span className="text-foreground">{f.name}</span>
+                      <span className="text-zinc-400">· {formatNaira(f.amount)}/{f.period}</span>
+                    </div>
+                    {isPaystackConfigured() ? (
+                      <button onClick={() => payFee(f)} disabled={payingReq === f.id} className="rounded-full bg-brand px-3 py-1 text-xs font-semibold text-white hover:bg-brand-dark disabled:opacity-60">
+                        {payingReq === f.id ? "Processing…" : "Make payment"}
+                      </button>
+                    ) : (
+                      <span className="text-xs text-zinc-400">Pay landlord directly</span>
+                    )}
                   </div>
                 ))}
               </div>
@@ -217,6 +322,43 @@ export default function RentalDetailPage() {
                 <span className="text-xs text-zinc-400">{p.verifiedAt ? new Date(p.verifiedAt).toLocaleDateString() : "Paid"}</span>
               </div>
             ))}
+          </div>
+        </div>
+      )}
+
+      {/* Report a problem modal */}
+      {reportOpen && (
+        <div className="fixed inset-0 z-50 flex items-end justify-center bg-black/40 p-0 sm:items-center sm:p-4" onClick={() => setReportOpen(false)}>
+          <div className="w-full max-w-md rounded-t-2xl bg-white p-6 shadow-2xl sm:rounded-2xl" onClick={(e) => e.stopPropagation()}>
+            <div className="mb-4 flex items-center justify-between">
+              <h2 className="flex items-center gap-1.5 text-lg font-bold text-foreground"><Flag className="h-4 w-4 text-red-500" /> Report a problem</h2>
+              <button onClick={() => setReportOpen(false)} className="text-zinc-400 hover:text-foreground"><X className="h-5 w-5" /></button>
+            </div>
+            {reportSent ? (
+              <div className="rounded-xl bg-green-50 px-4 py-6 text-center">
+                <CheckCircle className="mx-auto mb-2 h-6 w-6 text-green-500" />
+                <p className="text-sm font-semibold text-green-700">Report submitted to the BestPlaceNG admin.</p>
+                <p className="mt-1 text-xs text-green-600">We&apos;ll look into it. Your rent stays held safely while this is reviewed.</p>
+              </div>
+            ) : (
+              <>
+                <p className="mb-3 text-xs text-zinc-500">
+                  Having trouble with this rental — e.g. you paid but can&apos;t move in? Tell the admin. Your escrowed rent is only released when you confirm move-in, so it&apos;s protected while we review.
+                </p>
+                <label className="mb-1 block text-xs font-semibold text-zinc-500">What&apos;s wrong?</label>
+                <select value={reportCategory} onChange={(e) => setReportCategory(e.target.value as Report["category"])} className="mb-3 w-full rounded-lg border border-zinc-200 px-3 py-2 text-sm outline-none focus:border-brand">
+                  <option value="cannot-move-in">I paid but can&apos;t move in</option>
+                  <option value="payment">Payment issue</option>
+                  <option value="property-condition">Property not as described</option>
+                  <option value="landlord-conduct">Landlord conduct</option>
+                  <option value="other">Something else</option>
+                </select>
+                <textarea value={reportMsg} onChange={(e) => setReportMsg(e.target.value)} rows={4} placeholder="Describe what happened…" className="w-full rounded-lg border border-zinc-200 px-3 py-2 text-sm outline-none focus:border-brand" />
+                <button onClick={submitReport} disabled={!reportMsg.trim()} className="mt-3 w-full rounded-full bg-red-500 py-2.5 text-sm font-bold text-white hover:bg-red-600 disabled:opacity-50">
+                  Submit report to admin
+                </button>
+              </>
+            )}
           </div>
         </div>
       )}

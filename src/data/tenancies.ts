@@ -31,6 +31,25 @@ export interface Tenancy {
   signedName?: string;
   signedPhone?: string;
   agreedAt?: string;
+  // Move-in / escrow-release gate
+  moveInDate?: string;         // set by the landlord after payment
+  moveInConfirmed?: boolean;   // tenant clicks "I've moved in"
+  moveInConfirmedAt?: string;
+}
+
+/** Landlord sets the agreed move-in date after payment is received. Rules allow the
+ * landlord to change only these fields on their own tenancy. */
+export async function setMoveInDate(tenancyId: string, moveInDate: string): Promise<WriteResult> {
+  return setFirestoreDoc("tenancies", tenancyId, { moveInDate });
+}
+
+/** Tenant confirms they've moved in — this is the trigger that releases the
+ * escrowed money to the landlord (the release route checks this flag). */
+export async function confirmMoveIn(tenancyId: string): Promise<WriteResult> {
+  return setFirestoreDoc("tenancies", tenancyId, {
+    moveInConfirmed: true,
+    moveInConfirmedAt: new Date().toISOString(),
+  });
 }
 
 /** Tenant signs the landlord's clause and requests the tenancy, right before paying.

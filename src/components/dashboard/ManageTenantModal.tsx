@@ -1,10 +1,11 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { X, Zap, Trash2, CreditCard, Plus } from "lucide-react";
+import { X, Zap, Trash2, CreditCard, Plus, CalendarClock, Info } from "lucide-react";
 import { useAuth } from "@/context/AuthContext";
 import { formatNaira } from "@/data/apartments";
 import { generateInvoice } from "@/data/payments";
+import { setMoveInDate } from "@/data/tenancies";
 import { createNotification } from "@/data/notifications";
 import {
   getUtilityFeesForTenancy,
@@ -25,8 +26,27 @@ export default function ManageTenantModal({ tenancy, onClose }: { tenancy: Tenan
   const [feePeriod, setFeePeriod] = useState<UtilityPeriod>("monthly");
   const [rentAmount, setRentAmount] = useState(String(tenancy.rentAmount));
   const [rentDue, setRentDue] = useState("");
+  const [moveIn, setMoveIn] = useState(tenancy.moveInDate ? tenancy.moveInDate.slice(0, 10) : "");
+  const [savedMoveIn, setSavedMoveIn] = useState(tenancy.moveInDate ?? "");
   const [msg, setMsg] = useState<string>("");
   const [busy, setBusy] = useState(false);
+
+  async function saveMoveIn() {
+    if (!moveIn || !tenancy.tenantId) return;
+    setBusy(true);
+    const iso = new Date(moveIn).toISOString();
+    await setMoveInDate(tenancy.id, iso);
+    setSavedMoveIn(iso);
+    createNotification({
+      userId: tenancy.tenantId,
+      type: "tenancy",
+      title: "Move-in date set",
+      body: `Your landlord set your move-in date for ${tenancy.apartmentTitle} to ${new Date(iso).toLocaleDateString()}. Confirm once you've moved in to release your rent.`,
+      link: "/dashboard",
+    }).catch(() => {});
+    setBusy(false);
+    setMsg("Move-in date saved and tenant notified.");
+  }
 
   async function loadFees() {
     setFees(await getUtilityFeesForTenancy(tenancy.id));
@@ -138,6 +158,32 @@ export default function ManageTenantModal({ tenancy, onClose }: { tenancy: Tenan
                 </div>
                 <button onClick={sendRentInvoice} disabled={busy} className="rounded-full bg-brand px-4 py-2 text-sm font-semibold text-white hover:bg-brand-dark disabled:opacity-60">Send</button>
               </div>
+            </section>
+
+            {/* Move-in date (escrow release gate) */}
+            <section>
+              <h3 className="mb-2 flex items-center gap-1.5 text-sm font-bold text-foreground">
+                <CalendarClock className="h-4 w-4 text-brand" /> Move-in Date
+                <span className="group relative inline-flex">
+                  <Info className="h-3.5 w-3.5 cursor-help text-zinc-400" />
+                  <span className="pointer-events-none absolute bottom-full left-1/2 z-10 mb-1 w-56 -translate-x-1/2 rounded-lg bg-foreground px-3 py-2 text-[11px] font-normal text-white opacity-0 transition group-hover:opacity-100">
+                    Set a move-in date within two weeks to one month. Your rent is held safely until the tenant confirms move-in — a sooner date gets your money to you faster.
+                  </span>
+                </span>
+              </h3>
+              <div className="flex flex-wrap items-end gap-2">
+                <div className="flex-1">
+                  <label className="mb-1 block text-[10px] font-semibold text-zinc-400">Agreed move-in date</label>
+                  <input type="date" value={moveIn} onChange={(e) => setMoveIn(e.target.value)} className="w-full rounded-lg border border-zinc-200 px-3 py-2 text-sm outline-none focus:border-brand" />
+                </div>
+                <button onClick={saveMoveIn} disabled={busy || !moveIn} className="rounded-full bg-brand px-4 py-2 text-sm font-semibold text-white hover:bg-brand-dark disabled:opacity-60">Save</button>
+              </div>
+              {savedMoveIn && (
+                <p className="mt-2 text-xs text-zinc-500">
+                  Current: <strong className="text-foreground">{new Date(savedMoveIn).toLocaleDateString()}</strong>
+                  {tenancy.moveInConfirmed ? " · tenant has confirmed move-in ✓" : " · waiting for tenant to confirm move-in"}
+                </p>
+              )}
             </section>
 
             {/* Utility fees */}

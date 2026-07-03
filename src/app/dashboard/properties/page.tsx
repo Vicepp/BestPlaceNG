@@ -176,7 +176,9 @@ export default function PropertiesPage() {
           <h1 className="text-2xl font-bold text-foreground">Properties</h1>
           <p className="mt-1 text-sm text-zinc-500">
             {properties.length} building{properties.length !== 1 ? "s" : ""} ·{" "}
-            {units.length} unit{units.length !== 1 ? "s" : ""} total
+            {units.length} unit{units.length !== 1 ? "s" : ""} ·{" "}
+            <span className="font-semibold text-green-600">{units.filter((u) => (u.status ?? "active") === "active").length} active</span>{" · "}
+            <span className="font-semibold text-blue-600">{units.filter((u) => u.status === "rented").length} rented</span>
           </p>
         </div>
         <div className="flex flex-wrap gap-2">

@@ -14,6 +14,7 @@ import {
   Settings,
   LogOut,
   User,
+  Wallet,
 } from "lucide-react";
 import { useAuth, type DashboardView } from "@/context/AuthContext";
 
@@ -28,6 +29,7 @@ const NAV_ITEMS: NavItem[] = [
   { label: "Properties", href: "/dashboard/properties", icon: Building2 },
   { label: "Tenants", href: "/dashboard/tenants", icon: Users },
   { label: "Payments", href: "/dashboard/payments", icon: CreditCard },
+  { label: "Wallet", href: "/dashboard/wallet", icon: Wallet },
   { label: "Maintenance", href: "/dashboard/maintenance", icon: Wrench },
   { label: "Messages", href: "/dashboard/messages", icon: MessageSquare },
 ];
@@ -48,7 +50,7 @@ const HELP_ITEMS: NavItem[] = [
 const MOBILE_NAV_LANDLORD: NavItem[] = [
   { label: "Home", href: "/dashboard", icon: LayoutDashboard },
   { label: "Properties", href: "/dashboard/properties", icon: Building2 },
-  { label: "Payments", href: "/dashboard/payments", icon: CreditCard },
+  { label: "Wallet", href: "/dashboard/wallet", icon: Wallet },
   { label: "Messages", href: "/dashboard/messages", icon: MessageSquare },
   { label: "Account", href: "/dashboard/settings", icon: User },
 ];

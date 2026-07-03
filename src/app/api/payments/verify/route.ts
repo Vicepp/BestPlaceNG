@@ -52,6 +52,7 @@ export async function POST(req: NextRequest) {
 
   await paymentRef.update({
     status: "success",
+    escrowStatus: "held", // funds held in escrow until the tenant confirms move-in
     paystackReference: reference,
     verifiedAt: now,
   });
@@ -77,9 +78,9 @@ export async function POST(req: NextRequest) {
     }
   }
 
-  // Credit the landlord's in-app wallet — funds are held here until the landlord
-  // initiates a withdrawal to their bank (see the payment-routing note in the
-  // dashboard). Uses an atomic increment so concurrent payments can't clobber.
+  // Escrow: credit the landlord's HELD balance (not withdrawable yet). It only
+  // moves to the withdrawable balance once the tenant confirms move-in, via
+  // /api/payments/release. Atomic increment so concurrent payments can't clobber.
   if (payment.landlordId) {
     try {
       const { FieldValue } = await import("firebase-admin/firestore");
@@ -87,14 +88,14 @@ export async function POST(req: NextRequest) {
       await walletRef.set(
         {
           landlordId: payment.landlordId,
-          balance: FieldValue.increment(payment.amount as number),
+          held: FieldValue.increment(payment.amount as number),
           totalReceived: FieldValue.increment(payment.amount as number),
           updatedAt: now,
         },
         { merge: true }
       );
     } catch (e) {
-      console.error("[verify] wallet credit failed:", e);
+      console.error("[verify] wallet escrow credit failed:", e);
     }
   }
 

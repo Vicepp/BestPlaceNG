@@ -1,6 +1,14 @@
 import { addFirestoreDoc, queryFirestoreCollection, type WriteResult } from "@/lib/firestoreWrite";
 
 export type PaymentStatus = "pending" | "success" | "failed";
+/** Escrow state of a successful payment:
+ *  - "held": money confirmed by Paystack but sitting in the platform account,
+ *    NOT yet released to the landlord (waiting for the tenant to confirm move-in).
+ *  - "released": tenant confirmed move-in, funds moved to the landlord's
+ *    withdrawable wallet balance. */
+export type EscrowStatus = "held" | "released";
+/** Whether this payment is the move-in rent or a recurring utility charge. */
+export type PaymentKind = "rent" | "utility";
 
 export interface Payment {
   id: string;
@@ -12,10 +20,13 @@ export interface Payment {
   amount: number;
   currency: "NGN";
   status: PaymentStatus;
+  kind?: PaymentKind;
+  escrowStatus?: EscrowStatus;
   paystackReference?: string;
   dueDate: string;
   createdAt: string;
   verifiedAt?: string;
+  releasedAt?: string;
 }
 
 /** Landlord generates a rent invoice (a "pending" payment) for one of their active tenancies. */
@@ -51,6 +62,7 @@ export async function createTenantInvoice(params: {
   landlordId: string;
   tenantId: string;
   amount: number;
+  kind?: PaymentKind;
 }): Promise<WriteResult> {
   return addFirestoreDoc("payments", {
     tenancyId: params.tenancyId,
@@ -61,6 +73,7 @@ export async function createTenantInvoice(params: {
     amount: params.amount,
     currency: "NGN",
     status: "pending",
+    kind: params.kind ?? "rent",
     dueDate: new Date().toISOString(),
     createdAt: new Date().toISOString(),
   });

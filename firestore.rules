@@ -111,6 +111,15 @@ service cloud.firestore {
           && request.resource.data.tenantId == request.auth.uid
           && request.resource.data.status == "active"
           && request.resource.data.diff(resource.data).affectedKeys().hasOnly(["tenantId", "status"]))
+        ||
+        // Landlord sets/updates the agreed move-in date (only that field).
+        (resource.data.landlordId == request.auth.uid
+          && request.resource.data.diff(resource.data).affectedKeys().hasOnly(["moveInDate"]))
+        ||
+        // Tenant confirms move-in — the trigger that releases escrowed rent.
+        (resource.data.tenantId == request.auth.uid
+          && request.resource.data.moveInConfirmed == true
+          && request.resource.data.diff(resource.data).affectedKeys().hasOnly(["moveInConfirmed", "moveInConfirmedAt"]))
       );
 
       allow delete: if request.auth != null && resource.data.landlordId == request.auth.uid;
@@ -234,11 +243,32 @@ service cloud.firestore {
     }
 
     // --- Landlord wallet (rent proceeds held until withdrawal) ---
-    // Balance is only ever changed by the admin-SDK verify/withdraw routes;
-    // the landlord may read their own wallet but never write it directly.
+    // Money fields (balance/held/totalReceived/recipientCode) are ONLY changed
+    // by the admin-SDK verify/release/withdraw routes. The landlord may read
+    // their own wallet and may write ONLY their payout bank details.
     match /wallets/{uid} {
       allow read: if request.auth != null && request.auth.uid == uid;
+      // First-time payout-details save (no money fields present).
+      allow create: if request.auth != null && request.auth.uid == uid
+        && request.resource.data.keys().hasOnly(["bank", "landlordId"]);
+      // Later edits may only touch the payout bank details.
+      allow update: if request.auth != null && request.auth.uid == uid
+        && request.resource.data.diff(resource.data).affectedKeys().hasOnly(["bank", "landlordId"]);
+    }
+
+    // --- Withdrawals (payout log) — admin-written, landlord-readable ---
+    match /withdrawals/{id} {
+      allow read: if request.auth != null && resource.data.landlordId == request.auth.uid;
       allow write: if false;
+    }
+
+    // --- Reports / disputes to the admin ---
+    // A tenant (or any signed-in user) files a report; only the platform admin
+    // reads them (via the Firebase console). Reporter can read their own.
+    match /reports/{id} {
+      allow read: if request.auth != null && resource.data.reporterId == request.auth.uid;
+      allow create: if request.auth != null && request.resource.data.reporterId == request.auth.uid;
+      allow update, delete: if false;
     }
   }
 }
