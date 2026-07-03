@@ -2,6 +2,8 @@ import { Briefcase } from "lucide-react";
 import type { CityData } from "@/data/cities";
 import { getJobsProfile } from "@/data/insights";
 import ListingGroup from "@/components/ListingGroup";
+import TrendChart from "@/components/TrendChart";
+import IndustryEarningsBars from "@/components/IndustryEarningsBars";
 
 function naira(n: number) {
   return `₦${n.toLocaleString()}`;
@@ -43,6 +45,30 @@ export default async function JobsPanel({ city }: { city: CityData }) {
           <li>— Best-paying sector: <strong className="text-foreground">{bestSector[0]}</strong> (~{naira(bestSector[1])}/month in {p.cityName}).</li>
           <li>— Lowest-paying sector: <strong className="text-foreground">{worstSector[0]}</strong> (~{naira(worstSector[1])}/month).</li>
         </ul>
+      </div>
+
+      {/* Unemployment Trends chart (national history) */}
+      {p.unemploymentTrend.length > 0 && (
+        <div className="rounded-2xl border border-zinc-100 bg-white p-6 shadow-sm">
+          <TrendChart
+            title="Unemployment Trends — Nigeria (annual %)"
+            unit="%"
+            series={p.unemploymentTrend.map(([year, rate]) => ({ label: String(year), value: rate }))}
+            color="#2563eb"
+          />
+          <p className="mt-3 text-xs text-zinc-400">{p.unemploymentNote}</p>
+        </div>
+      )}
+
+      {/* Job Industry Earnings — horizontal hover bars */}
+      <div className="rounded-2xl border border-zinc-100 bg-white p-6 shadow-sm">
+        <div className="mb-4 flex items-center justify-between">
+          <div>
+            <h3 className="text-base font-bold text-foreground">Job Industry Earnings</h3>
+            <p className="mt-1 text-xs text-zinc-400">Estimated average annual salary by sector in {p.cityName}. Hover a bar for the figure.</p>
+          </div>
+        </div>
+        <IndustryEarningsBars sectors={p.sectors.map(([name, cityMonthly]) => ({ name, annual: cityMonthly * 12 }))} />
       </div>
 
       {/* Salary by sector table */}

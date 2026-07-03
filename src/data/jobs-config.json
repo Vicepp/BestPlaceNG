@@ -25,5 +25,20 @@
     "Retail & Trade": 90000,
     "Agriculture": 80000
   },
-  "categoryDampening": 0.6
+  "categoryDampening": 0.6,
+  "unemploymentTrend": [
+    { "year": 2012, "rate": 10.6 },
+    { "year": 2013, "rate": 10.0 },
+    { "year": 2014, "rate": 7.8 },
+    { "year": 2015, "rate": 9.0 },
+    { "year": 2016, "rate": 13.4 },
+    { "year": 2017, "rate": 17.5 },
+    { "year": 2018, "rate": 23.1 },
+    { "year": 2019, "rate": 23.1 },
+    { "year": 2020, "rate": 27.1 },
+    { "year": 2021, "rate": 33.3 },
+    { "year": 2023, "rate": 5.0 },
+    { "year": 2024, "rate": 5.3 }
+  ],
+  "unemploymentNote": "Figures up to 2021 use the old NBS methodology (which counted anyone working under 20 hours/week as unemployed). In 2023 the NBS adopted the ILO international standard, which reports a much lower headline rate — so the sharp drop after 2021 is a change in how unemployment is measured, not a sudden jobs boom."
 }

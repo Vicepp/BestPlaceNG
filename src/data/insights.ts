@@ -1,6 +1,6 @@
 /**
- * State-level civic insights: presidential election history (VoteWord) and
- * religious composition. Data is keyed by stateSlug, so every city in a state
+ * State-level civic insights: presidential election history and religious
+ * composition. Data is keyed by stateSlug, so every city in a state
  * shares its state's profile — the honest granularity for Nigeria, where INEC
  * declares presidential results per state and religious composition surveys
  * are state-level estimates.
@@ -10,9 +10,11 @@ import type { CityData } from "./cities";
 import stateInsightsData from "./state-insights.json";
 import jobsConfigData from "./jobs-config.json";
 
+export type PartyCode = "APC" | "PDP" | "LP" | "NNPP" | "APGA" | "N/A";
+
 export interface ElectionResult {
   year: number;
-  party: "APC" | "PDP" | "LP" | "NNPP";
+  party: PartyCode;
   /** true when the winning margin exceeded ~10% */
   wide: boolean;
 }
@@ -25,6 +27,10 @@ export interface ReligionShare {
 
 export interface StateInsight {
   elections: ElectionResult[];
+  /** Finishing order of the top 3 parties in the 2023 presidential vote in this state. */
+  top3?: PartyCode[];
+  /** Party controlling the state governorship after the 2023 elections. */
+  governor?: PartyCode;
   religion: ReligionShare;
 }
 
@@ -45,39 +51,42 @@ export async function getStateInsight(stateSlug: string): Promise<StateInsight |
   return typeof local === "object" ? local : null;
 }
 
-/* ── VoteWord ─────────────────────────────────────────────────── */
+/* ── Parties ──────────────────────────────────────────────────── */
 
-const PARTY_LETTER: Record<ElectionResult["party"], string> = {
-  APC: "a",
-  PDP: "p",
-  LP: "l",
-  NNPP: "k", // K for Kwankwaso's NNPP, since L is taken by Labour Party
+export const PARTY_NAMES: Record<PartyCode, string> = {
+  APC: "All Progressives Congress (APC)",
+  PDP: "Peoples Democratic Party (PDP)",
+  LP: "Labour Party (LP)",
+  NNPP: "New Nigeria Peoples Party (NNPP)",
+  APGA: "All Progressives Grand Alliance (APGA)",
+  "N/A": "No elected governor",
 };
 
-/** BestPlaces-style VoteWord: one letter per election, uppercase when the
- * margin was wide (>10%), lowercase when it was narrow. */
-export function buildVoteWord(elections: ElectionResult[]): string {
-  return elections
-    .map((e) => {
-      const letter = PARTY_LETTER[e.party] ?? "?";
-      return e.wide ? letter.toUpperCase() : letter;
-    })
-    .join(" ");
-}
-
-export const PARTY_NAMES: Record<ElectionResult["party"], string> = {
-  APC: "All Progressives Congress",
-  PDP: "Peoples Democratic Party",
-  LP: "Labour Party",
-  NNPP: "New Nigeria Peoples Party",
-};
-
-export const PARTY_COLORS: Record<ElectionResult["party"], string> = {
+export const PARTY_COLORS: Record<PartyCode, string> = {
   APC: "bg-blue-100 text-blue-700",
   PDP: "bg-red-100 text-red-700",
   LP: "bg-green-100 text-green-700",
   NNPP: "bg-purple-100 text-purple-700",
+  APGA: "bg-amber-100 text-amber-700",
+  "N/A": "bg-zinc-100 text-zinc-500",
 };
+
+/** Solid bar colours for charts, keyed by party. */
+export const PARTY_BAR_COLORS: Record<PartyCode, string> = {
+  APC: "#2563eb",
+  PDP: "#dc2626",
+  LP: "#16a34a",
+  NNPP: "#9333ea",
+  APGA: "#d97706",
+  "N/A": "#a1a1aa",
+};
+
+/** Count how many of the recorded presidential elections each party won in a state. */
+export function tallyWins(elections: ElectionResult[]): { party: PartyCode; wins: number }[] {
+  const counts = new Map<PartyCode, number>();
+  for (const e of elections) counts.set(e.party, (counts.get(e.party) ?? 0) + 1);
+  return [...counts.entries()].map(([party, wins]) => ({ party, wins })).sort((a, b) => b.wins - a.wins);
+}
 
 /* ── Jobs / economy ───────────────────────────────────────────── */
 
@@ -93,6 +102,9 @@ export interface JobsProfile {
   nationalMedianMonthlyIncome: number;
   /** [sector, cityMonthly, nationalMonthly][] sorted by national salary desc */
   sectors: [string, number, number][];
+  /** National unemployment history: [year, rate%][] */
+  unemploymentTrend: [number, number][];
+  unemploymentNote: string;
   asOf: string;
   source: string;
 }
@@ -109,6 +121,8 @@ interface JobsConfig {
   };
   sectorSalariesMonthly: Record<string, number>;
   categoryDampening: number;
+  unemploymentTrend: { year: number; rate: number }[];
+  unemploymentNote: string;
 }
 
 const STATIC_JOBS = jobsConfigData as JobsConfig;
@@ -142,6 +156,8 @@ export async function getJobsProfile(city: CityData): Promise<JobsProfile> {
     estMonthlyIncome: scale(cfg.national.medianMonthlyIncome, index, d),
     nationalMedianMonthlyIncome: cfg.national.medianMonthlyIncome,
     sectors,
+    unemploymentTrend: (cfg.unemploymentTrend ?? []).map((u) => [u.year, u.rate] as [number, number]),
+    unemploymentNote: cfg.unemploymentNote ?? "",
     asOf: cfg.asOf,
     source: cfg._source,
   };
