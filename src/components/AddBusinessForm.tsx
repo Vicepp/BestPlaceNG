@@ -17,6 +17,8 @@ const CATEGORIES: { value: ListingCategory; label: string }[] = [
   { value: "market", label: "Market" },
   { value: "shopping-mall", label: "Shopping Mall" },
   { value: "police-station", label: "Police Station" },
+  { value: "church", label: "Church" },
+  { value: "mosque", label: "Mosque" },
 ];
 
 const sortedCities = [...cities].sort((a, b) => a.name.localeCompare(b.name));
@@ -31,6 +33,7 @@ export default function AddBusinessForm() {
   const [subtitle, setSubtitle] = useState("");
   const [address, setAddress] = useState("");
   const [meta, setMeta] = useState("");
+  const [phone, setPhone] = useState("");
   const [description, setDescription] = useState("");
   const [tags, setTags] = useState("");
   const [error, setError] = useState("");
@@ -57,6 +60,7 @@ export default function AddBusinessForm() {
       description: description.trim(),
       address: address.trim() || undefined,
       meta: meta.trim() || undefined,
+      phone: phone.trim() || undefined,
       tags: tags.split(",").map((t) => t.trim()).filter(Boolean),
       ownerId: user.uid,
       createdAt: new Date().toISOString(),
@@ -118,9 +122,15 @@ export default function AddBusinessForm() {
         </div>
       </div>
 
-      <div>
-        <label className="mb-1 block text-xs font-semibold text-zinc-500">Meta (optional, e.g. hours, price)</label>
-        <input value={meta} onChange={(e) => setMeta(e.target.value)} placeholder="e.g. Open daily · 8am - 10pm" className="w-full rounded-lg border border-zinc-200 px-3 py-2 text-sm outline-none focus:border-brand" />
+      <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+        <div>
+          <label className="mb-1 block text-xs font-semibold text-zinc-500">Meta (optional, e.g. hours, price)</label>
+          <input value={meta} onChange={(e) => setMeta(e.target.value)} placeholder="e.g. Open daily · 8am - 10pm" className="w-full rounded-lg border border-zinc-200 px-3 py-2 text-sm outline-none focus:border-brand" />
+        </div>
+        <div>
+          <label className="mb-1 block text-xs font-semibold text-zinc-500">Phone (optional)</label>
+          <input value={phone} onChange={(e) => setPhone(e.target.value)} placeholder="e.g. 0803 123 4567" className="w-full rounded-lg border border-zinc-200 px-3 py-2 text-sm outline-none focus:border-brand" />
+        </div>
       </div>
 
       <div>

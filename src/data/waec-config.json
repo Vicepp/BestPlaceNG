@@ -1,0 +1,16 @@
+{
+  "_source": "WAEC WASSCE national pass rate = % of candidates with 5 credits or more INCLUDING English and Mathematics, from WAEC Nigeria annual release figures. National figures — WAEC does not publish a consistent per-state series, so this national trend is shown for every city as context.",
+  "asOf": "2024",
+  "metric": "5 credits incl. English & Maths (%)",
+  "passRateTrend": [
+    { "year": 2016, "rate": 52.9 },
+    { "year": 2017, "rate": 59.2 },
+    { "year": 2018, "rate": 49.9 },
+    { "year": 2019, "rate": 64.2 },
+    { "year": 2020, "rate": 65.2 },
+    { "year": 2021, "rate": 81.7 },
+    { "year": 2022, "rate": 76.4 },
+    { "year": 2023, "rate": 79.8 },
+    { "year": 2024, "rate": 72.1 }
+  ]
+}

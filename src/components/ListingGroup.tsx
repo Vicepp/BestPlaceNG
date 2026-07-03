@@ -41,6 +41,11 @@ export default async function ListingGroup({
             {listing.meta && <p className="text-sm font-semibold text-brand-dark">{listing.meta}</p>}
           </div>
           <p className="mt-3 text-sm text-zinc-600">{listing.description}</p>
+          {listing.phone && (
+            <p className="mt-2 text-sm text-zinc-500">
+              📞 <a href={`tel:${listing.phone.replace(/\s/g, "")}`} className="font-medium text-brand hover:underline">{listing.phone}</a>
+            </p>
+          )}
           {listing.tags && listing.tags.length > 0 && (
             <div className="mt-3 flex flex-wrap gap-2">
               {listing.tags.map((t) => (

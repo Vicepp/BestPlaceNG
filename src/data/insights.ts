@@ -9,6 +9,8 @@ import { getFirestoreDoc } from "@/lib/firestoreData";
 import type { CityData } from "./cities";
 import stateInsightsData from "./state-insights.json";
 import jobsConfigData from "./jobs-config.json";
+import religionConfigData from "./religion-config.json";
+import waecConfigData from "./waec-config.json";
 
 export type PartyCode = "APC" | "PDP" | "LP" | "NNPP" | "APGA" | "N/A";
 
@@ -86,6 +88,66 @@ export function tallyWins(elections: ElectionResult[]): { party: PartyCode; wins
   const counts = new Map<PartyCode, number>();
   for (const e of elections) counts.set(e.party, (counts.get(e.party) ?? 0) + 1);
   return [...counts.entries()].map(([party, wins]) => ({ party, wins })).sort((a, b) => b.wins - a.wins);
+}
+
+/* ── Religion denominations (national reference) ──────────────── */
+
+export interface DenominationEntry {
+  name: string;
+  note: string;
+}
+
+export interface ReligionConfig {
+  topChristianDenominations: DenominationEntry[];
+  topMuslimGroups: DenominationEntry[];
+  source: string;
+}
+
+const STATIC_RELIGION = religionConfigData as {
+  _source: string;
+  topChristianDenominations: DenominationEntry[];
+  topMuslimGroups: DenominationEntry[];
+};
+
+export async function getReligionConfig(): Promise<ReligionConfig> {
+  const remote = await getFirestoreDoc<typeof STATIC_RELIGION>("config", "religion");
+  const cfg = remote?.topChristianDenominations ? remote : STATIC_RELIGION;
+  return {
+    topChristianDenominations: cfg.topChristianDenominations,
+    topMuslimGroups: cfg.topMuslimGroups,
+    source: cfg._source,
+  };
+}
+
+/* ── Education / WAEC ─────────────────────────────────────────── */
+
+export interface WaecProfile {
+  metric: string;
+  asOf: string;
+  /** [year, passRate%][] */
+  trend: [number, number][];
+  latest: number;
+  source: string;
+}
+
+const STATIC_WAEC = waecConfigData as {
+  _source: string;
+  asOf: string;
+  metric: string;
+  passRateTrend: { year: number; rate: number }[];
+};
+
+export async function getWaecProfile(): Promise<WaecProfile> {
+  const remote = await getFirestoreDoc<typeof STATIC_WAEC>("config", "waec");
+  const cfg = remote?.passRateTrend ? remote : STATIC_WAEC;
+  const trend = cfg.passRateTrend.map((t) => [t.year, t.rate] as [number, number]);
+  return {
+    metric: cfg.metric,
+    asOf: cfg.asOf,
+    trend,
+    latest: trend[trend.length - 1]?.[1] ?? 0,
+    source: cfg._source,
+  };
 }
 
 /* ── Jobs / economy ───────────────────────────────────────────── */

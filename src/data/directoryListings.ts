@@ -9,7 +9,9 @@ export type ListingCategory =
   | "event"
   | "market"
   | "shopping-mall"
-  | "police-station";
+  | "police-station"
+  | "church"
+  | "mosque";
 
 export interface DirectoryListing {
   id: string;
@@ -20,6 +22,8 @@ export interface DirectoryListing {
   description: string;
   address?: string;
   meta?: string;
+  /** Contact phone number (used especially for churches/mosques/schools). */
+  phone?: string;
   tags?: string[];
   /** Firestore auth uid of the business/user who added this listing. Absent on bundled sample listings. */
   ownerId?: string;
@@ -59,6 +63,14 @@ export const directoryListings: DirectoryListing[] = [
 
   { id: "police-001", citySlug: "lagos-lagos", category: "police-station", name: "Ikeja Police Station", subtitle: "Divisional Police Station", description: "Divisional police headquarters serving the Ikeja area.", address: "Ikeja, Lagos", meta: "24/7" },
   { id: "police-002", citySlug: "abuja-fct", category: "police-station", name: "Wuse Police Station", subtitle: "Divisional Police Station", description: "Divisional police station serving the Wuse district.", address: "Wuse, Abuja", meta: "24/7" },
+
+  { id: "church-001", citySlug: "lagos-lagos", category: "church", name: "Cathedral Church of Christ, Marina", subtitle: "Anglican", description: "Historic Anglican cathedral on Lagos Island, one of the oldest churches in Nigeria.", address: "Marina, Lagos Island", meta: "Sunday services", phone: "0801 234 5678" },
+  { id: "church-002", citySlug: "lagos-lagos", category: "church", name: "RCCG City of David", subtitle: "Pentecostal (RCCG)", description: "Large Redeemed Christian Church of God parish popular with professionals.", address: "Victoria Island, Lagos", meta: "Sun 8am & 10am", phone: "0802 345 6789" },
+  { id: "church-003", citySlug: "abuja-fct", category: "church", name: "National Christian Centre", subtitle: "Interdenominational", description: "Landmark national ecumenical centre for Christian worship in the capital.", address: "Central Business District, Abuja", meta: "Sunday services" },
+
+  { id: "mosque-001", citySlug: "abuja-fct", category: "mosque", name: "Abuja National Mosque", subtitle: "National Mosque", description: "The national mosque of Nigeria, open to worshippers and (outside prayer times) visitors.", address: "Independence Avenue, Abuja", meta: "5 daily prayers", phone: "0803 456 7890" },
+  { id: "mosque-002", citySlug: "lagos-lagos", category: "mosque", name: "Lagos Central Mosque", subtitle: "Central Mosque", description: "The principal mosque on Lagos Island, a major centre for Friday Jumu'ah prayers.", address: "Nnamdi Azikiwe St, Lagos Island", meta: "Jumu'ah Fridays" },
+  { id: "mosque-003", citySlug: "kano-kano", category: "mosque", name: "Kano Central Mosque", subtitle: "Central Mosque", description: "Historic emirate central mosque in the heart of Kano city.", address: "Kofar Mata, Kano", meta: "5 daily prayers" },
 ];
 
 /**
@@ -76,4 +88,9 @@ export async function getDirectoryListingsLive(): Promise<DirectoryListing[]> {
 export async function getListingsLive(citySlug: string, category: ListingCategory): Promise<DirectoryListing[]> {
   const all = await getDirectoryListingsLive();
   return all.filter((l) => l.citySlug === citySlug && l.category === category);
+}
+
+export async function getListingById(id: string): Promise<DirectoryListing | null> {
+  const all = await getDirectoryListingsLive();
+  return all.find((l) => l.id === id) ?? null;
 }

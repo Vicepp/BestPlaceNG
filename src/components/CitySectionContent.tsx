@@ -12,11 +12,11 @@ import ClimatePanel from "@/components/ClimatePanel";
 import JobsPanel from "@/components/JobsPanel";
 import PoliticsPanel from "@/components/PoliticsPanel";
 import ReligionPanel from "@/components/ReligionPanel";
+import SchoolPanel from "@/components/SchoolPanel";
 import { getCostOfLivingProfile } from "@/data/costOfLiving";
 import ReviewBox from "@/components/ReviewBox";
 import RentThisButton from "@/components/RentThisButton";
 import MessageLandlordButton from "@/components/MessageLandlordButton";
-import { Star } from "lucide-react";
 
 function StatCard({ label, value }: { label: string; value: string }) {
   return (
@@ -118,44 +118,7 @@ async function renderSectionBody(city: CityData, section: string) {
       return <ClimatePanel city={city} />;
 
     case "school-ratings":
-      return (
-        <div className="space-y-6">
-          {/* Narrative intro — worded from the actual rating, not a fixed string */}
-          <div className="rounded-2xl border border-zinc-100 bg-white p-6 shadow-sm">
-            <p className="text-sm leading-relaxed text-zinc-600">
-              {city.schoolRating !== undefined
-                ? `${city.name} scores ${city.schoolRating.toFixed(1)}/10 on our schools index — ${
-                    city.schoolRating >= 7.5
-                      ? "one of the stronger education environments in Nigeria, with established private and public options plus tertiary institutions nearby."
-                      : city.schoolRating >= 6
-                      ? "a solid mix of public and private schools, though quality varies by neighbourhood, so visiting shortlisted schools in person is worth the time."
-                      : "schooling options exist but are more limited than in Nigeria's bigger education hubs — many families here supplement with lesson teachers or consider boarding options."
-                  } Nigerian parents typically weigh WAEC/NECO results, teacher quality, and security when choosing schools — fees at private schools range widely, from budget neighbourhood academies to premium international curricula.`
-                : `${city.name} doesn't have its own schools index yet. As an LGA-tier area, most families here choose between local public schools and neighbourhood private academies, with bigger school options in the state's major city.`}
-            </p>
-          </div>
-          {city.schoolRating !== undefined ? (
-            <div>
-              <p className="mb-2 text-sm font-medium text-foreground">School Rating</p>
-              <div className="flex items-center gap-1">
-                {Array.from({ length: 10 }).map((_, i) => (
-                  <Star
-                    key={i}
-                    className={`h-5 w-5 ${i < Math.round(city.schoolRating!) ? "fill-accent text-accent" : "text-zinc-200"}`}
-                  />
-                ))}
-                <span className="ml-2 text-sm font-semibold text-foreground">{city.schoolRating.toFixed(1)} / 10</span>
-              </div>
-            </div>
-          ) : (
-            <ComingSoon topic="School rating" />
-          )}
-          <div>
-            <h3 className="mb-3 text-sm font-semibold text-foreground">Schools in {city.name}</h3>
-            <ListingGroup citySlug={city.slug} cityName={city.name} category="school" label="School" />
-          </div>
-        </div>
-      );
+      return <SchoolPanel city={city} />;
 
     case "education-stats":
       return <ComingSoon topic="Education statistics" />;

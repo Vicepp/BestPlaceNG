@@ -1,0 +1,20 @@
+{
+  "_source": "Largest Christian denominations and Muslim groups in Nigeria by membership/prominence — compiled from Pew Research, denominational records and public reporting. National reference; local presence varies by city.",
+  "topChristianDenominations": [
+    { "name": "Roman Catholic Church", "note": "Nigeria's single largest Christian body, strong in the South-East and Middle Belt." },
+    { "name": "Anglican Communion (Church of Nigeria)", "note": "Widespread, historically strong in the South and Middle Belt." },
+    { "name": "Redeemed Christian Church of God (RCCG)", "note": "The largest Pentecostal church, with parishes in almost every neighbourhood." },
+    { "name": "Living Faith Church (Winners' Chapel)", "note": "Major Pentecostal church known for large auditoriums." },
+    { "name": "Mountain of Fire and Miracles (MFM)", "note": "Prominent Pentecostal ministry, strong in the South-West." },
+    { "name": "Deeper Christian Life Ministry", "note": "Large conservative Pentecostal church." },
+    { "name": "Christ Embassy (LoveWorld)", "note": "Fast-growing Pentecostal church with a big media presence." },
+    { "name": "Assemblies of God", "note": "Established Pentecostal denomination, strong in the East." }
+  ],
+  "topMuslimGroups": [
+    { "name": "Sunni (mainstream)", "note": "The large majority of Nigerian Muslims, especially across the North." },
+    { "name": "Tijaniyya (Sufi order)", "note": "Widespread Sufi brotherhood, strong in the North-West." },
+    { "name": "Qadiriyya (Sufi order)", "note": "Historic Sufi brotherhood present across the North." },
+    { "name": "Izala (JIBWIS)", "note": "Prominent reformist movement, influential in the North." },
+    { "name": "NASFAT", "note": "Large Yoruba Muslim organisation, prominent in the South-West." }
+  ]
+}
