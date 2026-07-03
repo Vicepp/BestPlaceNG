@@ -2,9 +2,13 @@
 
 import { useEffect, useState } from "react";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
+import { MessageSquare, Settings2 } from "lucide-react";
 import { useAuth } from "@/context/AuthContext";
 import { getTenanciesForLandlordLive, approveTenancy, rejectTenancy, type Tenancy } from "@/data/tenancies";
 import { formatNaira } from "@/data/apartments";
+import { getOrCreateDirectConversation } from "@/data/conversations";
+import ManageTenantModal from "@/components/dashboard/ManageTenantModal";
 
 const STATUS_STYLES: Record<string, string> = {
   active: "bg-green-100 text-green-700",
@@ -15,9 +19,12 @@ const STATUS_STYLES: Record<string, string> = {
 };
 
 export default function TenantsPage() {
-  const { user } = useAuth();
+  const { user, profile } = useAuth();
+  const router = useRouter();
   const [tenancies, setTenancies] = useState<Tenancy[]>([]);
   const [loading, setLoading] = useState(true);
+  const [manageTenant, setManageTenant] = useState<Tenancy | null>(null);
+  const [messaging, setMessaging] = useState<string | null>(null);
 
   async function load() {
     if (!user) return;
@@ -26,6 +33,18 @@ export default function TenantsPage() {
   }
 
   useEffect(() => { load(); }, [user]); // eslint-disable-line react-hooks/exhaustive-deps
+
+  async function messageTenant(t: Tenancy) {
+    if (!user || !t.tenantId) return;
+    setMessaging(t.id);
+    const convoId = await getOrCreateDirectConversation(
+      user.uid,
+      profile?.displayName ?? user.email ?? "Landlord",
+      t.tenantId,
+      t.tenantName
+    );
+    router.push(`/dashboard/messages?c=${convoId}`);
+  }
 
   return (
     <div className="space-y-6">
@@ -67,12 +86,35 @@ export default function TenantsPage() {
                     <span className={`rounded-full px-2.5 py-1 text-xs font-semibold capitalize ${STATUS_STYLES[t.status]}`}>{t.status}</span>
                   </td>
                   <td className="px-5 py-3">
-                    {t.status === "requested" && (
-                      <div className="flex gap-2">
-                        <button onClick={async () => { await approveTenancy(t.id, t); load(); }} className="rounded-full bg-brand px-3 py-1 text-xs font-semibold text-white hover:bg-brand-dark">Approve</button>
-                        <button onClick={async () => { await rejectTenancy(t.id); load(); }} className="rounded-full border border-zinc-200 px-3 py-1 text-xs font-semibold text-zinc-600 hover:border-red-300 hover:text-red-600">Reject</button>
-                      </div>
-                    )}
+                    <div className="flex flex-wrap items-center gap-2">
+                      {t.status === "requested" && (
+                        <>
+                          <button onClick={async () => { await approveTenancy(t.id, t); load(); }} className="rounded-full bg-brand px-3 py-1 text-xs font-semibold text-white hover:bg-brand-dark">Approve</button>
+                          <button onClick={async () => { await rejectTenancy(t.id); load(); }} className="rounded-full border border-zinc-200 px-3 py-1 text-xs font-semibold text-zinc-600 hover:border-red-300 hover:text-red-600">Reject</button>
+                        </>
+                      )}
+                      {/* Message tenant (needs a linked account) */}
+                      {t.tenantId && (t.status === "active" || t.status === "requested") && (
+                        <button
+                          onClick={() => messageTenant(t)}
+                          disabled={messaging === t.id}
+                          title="Message tenant"
+                          className="flex h-7 w-7 items-center justify-center rounded-full border border-zinc-200 text-zinc-500 hover:border-brand hover:text-brand disabled:opacity-50"
+                        >
+                          <MessageSquare className="h-3.5 w-3.5" />
+                        </button>
+                      )}
+                      {/* Manage tenant: utility fees, invoices */}
+                      {t.status === "active" && (
+                        <button
+                          onClick={() => setManageTenant(t)}
+                          title="Manage tenant"
+                          className="flex items-center gap-1 rounded-full bg-brand-light px-3 py-1 text-xs font-semibold text-brand hover:bg-brand hover:text-white"
+                        >
+                          <Settings2 className="h-3.5 w-3.5" /> Manage
+                        </button>
+                      )}
+                    </div>
                   </td>
                 </tr>
               ))}
@@ -80,6 +122,8 @@ export default function TenantsPage() {
           </table>
         </div>
       )}
+
+      {manageTenant && <ManageTenantModal tenancy={manageTenant} onClose={() => { setManageTenant(null); load(); }} />}
     </div>
   );
 }

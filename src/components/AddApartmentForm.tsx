@@ -9,6 +9,7 @@ import { useAuth } from "@/context/AuthContext";
 import { getPropertyById, type Property } from "@/data/properties";
 import { getFirestoreDoc } from "@/lib/firestoreData";
 import ImageUploader from "@/components/ImageUploader";
+import { uploadDocument } from "@/lib/storage";
 import { Info } from "lucide-react";
 
 const TYPES: ApartmentListing["type"][] = ["Apartment", "House", "Duplex", "Land", "Self-Contain", "Shop/Office"];
@@ -44,6 +45,10 @@ export default function AddApartmentForm() {
   const [agencyFee, setAgencyFee] = useState("");
   const [agreementFee, setAgreementFee] = useState("");
   const [legalFee, setLegalFee] = useState("");
+  // Tenancy agreement / house rules
+  const [clauseText, setClauseText] = useState("");
+  const [clausePdfUrl, setClausePdfUrl] = useState("");
+  const [uploadingPdf, setUploadingPdf] = useState(false);
 
   const [error, setError] = useState("");
   const [submitting, setSubmitting] = useState(false);
@@ -89,6 +94,8 @@ export default function AddApartmentForm() {
       setAgencyFee(listing.agencyFee ? String(listing.agencyFee) : "");
       setAgreementFee(listing.agreementFee ? String(listing.agreementFee) : "");
       setLegalFee(listing.legalFee ? String(listing.legalFee) : "");
+      setClauseText(listing.clauseText ?? "");
+      setClausePdfUrl(listing.clausePdfUrl ?? "");
     });
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [editId]);
@@ -133,6 +140,8 @@ export default function AddApartmentForm() {
       agencyFee: agencyFee ? Number(agencyFee) : undefined,
       agreementFee: agreementFee ? Number(agreementFee) : undefined,
       legalFee: legalFee ? Number(legalFee) : undefined,
+      clauseText: clauseText.trim() || undefined,
+      clausePdfUrl: clausePdfUrl || undefined,
     };
 
     let result;
@@ -286,6 +295,49 @@ export default function AddApartmentForm() {
             First-year total: ₦{totalFirstYear.toLocaleString()} · Subsequent years: ₦{Number(priceNaira || 0).toLocaleString()}
           </p>
         )}
+      </div>
+
+      {/* Tenancy agreement / house rules */}
+      <div className="rounded-xl border border-zinc-100 p-4 space-y-3">
+        <p className="text-xs font-bold uppercase tracking-wide text-zinc-500">Tenancy Agreement &amp; House Rules</p>
+        <p className="text-[11px] text-zinc-400">
+          Tenants must read and accept this before they can pay to become a tenant. Type your rules below, and/or upload a signed agreement PDF.
+        </p>
+        <textarea
+          value={clauseText}
+          onChange={(e) => setClauseText(e.target.value)}
+          rows={5}
+          placeholder={"e.g.\n1. Rent is paid yearly in advance.\n2. No structural changes without written consent.\n3. Caution deposit refunded on inspection at move-out.\n4. Quiet hours after 10pm."}
+          className="w-full rounded-lg border border-zinc-200 px-3 py-2 text-sm outline-none focus:border-brand"
+        />
+        <div>
+          <label className="mb-1 block text-[10px] font-semibold text-zinc-400">Agreement PDF (optional, max 1)</label>
+          {clausePdfUrl ? (
+            <div className="flex items-center gap-2 text-sm">
+              <a href={clausePdfUrl} target="_blank" rel="noopener noreferrer" className="font-semibold text-brand hover:underline">View uploaded PDF</a>
+              <button type="button" onClick={() => setClausePdfUrl("")} className="text-xs text-red-500 hover:underline">Remove</button>
+            </div>
+          ) : (
+            <input
+              type="file"
+              accept="application/pdf"
+              disabled={uploadingPdf}
+              onChange={async (e) => {
+                const file = e.target.files?.[0];
+                if (!file) return;
+                setUploadingPdf(true);
+                setError("");
+                const res = await uploadDocument(file);
+                setUploadingPdf(false);
+                if (res.ok) setClausePdfUrl(res.url);
+                else setError(res.error);
+                e.target.value = "";
+              }}
+              className="block w-full text-sm text-zinc-500 file:mr-3 file:rounded-full file:border-0 file:bg-brand-light file:px-4 file:py-2 file:text-sm file:font-semibold file:text-brand"
+            />
+          )}
+          {uploadingPdf && <p className="mt-1 text-xs text-brand">Uploading PDF…</p>}
+        </div>
       </div>
 
       <div>

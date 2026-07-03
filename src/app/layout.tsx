@@ -2,7 +2,7 @@ import type { Metadata } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
 import Header from "@/components/Header";
-import Footer from "@/components/Footer";
+import ConditionalFooter from "@/components/ConditionalChrome";
 import FloatingAssistant from "@/components/FloatingAssistant";
 import { AuthProvider } from "@/context/AuthContext";
 
@@ -36,7 +36,7 @@ export default function RootLayout({
         <AuthProvider>
           <Header />
           <main className="flex-1">{children}</main>
-          <Footer />
+          <ConditionalFooter />
           <FloatingAssistant />
         </AuthProvider>
       </body>

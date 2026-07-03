@@ -47,11 +47,56 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ ok: false, error: "Currency mismatch — expected NGN" }, { status: 409 });
   }
 
+  const payment = snap.data()!;
+  const now = new Date().toISOString();
+
   await paymentRef.update({
     status: "success",
     paystackReference: reference,
-    verifiedAt: new Date().toISOString(),
+    verifiedAt: now,
   });
+
+  // Paying is what makes someone a tenant: activate the tenancy if it isn't already,
+  // and take the apartment off the public market (status -> "rented").
+  if (payment.tenancyId) {
+    try {
+      const tenancyRef = db.collection("tenancies").doc(payment.tenancyId as string);
+      const tSnap = await tenancyRef.get();
+      if (tSnap.exists && tSnap.data()!.status !== "active") {
+        await tenancyRef.update({ status: "active", activatedAt: now });
+      }
+    } catch (e) {
+      console.error("[verify] tenancy activation failed:", e);
+    }
+  }
+  if (payment.apartmentId) {
+    try {
+      await db.collection("apartments").doc(payment.apartmentId as string).update({ status: "rented" });
+    } catch (e) {
+      console.error("[verify] apartment mark-rented failed:", e);
+    }
+  }
+
+  // Credit the landlord's in-app wallet — funds are held here until the landlord
+  // initiates a withdrawal to their bank (see the payment-routing note in the
+  // dashboard). Uses an atomic increment so concurrent payments can't clobber.
+  if (payment.landlordId) {
+    try {
+      const { FieldValue } = await import("firebase-admin/firestore");
+      const walletRef = db.collection("wallets").doc(payment.landlordId as string);
+      await walletRef.set(
+        {
+          landlordId: payment.landlordId,
+          balance: FieldValue.increment(payment.amount as number),
+          totalReceived: FieldValue.increment(payment.amount as number),
+          updatedAt: now,
+        },
+        { merge: true }
+      );
+    } catch (e) {
+      console.error("[verify] wallet credit failed:", e);
+    }
+  }
 
   return NextResponse.json({ ok: true });
 }

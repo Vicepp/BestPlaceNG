@@ -42,6 +42,30 @@ export async function generateInvoice(params: {
   });
 }
 
+/** Tenant creates their own move-in invoice (first-year rent + fees) as part of the
+ * Become-a-Tenant flow. Status "pending" until Paystack confirms via the verify route. */
+export async function createTenantInvoice(params: {
+  tenancyId: string;
+  apartmentId: string;
+  apartmentTitle: string;
+  landlordId: string;
+  tenantId: string;
+  amount: number;
+}): Promise<WriteResult> {
+  return addFirestoreDoc("payments", {
+    tenancyId: params.tenancyId,
+    apartmentId: params.apartmentId,
+    apartmentTitle: params.apartmentTitle,
+    landlordId: params.landlordId,
+    tenantId: params.tenantId,
+    amount: params.amount,
+    currency: "NGN",
+    status: "pending",
+    dueDate: new Date().toISOString(),
+    createdAt: new Date().toISOString(),
+  });
+}
+
 export async function getPaymentsForLandlordLive(landlordId: string): Promise<Payment[]> {
   const result = await queryFirestoreCollection<Payment>("payments", [["landlordId", landlordId]]);
   return result ?? [];

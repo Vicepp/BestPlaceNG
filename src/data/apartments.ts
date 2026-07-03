@@ -43,6 +43,17 @@ export interface ApartmentListing {
   agencyFee?: number;        // non-refundable agent commission
   agreementFee?: number;     // legal documentation fee
   legalFee?: number;         // lawyer/notary fee
+
+  // Landlord's tenancy agreement / house rules for THIS property. A tenant must
+  // read and accept these before paying to become a tenant. Either a typed
+  // clause, an uploaded PDF, or both.
+  clauseText?: string;       // typed rules & regulations / tenancy terms
+  clausePdfUrl?: string;     // uploaded agreement PDF (Cloudinary)
+}
+
+/** First-year total a tenant pays to move in: rent + all one-off fees. */
+export function firstYearTotal(a: Pick<ApartmentListing, "priceNaira" | "cautionFee" | "agencyFee" | "agreementFee" | "legalFee">): number {
+  return a.priceNaira + (a.cautionFee ?? 0) + (a.agencyFee ?? 0) + (a.agreementFee ?? 0) + (a.legalFee ?? 0);
 }
 
 /**

@@ -2,7 +2,7 @@
 
 import { useEffect, useRef, useState } from "react";
 import Link from "next/link";
-import { Home, CreditCard, X } from "lucide-react";
+import { Home, UserPlus, X } from "lucide-react";
 import type { ChatMessage } from "@/data/conversations";
 import { formatNaira } from "@/data/apartments";
 
@@ -17,16 +17,12 @@ function PropertyCard({
   msg,
   mine,
   dismissed,
-  onPay,
   onIgnore,
-  paying,
 }: {
   msg: ChatMessage;
   mine: boolean;
   dismissed: boolean;
-  onPay?: (msg: ChatMessage) => void;
   onIgnore?: (msgId: string) => void;
-  paying?: boolean;
 }) {
   return (
     <div
@@ -51,16 +47,15 @@ function PropertyCard({
       </Link>
 
       {/* Action buttons — only on RECEIVED property shares, until dismissed */}
-      {!mine && !dismissed && onPay && onIgnore && (
+      {!mine && !dismissed && msg.propertyId && onIgnore && (
         <div className="mt-3 flex gap-2 border-t border-zinc-100 pt-3">
-          <button
-            onClick={() => onPay(msg)}
-            disabled={paying}
-            className="flex flex-1 items-center justify-center gap-1.5 rounded-full bg-brand px-3 py-2 text-xs font-semibold text-white transition hover:bg-brand-dark disabled:opacity-60"
+          <Link
+            href={`/become-tenant/${msg.propertyId}`}
+            className="flex flex-1 items-center justify-center gap-1.5 rounded-full bg-brand px-3 py-2 text-xs font-semibold text-white transition hover:bg-brand-dark"
           >
-            <CreditCard className="h-3.5 w-3.5" />
-            {paying ? "Processing…" : "Make Payment"}
-          </button>
+            <UserPlus className="h-3.5 w-3.5" />
+            Become a tenant
+          </Link>
           <button
             onClick={() => onIgnore(msg.id)}
             className="flex items-center justify-center gap-1 rounded-full border border-zinc-200 px-3 py-2 text-xs font-semibold text-zinc-500 transition hover:border-red-300 hover:text-red-500"
@@ -76,14 +71,9 @@ function PropertyCard({
 export default function MessageThread({
   messages,
   myUid,
-  onPayProperty,
-  payingMsgId,
 }: {
   messages: ChatMessage[];
   myUid: string;
-  /** Called when the recipient taps "Make Payment" on a shared property card. */
-  onPayProperty?: (msg: ChatMessage) => void;
-  payingMsgId?: string | null;
 }) {
   const bottomRef = useRef<HTMLDivElement>(null);
   const [dismissed, setDismissed] = useState<string[]>([]);
@@ -121,9 +111,7 @@ export default function MessageThread({
                     msg={m}
                     mine={mine}
                     dismissed={dismissed.includes(m.id)}
-                    onPay={onPayProperty}
                     onIgnore={handleIgnore}
-                    paying={payingMsgId === m.id}
                   />
                 </div>
               ) : m.type === "image" && m.imageData ? (

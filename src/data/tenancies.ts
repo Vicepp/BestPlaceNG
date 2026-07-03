@@ -25,6 +25,48 @@ export interface Tenancy {
   leaseStart?: string;
   leaseEnd?: string;
   createdAt: string;
+  /** Whether this is a home or a commercial unit — shown on the tenant dashboard. */
+  unitKind?: "apartment" | "shop";
+  // Signed tenancy agreement (captured on the Become-a-Tenant flow)
+  signedName?: string;
+  signedPhone?: string;
+  agreedAt?: string;
+}
+
+/** Tenant signs the landlord's clause and requests the tenancy, right before paying.
+ * Created as "requested"; the payment-verify route flips it to "active" once
+ * Paystack confirms the money, so paying is what actually makes them a tenant. */
+export async function signAndRequestTenancy(params: {
+  apartmentId: string;
+  citySlug: string;
+  apartmentTitle: string;
+  landlordId: string;
+  tenantId: string;
+  tenantName: string;
+  tenantEmail: string;
+  rentAmount: number;
+  rentPeriod: "year" | "month";
+  unitKind: "apartment" | "shop";
+  signedName: string;
+  signedPhone: string;
+}): Promise<WriteResult> {
+  return addFirestoreDoc("tenancies", {
+    apartmentId: params.apartmentId,
+    citySlug: params.citySlug,
+    apartmentTitle: params.apartmentTitle,
+    landlordId: params.landlordId,
+    tenantId: params.tenantId,
+    tenantEmail: params.tenantEmail.trim().toLowerCase(),
+    tenantName: params.tenantName,
+    status: "requested",
+    rentAmount: params.rentAmount,
+    rentPeriod: params.rentPeriod,
+    unitKind: params.unitKind,
+    signedName: params.signedName,
+    signedPhone: params.signedPhone,
+    agreedAt: new Date().toISOString(),
+    createdAt: new Date().toISOString(),
+  });
 }
 
 /** Landlord invites a tenant by email. Always created as "invited" with tenantId null - the

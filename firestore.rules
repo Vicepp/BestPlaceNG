@@ -214,14 +214,31 @@ service cloud.firestore {
     match /payments/{paymentId} {
       allow read: if request.auth != null
         && (resource.data.landlordId == request.auth.uid || resource.data.tenantId == request.auth.uid);
+      // Two create paths, both must be "pending" with a positive amount (only the
+      // admin-SDK verify route can ever flip status to "success"):
+      //  1. Landlord invoicing one of their own tenancies.
+      //  2. Tenant self-invoicing on the Become-a-Tenant flow (paying to move in).
       allow create: if request.auth != null
-        && request.resource.data.landlordId == request.auth.uid
         && request.resource.data.status == "pending"
         && request.resource.data.amount is number && request.resource.data.amount > 0
-        && get(/databases/$(database)/documents/tenancies/$(request.resource.data.tenancyId)).data.landlordId == request.auth.uid
-        && get(/databases/$(database)/documents/tenancies/$(request.resource.data.tenancyId)).data.tenantId == request.resource.data.tenantId;
+        && (
+          (request.resource.data.landlordId == request.auth.uid
+            && get(/databases/$(database)/documents/tenancies/$(request.resource.data.tenancyId)).data.landlordId == request.auth.uid
+            && get(/databases/$(database)/documents/tenancies/$(request.resource.data.tenancyId)).data.tenantId == request.resource.data.tenantId)
+          ||
+          (request.resource.data.tenantId == request.auth.uid
+            && get(/databases/$(database)/documents/tenancies/$(request.resource.data.tenancyId)).data.tenantId == request.auth.uid)
+        );
       allow update: if false;
       allow delete: if false;
+    }
+
+    // --- Landlord wallet (rent proceeds held until withdrawal) ---
+    // Balance is only ever changed by the admin-SDK verify/withdraw routes;
+    // the landlord may read their own wallet but never write it directly.
+    match /wallets/{uid} {
+      allow read: if request.auth != null && request.auth.uid == uid;
+      allow write: if false;
     }
   }
 }

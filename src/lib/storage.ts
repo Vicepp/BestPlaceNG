@@ -61,6 +61,42 @@ export async function uploadFile(file: File, _path?: string): Promise<UploadResu
   }
 }
 
+/** Upload a document (PDF etc.) to Cloudinary and return its URL. Uses the
+ *  auto/upload endpoint so non-image files are stored as raw resources. */
+export async function uploadDocument(file: File): Promise<UploadResult> {
+  if (!isCloudinaryConfigured()) {
+    return { ok: false, error: "Upload not configured — check NEXT_PUBLIC_CLOUDINARY_* env vars." };
+  }
+  if (file.size > 10 * 1024 * 1024) {
+    return { ok: false, error: "File too large — max 10 MB." };
+  }
+  const cloudName = process.env.NEXT_PUBLIC_CLOUDINARY_CLOUD_NAME!;
+  const uploadPreset = process.env.NEXT_PUBLIC_CLOUDINARY_UPLOAD_PRESET!;
+  const url = `https://api.cloudinary.com/v1_1/${cloudName}/auto/upload`;
+  const form = new FormData();
+  form.append("file", file);
+  form.append("upload_preset", uploadPreset);
+  form.append("folder", "bestplaceng/clauses");
+
+  const controller = new AbortController();
+  const timeout = setTimeout(() => controller.abort(), 30_000);
+  try {
+    const res = await fetch(url, { method: "POST", body: form, signal: controller.signal });
+    clearTimeout(timeout);
+    if (!res.ok) {
+      const err = (await res.json().catch(() => ({}))) as { error?: { message?: string } };
+      return { ok: false, error: err?.error?.message ?? `Upload failed (HTTP ${res.status}).` };
+    }
+    const data = (await res.json()) as { secure_url: string };
+    return { ok: true, url: data.secure_url };
+  } catch (e) {
+    clearTimeout(timeout);
+    if ((e as Error).name === "AbortError") return { ok: false, error: "Upload timed out — try again." };
+    console.error("[cloudinary] document upload failed:", e);
+    return { ok: false, error: "Upload failed. Please try again." };
+  }
+}
+
 /** Upload multiple image files in sequence and return the array of CDN URLs. */
 export async function uploadImages(files: File[], _basePath?: string): Promise<string[]> {
   const results: string[] = [];
