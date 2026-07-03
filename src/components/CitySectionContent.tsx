@@ -9,6 +9,10 @@ import ListingGroup from "@/components/ListingGroup";
 import CostOfLivingPanel from "@/components/CostOfLivingPanel";
 import CrimePanel from "@/components/CrimePanel";
 import ClimatePanel from "@/components/ClimatePanel";
+import JobsPanel from "@/components/JobsPanel";
+import PoliticsPanel from "@/components/PoliticsPanel";
+import ReligionPanel from "@/components/ReligionPanel";
+import { getCostOfLivingProfile } from "@/data/costOfLiving";
 import ReviewBox from "@/components/ReviewBox";
 import RentThisButton from "@/components/RentThisButton";
 import MessageLandlordButton from "@/components/MessageLandlordButton";
@@ -116,6 +120,20 @@ async function renderSectionBody(city: CityData, section: string) {
     case "school-ratings":
       return (
         <div className="space-y-6">
+          {/* Narrative intro — worded from the actual rating, not a fixed string */}
+          <div className="rounded-2xl border border-zinc-100 bg-white p-6 shadow-sm">
+            <p className="text-sm leading-relaxed text-zinc-600">
+              {city.schoolRating !== undefined
+                ? `${city.name} scores ${city.schoolRating.toFixed(1)}/10 on our schools index — ${
+                    city.schoolRating >= 7.5
+                      ? "one of the stronger education environments in Nigeria, with established private and public options plus tertiary institutions nearby."
+                      : city.schoolRating >= 6
+                      ? "a solid mix of public and private schools, though quality varies by neighbourhood, so visiting shortlisted schools in person is worth the time."
+                      : "schooling options exist but are more limited than in Nigeria's bigger education hubs — many families here supplement with lesson teachers or consider boarding options."
+                  } Nigerian parents typically weigh WAEC/NECO results, teacher quality, and security when choosing schools — fees at private schools range widely, from budget neighbourhood academies to premium international curricula.`
+                : `${city.name} doesn't have its own schools index yet. As an LGA-tier area, most families here choose between local public schools and neighbourhood private academies, with bigger school options in the state's major city.`}
+            </p>
+          </div>
           {city.schoolRating !== undefined ? (
             <div>
               <p className="mb-2 text-sm font-medium text-foreground">School Rating</p>
@@ -154,7 +172,7 @@ async function renderSectionBody(city: CityData, section: string) {
       );
 
     case "jobs":
-      return <ListingGroup citySlug={city.slug} cityName={city.name} category="job" label="Job" />;
+      return <JobsPanel city={city} />;
 
     case "people-stats":
       return (
@@ -167,9 +185,102 @@ async function renderSectionBody(city: CityData, section: string) {
       );
 
     case "housing-stats": {
-      const saleListings = await getSaleListingsByCityLive(city.slug);
+      const [saleListings, colProfile] = await Promise.all([
+        getSaleListingsByCityLive(city.slug),
+        getCostOfLivingProfile(city),
+      ]);
+      const rentBars: { label: string; yearly: number; color: string }[] = colProfile
+        ? [
+            { label: "3 Bedroom Flat", yearly: colProfile.rent.threeBedroom, color: "bg-purple-500" },
+            { label: "2 Bedroom Flat", yearly: colProfile.rent.twoBedroom, color: "bg-amber-400" },
+            { label: "1 Bedroom Flat", yearly: colProfile.rent.oneBedroom, color: "bg-blue-400" },
+            { label: "Self-Contain / Studio", yearly: colProfile.rent.selfContain, color: "bg-green-500" },
+          ]
+        : [];
+      const maxYearly = Math.max(...rentBars.map((b) => b.yearly), 1);
       return (
         <div className="space-y-6">
+          {/* Narrative intro — generated from the live cost-of-living profile */}
+          {colProfile && (
+            <div className="rounded-2xl border border-zinc-100 bg-white p-6 shadow-sm">
+              <p className="text-sm leading-relaxed text-zinc-600">
+                The median home cost in {city.name} is roughly{" "}
+                <strong className="text-foreground">{formatNaira(colProfile.medianHomeCost)}</strong>, which is{" "}
+                <strong className="text-foreground">
+                  {Math.abs(colProfile.medianHomeVsNationalPercent).toFixed(0)}%{" "}
+                  {colProfile.medianHomeVsNationalPercent >= 0 ? "above" : "below"}
+                </strong>{" "}
+                the Nigerian average. A typical 2-bedroom flat rents for about{" "}
+                <strong className="text-foreground">{formatNaira(colProfile.twoBedroomRent)}/year</strong> — remember that
+                Nigerian rent is almost always paid annually, often with first-year extras like caution and agency fees.
+                {colProfile.estimatedFromMajor && ` (Figures are based on ${colProfile.majorCityName}, the reference city for ${city.stateName} State.)`}
+              </p>
+            </div>
+          )}
+
+          {/* Median rent by bedrooms — BestPlaces-style gradient bars (shown monthly) */}
+          {rentBars.length > 0 && (
+            <div className="rounded-2xl border border-zinc-100 bg-white p-6 shadow-sm">
+              <h3 className="text-base font-bold text-foreground">Median Monthly Rent by Number of Bedrooms</h3>
+              <p className="mt-1 text-xs text-zinc-400">Annual rent divided by 12 — Nigerian landlords typically collect the full year upfront.</p>
+              <div className="mt-4 space-y-4">
+                {rentBars.map((b) => {
+                  const monthly = Math.round(b.yearly / 12 / 1000) * 1000;
+                  return (
+                    <div key={b.label}>
+                      <p className="mb-1 text-xs font-medium text-zinc-500">{b.label}</p>
+                      <div className="h-6 overflow-hidden rounded-full bg-zinc-100">
+                        <div
+                          className={`flex h-full items-center justify-end rounded-full px-3 ${b.color}`}
+                          style={{ width: `${Math.max(18, (b.yearly / maxYearly) * 100)}%` }}
+                        >
+                          <span className="text-xs font-bold text-white">{formatNaira(monthly)}</span>
+                        </div>
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+            </div>
+          )}
+
+          {/* Housing comparison table */}
+          {colProfile && (
+            <div className="overflow-hidden rounded-2xl border border-zinc-100 bg-white shadow-sm">
+              <h3 className="px-6 pt-6 text-base font-bold text-foreground">Housing: {city.name} vs Nigeria</h3>
+              <table className="mt-3 w-full text-sm">
+                <thead>
+                  <tr className="border-y border-zinc-100 bg-zinc-50 text-left text-xs uppercase tracking-wide text-zinc-400">
+                    <th className="px-6 py-2 font-medium">Housing</th>
+                    <th className="px-6 py-2 font-medium">{city.name}</th>
+                    <th className="px-6 py-2 font-medium">Nigeria</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <tr className="bg-white">
+                    <td className="px-6 py-2.5 font-medium text-zinc-500">Median Home Cost</td>
+                    <td className="px-6 py-2.5 font-semibold text-foreground">{formatNaira(colProfile.medianHomeCost)}</td>
+                    <td className="px-6 py-2.5 text-zinc-500">₦28,000,000</td>
+                  </tr>
+                  <tr className="bg-zinc-50/50">
+                    <td className="px-6 py-2.5 font-medium text-zinc-500">2-Bed Annual Rent</td>
+                    <td className="px-6 py-2.5 font-semibold text-foreground">{formatNaira(colProfile.twoBedroomRent)}</td>
+                    <td className="px-6 py-2.5 text-zinc-500">₦1,500,000</td>
+                  </tr>
+                  <tr className="bg-white">
+                    <td className="px-6 py-2.5 font-medium text-zinc-500">Cost of Living Index</td>
+                    <td className="px-6 py-2.5 font-semibold text-foreground">{colProfile.score}</td>
+                    <td className="px-6 py-2.5 text-zinc-500">100</td>
+                  </tr>
+                </tbody>
+              </table>
+              <p className="px-6 py-3 text-xs text-zinc-400">
+                Rent source: {colProfile.rentSource === "researched" ? `researched for ${city.name}` : colProfile.rentSource === "state-reference" ? `based on ${colProfile.rentSourceCityName}` : "national estimate scaled by cost-of-living index"}
+                {colProfile.rentAsOf ? `, as of ${colProfile.rentAsOf}` : ""}.
+              </p>
+            </div>
+          )}
+
           {city.costOfLivingIndex !== undefined && (
             <IndexBar label="Cost of Living Index" value={city.costOfLivingIndex} helpText="National average = 100" />
           )}
@@ -343,7 +454,11 @@ async function renderSectionBody(city: CityData, section: string) {
       return <ListingGroup citySlug={city.slug} cityName={city.name} category="police-station" label="Police Station" />;
 
     case "religion":
+      return <ReligionPanel city={city} />;
+
     case "politics-voting":
+      return <PoliticsPanel city={city} />;
+
     case "commute-time":
     case "internet":
     case "electricity":

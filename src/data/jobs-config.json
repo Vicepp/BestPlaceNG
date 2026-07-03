@@ -1,0 +1,29 @@
+{
+  "_source": "Compiled from NBS Nigeria Labour Force Survey (2024, revised methodology), national minimum wage act (2024), and public salary aggregates (Mysalaryscale, PayLab) — sector figures are national monthly estimates in naira.",
+  "asOf": "2024",
+  "national": {
+    "unemploymentRate": 5.3,
+    "youthUnemploymentRate": 8.4,
+    "informalEmploymentRate": 92.7,
+    "minimumWageMonthly": 70000,
+    "medianMonthlyIncome": 120000
+  },
+  "sectorSalariesMonthly": {
+    "Oil & Gas": 650000,
+    "ICT / Tech": 400000,
+    "Banking & Finance": 350000,
+    "Telecoms": 320000,
+    "Legal Services": 250000,
+    "Health Care": 180000,
+    "Construction": 160000,
+    "Manufacturing": 150000,
+    "Media & Entertainment": 150000,
+    "Government (Civil Service)": 120000,
+    "Transport & Logistics": 110000,
+    "Hospitality": 100000,
+    "Education": 100000,
+    "Retail & Trade": 90000,
+    "Agriculture": 80000
+  },
+  "categoryDampening": 0.6
+}

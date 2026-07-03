@@ -176,6 +176,22 @@ export default async function ClimatePanel({ city }: { city: CityData }) {
           {profile.estimatedFromMajor ? ` for ${profile.majorCityName}` : ""}.
         </p>
       </div>
+
+      {/* You Should Know — weather vs climate explainer (BestPlaces-style) */}
+      <div className="rounded-2xl border border-zinc-100 bg-white p-6 shadow-sm">
+        <h3 className="mb-3 text-base font-bold text-foreground">You Should Know</h3>
+        <div className="space-y-2 text-sm leading-relaxed text-zinc-600">
+          <p>
+            Many people confuse weather and climate, but they are different. <strong className="text-foreground">Weather</strong> is
+            the condition of the atmosphere over a short period — the rain this afternoon, the harmattan haze this week.
+          </p>
+          <p>
+            <strong className="text-foreground">Climate</strong> is the long-term pattern of weather in a place, averaged over many
+            years. Everything on this page describes {profile.cityName}&apos;s climate — the pattern you can plan around
+            when deciding whether to live here, not a forecast for any single day.
+          </p>
+        </div>
+      </div>
     </div>
   );
 }
