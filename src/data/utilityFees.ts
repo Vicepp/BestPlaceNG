@@ -90,6 +90,10 @@ export async function cancelUtilityPaymentRequest(id: string): Promise<WriteResu
   return setFirestoreDoc("utilityPaymentRequests", id, { status: "cancelled" });
 }
 
+export async function markUtilityRequestPaid(id: string): Promise<WriteResult> {
+  return setFirestoreDoc("utilityPaymentRequests", id, { status: "paid", paidAt: new Date().toISOString() });
+}
+
 export async function getUtilityFeesForTenancy(tenancyId: string): Promise<UtilityFee[]> {
   const r = await queryFirestoreCollection<UtilityFee>("utilityFees", [["tenancyId", tenancyId]]);
   return r ?? [];

@@ -49,6 +49,7 @@ export default function AddApartmentForm() {
   const [clauseText, setClauseText] = useState("");
   const [clausePdfUrl, setClausePdfUrl] = useState("");
   const [uploadingPdf, setUploadingPdf] = useState(false);
+  const [clauseLocked, setClauseLocked] = useState(false); // true once a tenant has rented
 
   const [error, setError] = useState("");
   const [submitting, setSubmitting] = useState(false);
@@ -96,6 +97,8 @@ export default function AddApartmentForm() {
       setLegalFee(listing.legalFee ? String(listing.legalFee) : "");
       setClauseText(listing.clauseText ?? "");
       setClausePdfUrl(listing.clausePdfUrl ?? "");
+      // Once a listing is rented, its agreement is locked in for the current tenant.
+      if (listing.status === "rented") setClauseLocked(true);
     });
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [editId]);
@@ -300,28 +303,35 @@ export default function AddApartmentForm() {
       {/* Tenancy agreement / house rules */}
       <div className="rounded-xl border border-zinc-100 p-4 space-y-3">
         <p className="text-xs font-bold uppercase tracking-wide text-zinc-500">Tenancy Agreement &amp; House Rules</p>
-        <p className="text-[11px] text-zinc-400">
-          Tenants must read and accept this before they can pay to become a tenant. Type your rules below, and/or upload a signed agreement PDF.
-        </p>
+        {clauseLocked ? (
+          <p className="rounded-lg bg-amber-50 px-3 py-2 text-[11px] text-amber-700">
+            This unit is rented — the agreement is locked and can no longer be changed for the current tenant.
+          </p>
+        ) : (
+          <p className="text-[11px] text-zinc-400">
+            Tenants must read and accept this before they can pay to become a tenant. Type your rules below, and/or upload a signed agreement PDF.
+          </p>
+        )}
         <textarea
           value={clauseText}
           onChange={(e) => setClauseText(e.target.value)}
+          disabled={clauseLocked}
           rows={5}
           placeholder={"e.g.\n1. Rent is paid yearly in advance.\n2. No structural changes without written consent.\n3. Caution deposit refunded on inspection at move-out.\n4. Quiet hours after 10pm."}
-          className="w-full rounded-lg border border-zinc-200 px-3 py-2 text-sm outline-none focus:border-brand"
+          className="w-full rounded-lg border border-zinc-200 px-3 py-2 text-sm outline-none focus:border-brand disabled:bg-zinc-50 disabled:text-zinc-400"
         />
         <div>
           <label className="mb-1 block text-[10px] font-semibold text-zinc-400">Agreement PDF (optional, max 1)</label>
           {clausePdfUrl ? (
             <div className="flex items-center gap-2 text-sm">
               <a href={clausePdfUrl} target="_blank" rel="noopener noreferrer" className="font-semibold text-brand hover:underline">View uploaded PDF</a>
-              <button type="button" onClick={() => setClausePdfUrl("")} className="text-xs text-red-500 hover:underline">Remove</button>
+              {!clauseLocked && <button type="button" onClick={() => setClausePdfUrl("")} className="text-xs text-red-500 hover:underline">Remove</button>}
             </div>
           ) : (
             <input
               type="file"
               accept="application/pdf"
-              disabled={uploadingPdf}
+              disabled={uploadingPdf || clauseLocked}
               onChange={async (e) => {
                 const file = e.target.files?.[0];
                 if (!file) return;

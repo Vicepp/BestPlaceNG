@@ -1,6 +1,7 @@
+import { Suspense } from "react";
 import Link from "next/link";
 import { cities, type CityData } from "@/data/cities";
-import { getApartmentsByCityLive, getSaleListingsByCityLive, formatNaira } from "@/data/apartments";
+import { getSaleListingsByCityLive, formatNaira } from "@/data/apartments";
 import { citySections } from "@/data/citySections";
 import { getReviewsLive } from "@/data/reviews";
 import IndexBar from "@/components/IndexBar";
@@ -15,8 +16,7 @@ import ReligionPanel from "@/components/ReligionPanel";
 import SchoolPanel from "@/components/SchoolPanel";
 import { getCostOfLivingProfile } from "@/data/costOfLiving";
 import ReviewBox from "@/components/ReviewBox";
-import RentThisButton from "@/components/RentThisButton";
-import MessageLandlordButton from "@/components/MessageLandlordButton";
+import ApartmentsExplorer from "@/components/ApartmentsExplorer";
 
 function StatCard({ label, value }: { label: string; value: string }) {
   return (
@@ -285,54 +285,14 @@ async function renderSectionBody(city: CityData, section: string) {
       );
     }
 
-    case "apartments": {
-      const listings = await getApartmentsByCityLive(city.slug);
+    case "apartments":
+      // Client-side explorer: browse listings and open a full in-page detail
+      // (carousel, YouTube, request/message/become-tenant) without leaving the page.
       return (
-        <div className="space-y-4">
-          {listings.length === 0 && (
-            <div className="rounded-2xl border border-dashed border-zinc-200 bg-zinc-50 px-6 py-12 text-center">
-              <p className="text-sm font-medium text-foreground">No listings yet in {city.name}</p>
-              <p className="mt-1 text-xs text-zinc-400">
-                Are you a landlord or agent? Create an account to list a property here.
-              </p>
-              <Link href="/list-property" className="mt-4 inline-block rounded-full bg-accent px-5 py-2 text-sm font-semibold text-white hover:bg-accent-dark">
-                List a Property
-              </Link>
-            </div>
-          )}
-          {listings.map((listing) => (
-            <div key={listing.id} className="rounded-2xl border border-zinc-100 bg-white p-5 shadow-sm">
-              <div className="flex flex-wrap items-start justify-between gap-2">
-                <div>
-                  <p className="text-xs font-semibold uppercase tracking-wide text-brand">
-                    {listing.type} &middot; For {listing.purpose}
-                  </p>
-                  <h3 className="mt-1 text-lg font-bold text-foreground">{listing.title}</h3>
-                  <p className="text-sm text-zinc-500">{listing.area}, {city.name}</p>
-                </div>
-                <p className="text-lg font-bold text-brand-dark">
-                  {formatNaira(listing.priceNaira)}
-                  {listing.pricePeriod === "year" && <span className="text-xs font-normal text-zinc-400">/year</span>}
-                  {listing.pricePeriod === "month" && <span className="text-xs font-normal text-zinc-400">/month</span>}
-                </p>
-              </div>
-              <p className="mt-3 text-sm text-zinc-600">{listing.description}</p>
-              <div className="mt-3 flex flex-wrap gap-2">
-                {listing.amenities.map((a) => (
-                  <span key={a} className="rounded-full bg-zinc-100 px-2.5 py-1 text-xs text-zinc-500">
-                    {a}
-                  </span>
-                ))}
-              </div>
-              <div className="mt-4 flex flex-wrap gap-2 border-t border-zinc-50 pt-3">
-                <RentThisButton listing={listing} />
-                <MessageLandlordButton listing={listing} />
-              </div>
-            </div>
-          ))}
-        </div>
+        <Suspense fallback={<p className="text-sm text-zinc-400">Loading listings…</p>}>
+          <ApartmentsExplorer citySlug={city.slug} cityName={city.name} />
+        </Suspense>
       );
-    }
 
     case "rankings": {
       const sorted = [...cities].sort((a, b) => a.rank - b.rank);

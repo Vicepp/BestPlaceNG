@@ -4,6 +4,7 @@ import { useState } from "react";
 import Link from "next/link";
 import { useAuth } from "@/context/AuthContext";
 import { requestToRent } from "@/data/tenancies";
+import { createNotification } from "@/data/notifications";
 import type { ApartmentListing } from "@/data/apartments";
 
 export default function RentThisButton({ listing }: { listing: ApartmentListing }) {
@@ -47,6 +48,14 @@ export default function RentThisButton({ listing }: { listing: ApartmentListing 
       setError(result.error);
       return;
     }
+    // Tell the landlord who wants which property.
+    createNotification({
+      userId: listing.ownerId!,
+      type: "tenancy",
+      title: "New rent request",
+      body: `${profile?.displayName ?? user!.email} wants to rent ${listing.title}. Review it under Tenants.`,
+      link: "/dashboard/tenants",
+    }).catch(() => {});
     setDone(true);
   }
 

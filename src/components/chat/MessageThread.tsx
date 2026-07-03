@@ -30,7 +30,7 @@ function PropertyCard({
         mine ? "border-white/30 bg-white/10 text-white" : "border-zinc-200 bg-white text-foreground"
       }`}
     >
-      <Link href={`/city/${msg.propertyCitySlug}/apartments`} className="block transition hover:opacity-80">
+      <Link href={`/city/${msg.propertyCitySlug}/apartments?apt=${msg.propertyId}`} className="block transition hover:opacity-80">
         <div className="mb-1 flex items-center gap-2">
           <Home className={`h-4 w-4 shrink-0 ${mine ? "text-white/70" : "text-brand"}`} />
           <span className={`text-[10px] font-semibold uppercase tracking-wide ${mine ? "text-white/70" : "text-brand"}`}>
