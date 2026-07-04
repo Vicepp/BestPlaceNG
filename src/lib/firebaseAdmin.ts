@@ -10,6 +10,21 @@ export function isFirebaseAdminConfigured(): boolean {
   );
 }
 
+/** Normalise the private key no matter how it was pasted into the environment:
+ *  - strips surrounding single/double quotes (Vercel/paste artefact)
+ *  - converts literal \n (and \r\n) escape sequences into real newlines
+ *  - leaves an already-multiline key untouched
+ * A malformed key is the #1 cause of "Failed to parse private key" 500s. */
+function normalizePrivateKey(raw: string | undefined): string | undefined {
+  if (!raw) return raw;
+  let key = raw.trim();
+  if ((key.startsWith('"') && key.endsWith('"')) || (key.startsWith("'") && key.endsWith("'"))) {
+    key = key.slice(1, -1);
+  }
+  key = key.replace(/\\r\\n/g, "\n").replace(/\\n/g, "\n").replace(/\r\n/g, "\n");
+  return key;
+}
+
 function getAdminApp(): App {
   if (app) return app;
   const existing = getApps();
@@ -21,7 +36,7 @@ function getAdminApp(): App {
     credential: cert({
       projectId: process.env.FIREBASE_ADMIN_PROJECT_ID,
       clientEmail: process.env.FIREBASE_ADMIN_CLIENT_EMAIL,
-      privateKey: process.env.FIREBASE_ADMIN_PRIVATE_KEY?.replace(/\\n/g, "\n"),
+      privateKey: normalizePrivateKey(process.env.FIREBASE_ADMIN_PRIVATE_KEY),
     }),
   });
   return app;
