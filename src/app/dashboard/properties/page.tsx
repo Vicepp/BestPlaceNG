@@ -4,13 +4,13 @@ import { useEffect, useState, useRef } from "react";
 import Link from "next/link";
 import {
   Plus, Building2, Home, MoreVertical, Eye, EyeOff,
-  Archive, RotateCcw, Pencil, MapPin, ChevronRight,
+  Archive, RotateCcw, Pencil, MapPin, ChevronRight, Copy, Trash2,
 } from "lucide-react";
 import { useAuth } from "@/context/AuthContext";
-import { getPropertiesForOwner, type Property } from "@/data/properties";
+import { getPropertiesForOwner, duplicateProperty, deleteProperty, type Property } from "@/data/properties";
 import {
   getApartmentsByOwnerLive, formatNaira, setListingStatus,
-  assignUnitToProperty, removeUnitFromProperty,
+  assignUnitToProperty, removeUnitFromProperty, duplicateApartment, deleteApartment,
   type ApartmentListing, type ListingStatus,
 } from "@/data/apartments";
 
@@ -21,35 +21,76 @@ const STATUS_STYLES: Record<ListingStatus, string> = {
 };
 
 /* ── Building card (grid tile) ─────────────────────────────── */
-function BuildingCard({ property, unitCount, activeCount }: { property: Property; unitCount: number; activeCount: number }) {
+function BuildingCard({
+  property, unitCount, activeCount, rentedCount, onRefresh,
+}: { property: Property; unitCount: number; activeCount: number; rentedCount: number; onRefresh: () => void }) {
+  const [menuOpen, setMenuOpen] = useState(false);
+  const ref = useRef<HTMLDivElement>(null);
+  useEffect(() => {
+    function close(e: MouseEvent) { if (ref.current && !ref.current.contains(e.target as Node)) setMenuOpen(false); }
+    document.addEventListener("mousedown", close);
+    return () => document.removeEventListener("mousedown", close);
+  }, []);
+
   return (
-    <Link
-      href={`/dashboard/buildings/${property.id}`}
-      className="group flex flex-col overflow-hidden rounded-2xl border border-zinc-100 bg-white shadow-sm transition hover:-translate-y-0.5 hover:border-brand hover:shadow-md"
-    >
-      {property.images?.[0] ? (
-        <img src={property.images[0]} alt={property.name} className="h-36 w-full object-cover" />
-      ) : (
-        <div className="flex h-36 w-full items-center justify-center bg-brand-light">
-          <Building2 className="h-10 w-10 text-brand/50" />
-        </div>
-      )}
-      <div className="flex flex-1 flex-col gap-1 p-4">
-        <h3 className="font-bold text-foreground line-clamp-2">{property.name}</h3>
-        <p className="flex items-center gap-1 text-xs text-zinc-500">
-          <MapPin className="h-3 w-3" />{property.area}, {property.city}
-        </p>
-        <div className="mt-auto flex items-center justify-between pt-3">
-          <div className="text-xs text-zinc-400">
-            <span className="font-semibold text-foreground">{activeCount}</span> active /{" "}
-            <span className="font-semibold text-foreground">{unitCount}</span> units
+    <div className="group relative flex flex-col overflow-hidden rounded-2xl border border-zinc-100 bg-white shadow-sm transition hover:-translate-y-0.5 hover:border-brand hover:shadow-md">
+      {/* 3-dot menu (absolute so it doesn't trigger navigation) */}
+      <div ref={ref} className="absolute right-2 top-2 z-10">
+        <button
+          onClick={(e) => { e.preventDefault(); setMenuOpen((v) => !v); }}
+          className="flex h-8 w-8 items-center justify-center rounded-full bg-white/90 text-zinc-500 shadow hover:bg-white"
+        >
+          <MoreVertical className="h-4 w-4" />
+        </button>
+        {menuOpen && (
+          <div className="absolute right-0 top-full mt-1 w-48 overflow-hidden rounded-xl border border-zinc-100 bg-white py-1 shadow-xl">
+            <Link href={`/edit-property/${property.id}`} className="flex items-center gap-2 px-3 py-2 text-sm text-foreground hover:bg-zinc-50">
+              <Pencil className="h-4 w-4 text-zinc-400" /> Edit building
+            </Link>
+            <button onClick={async () => { await duplicateProperty(property); setMenuOpen(false); onRefresh(); }}
+              className="flex w-full items-center gap-2 px-3 py-2 text-sm text-foreground hover:bg-zinc-50">
+              <Copy className="h-4 w-4 text-zinc-400" /> Duplicate building
+            </button>
+            {rentedCount > 0 ? (
+              <span className="flex items-center gap-2 px-3 py-2 text-sm text-zinc-300" title="A building with rented units can't be deleted">
+                <Trash2 className="h-4 w-4" /> Delete ({rentedCount} rented)
+              </span>
+            ) : (
+              <button onClick={async () => { if (confirm(`Delete "${property.name}"? Its ${unitCount} unit${unitCount !== 1 ? "s" : ""} stay but are unlinked.`)) { await deleteProperty(property.id); setMenuOpen(false); onRefresh(); } }}
+                className="flex w-full items-center gap-2 px-3 py-2 text-sm text-red-500 hover:bg-red-50">
+                <Trash2 className="h-4 w-4" /> Delete building
+              </button>
+            )}
           </div>
-          <span className="flex items-center gap-1 text-xs font-semibold text-brand opacity-0 transition group-hover:opacity-100">
-            Manage <ChevronRight className="h-3.5 w-3.5" />
-          </span>
-        </div>
+        )}
       </div>
-    </Link>
+
+      <Link href={`/dashboard/buildings/${property.id}`} className="flex flex-1 flex-col">
+        {property.images?.[0] ? (
+          <img src={property.images[0]} alt={property.name} className="h-36 w-full object-cover" />
+        ) : (
+          <div className="flex h-36 w-full items-center justify-center bg-brand-light">
+            <Building2 className="h-10 w-10 text-brand/50" />
+          </div>
+        )}
+        <div className="flex flex-1 flex-col gap-1 p-4">
+          <h3 className="font-bold text-foreground line-clamp-2">{property.name}</h3>
+          <p className="flex items-center gap-1 text-xs text-zinc-500">
+            <MapPin className="h-3 w-3" />{property.area}, {property.city}
+          </p>
+          <div className="mt-auto flex items-center justify-between pt-3">
+            <div className="text-xs text-zinc-400">
+              <span className="font-semibold text-green-600">{activeCount}</span> active ·{" "}
+              <span className="font-semibold text-blue-600">{rentedCount}</span> rented ·{" "}
+              <span className="font-semibold text-foreground">{unitCount}</span> total
+            </div>
+            <span className="flex items-center gap-1 text-xs font-semibold text-brand opacity-0 transition group-hover:opacity-100">
+              Manage <ChevronRight className="h-3.5 w-3.5" />
+            </span>
+          </div>
+        </div>
+      </Link>
+    </div>
   );
 }
 
@@ -115,6 +156,21 @@ function UnitDotMenu({
             className="flex items-center gap-2 px-3 py-2 text-sm text-foreground hover:bg-zinc-50">
             <Building2 className="h-4 w-4 text-zinc-400" /> Manage Tenants
           </Link>
+          <button onClick={async () => { await duplicateApartment(unit); setOpen(false); onRefresh(); }}
+            className="flex w-full items-center gap-2 px-3 py-2 text-sm text-foreground hover:bg-zinc-50">
+            <Copy className="h-4 w-4 text-zinc-400" /> Duplicate unit
+          </button>
+          {/* A rented unit cannot be deleted (a tenant depends on it). */}
+          {status === "rented" ? (
+            <span className="flex items-center gap-2 px-3 py-2 text-sm text-zinc-300" title="Rented units can't be deleted">
+              <Trash2 className="h-4 w-4" /> Delete (rented)
+            </span>
+          ) : (
+            <button onClick={async () => { if (confirm(`Delete "${unit.title}"? This can't be undone.`)) { await deleteApartment(unit.id); setOpen(false); onRefresh(); } }}
+              className="flex w-full items-center gap-2 px-3 py-2 text-sm text-red-500 hover:bg-red-50">
+              <Trash2 className="h-4 w-4" /> Delete unit
+            </button>
+          )}
           {unit.propertyId ? (
             <button onClick={async () => { await removeUnitFromProperty(unit.id); setOpen(false); onRefresh(); }}
               className="flex w-full items-center gap-2 px-3 py-2 text-sm text-zinc-500 hover:bg-zinc-50">
@@ -154,6 +210,7 @@ export default function PropertiesPage() {
   const [units, setUnits] = useState<ApartmentListing[]>([]);
   const [loading, setLoading] = useState(true);
   const [showArchived, setShowArchived] = useState(false);
+  const [filter, setFilter] = useState<"all" | "active" | "rented">("all");
 
   async function load() {
     if (!user) return;
@@ -165,7 +222,8 @@ export default function PropertiesPage() {
 
   useEffect(() => { load(); }, [user]); // eslint-disable-line
 
-  const standaloneUnits = units.filter((u) => !u.propertyId && (u.status ?? "active") !== "archived");
+  const allStandalone = units.filter((u) => !u.propertyId && (u.status ?? "active") !== "archived");
+  const standaloneUnits = allStandalone.filter((u) => filter === "all" || (u.status ?? "active") === filter);
   const archivedUnits = units.filter((u) => (u.status ?? "active") === "archived");
 
   return (
@@ -193,6 +251,21 @@ export default function PropertiesPage() {
         </div>
       </div>
 
+      {/* Filter: All / Active / Rented (applies to standalone listings) */}
+      <div className="flex gap-2">
+        {(["all", "active", "rented"] as const).map((f) => (
+          <button
+            key={f}
+            onClick={() => setFilter(f)}
+            className={`rounded-full px-4 py-1.5 text-sm font-semibold capitalize transition ${
+              filter === f ? "bg-brand text-white" : "border border-zinc-200 text-zinc-600 hover:border-brand hover:text-brand"
+            }`}
+          >
+            {f}
+          </button>
+        ))}
+      </div>
+
       {loading ? <p className="text-sm text-zinc-400">Loading…</p> : (
         <>
           {/* Buildings grid */}
@@ -203,8 +276,9 @@ export default function PropertiesPage() {
                 {properties.map((p) => {
                   const pUnits = units.filter((u) => u.propertyId === p.id);
                   const activeCount = pUnits.filter((u) => (u.status ?? "active") === "active").length;
+                  const rentedCount = pUnits.filter((u) => u.status === "rented").length;
                   return (
-                    <BuildingCard key={p.id} property={p} unitCount={pUnits.length} activeCount={activeCount} />
+                    <BuildingCard key={p.id} property={p} unitCount={pUnits.length} activeCount={activeCount} rentedCount={rentedCount} onRefresh={load} />
                   );
                 })}
               </div>

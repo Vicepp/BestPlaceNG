@@ -28,7 +28,18 @@ export default function TenantsPage() {
 
   async function load() {
     if (!user) return;
-    setTenancies(await getTenanciesForLandlordLive(user.uid));
+    const all = await getTenanciesForLandlordLive(user.uid);
+    // Collapse duplicates: one row per (tenant, apartment), keeping the most
+    // meaningful status (active > requested > invited), and drop rejected/ended.
+    const rank: Record<string, number> = { active: 4, requested: 3, invited: 2, rejected: 0, ended: 0 };
+    const best = new Map<string, Tenancy>();
+    for (const t of all) {
+      if (t.status === "rejected" || t.status === "ended") continue;
+      const key = `${t.tenantId ?? t.tenantEmail}__${t.apartmentId}`;
+      const cur = best.get(key);
+      if (!cur || (rank[t.status] ?? 0) > (rank[cur.status] ?? 0)) best.set(key, t);
+    }
+    setTenancies([...best.values()].sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()));
     setLoading(false);
   }
 

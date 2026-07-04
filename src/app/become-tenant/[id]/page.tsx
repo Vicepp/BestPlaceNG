@@ -7,10 +7,10 @@ import { Home, MapPin, Lock, FileText, Download, ShieldCheck, ArrowLeft } from "
 import { useAuth } from "@/context/AuthContext";
 import { getFirestoreDoc } from "@/lib/firestoreData";
 import { formatNaira, firstYearTotal, type ApartmentListing } from "@/data/apartments";
-import { signAndRequestTenancy } from "@/data/tenancies";
-import { createTenantInvoice } from "@/data/payments";
+import { signAndRequestTenancy, findTenantTenancyForApartment } from "@/data/tenancies";
+import { createTenantInvoice, findPendingRentInvoice } from "@/data/payments";
 import { createNotification } from "@/data/notifications";
-import { isPaystackConfigured, payWithPaystack } from "@/lib/paystack";
+import { isPaystackConfigured, payWithPaystack, verifyPayment } from "@/lib/paystack";
 import { cities } from "@/data/cities";
 
 export default function BecomeTenantPage() {
@@ -70,48 +70,64 @@ export default function BecomeTenantPage() {
     if (!user.email) { setError("Your account has no email on file."); return; }
 
     setBusy(true);
-    setStatus("Recording your signed agreement…");
-    const tenancy = await signAndRequestTenancy({
-      apartmentId: apt.id,
-      citySlug: apt.citySlug,
-      apartmentTitle: apt.title,
-      landlordId: apt.ownerId,
-      tenantId: user.uid,
-      tenantName: name.trim(),
-      tenantEmail: user.email,
-      rentAmount: apt.priceNaira,
-      rentPeriod: apt.pricePeriod === "month" ? "month" : "year",
-      unitKind: kind,
-      signedName: name.trim(),
-      signedPhone: phone.trim(),
-    });
-    if (!tenancy.ok) { setBusy(false); setError(tenancy.error); return; }
+    setStatus("Checking your tenancy…");
 
-    setStatus("Creating your invoice…");
-    const invoice = await createTenantInvoice({
-      tenancyId: tenancy.id,
-      apartmentId: apt.id,
-      apartmentTitle: apt.title,
-      landlordId: apt.ownerId,
-      tenantId: user.uid,
-      amount: total,
-    });
-    if (!invoice.ok) { setBusy(false); setError(invoice.error); return; }
+    // Don't create duplicates: reuse an existing tenancy for this unit if there is one.
+    const existing = await findTenantTenancyForApartment(user.uid, apt.id);
+    if (existing?.status === "active") {
+      setBusy(false);
+      setError("You're already a tenant of this unit — check it under 'Your Rentals' on your dashboard.");
+      return;
+    }
+
+    let tenancyId = existing?.id;
+    if (!tenancyId) {
+      setStatus("Recording your signed agreement…");
+      const tenancy = await signAndRequestTenancy({
+        apartmentId: apt.id,
+        citySlug: apt.citySlug,
+        apartmentTitle: apt.title,
+        landlordId: apt.ownerId,
+        tenantId: user.uid,
+        tenantName: name.trim(),
+        tenantEmail: user.email,
+        rentAmount: apt.priceNaira,
+        rentPeriod: apt.pricePeriod === "month" ? "month" : "year",
+        unitKind: kind,
+        signedName: name.trim(),
+        signedPhone: phone.trim(),
+      });
+      if (!tenancy.ok) { setBusy(false); setError(tenancy.error); return; }
+      tenancyId = tenancy.id;
+    }
+
+    setStatus("Preparing your invoice…");
+    // Reuse an existing unpaid invoice for this tenancy rather than adding another.
+    const existingInvoice = await findPendingRentInvoice(tenancyId, user.uid);
+    let invoiceId = existingInvoice?.id;
+    if (!invoiceId) {
+      const invoice = await createTenantInvoice({
+        tenancyId,
+        apartmentId: apt.id,
+        apartmentTitle: apt.title,
+        landlordId: apt.ownerId,
+        tenantId: user.uid,
+        amount: total,
+        kind: "rent",
+      });
+      if (!invoice.ok) { setBusy(false); setError(invoice.error); return; }
+      invoiceId = invoice.id;
+    }
 
     setStatus("Opening secure payment…");
     payWithPaystack({
       email: user.email,
       amountNaira: total,
-      reference: `bpng-${invoice.id}-${Date.now()}`,
-      paymentId: invoice.id,
+      reference: `bpng-${invoiceId}-${Date.now()}`,
+      paymentId: invoiceId,
       onSuccess: async (ref) => {
         setStatus("Confirming payment…");
-        const res = await fetch("/api/payments/verify", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ reference: ref, paymentId: invoice.id }),
-        });
-        const json = await res.json();
+        const json = await verifyPayment(ref, invoiceId);
         if (json.ok) {
           createNotification({
             userId: apt.ownerId!,

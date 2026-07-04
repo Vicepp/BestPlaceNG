@@ -3,7 +3,7 @@
  * Multiple unit listings (ApartmentListing) are tied to one Property via propertyId.
  * Landlords create the Property first, then add individual Unit listings under it.
  */
-import { addFirestoreDocWithId, setFirestoreDoc, queryFirestoreCollection, type WriteResult } from "@/lib/firestoreWrite";
+import { addFirestoreDocWithId, setFirestoreDoc, deleteFirestoreDoc, queryFirestoreCollection, type WriteResult } from "@/lib/firestoreWrite";
 import { getFirestoreDoc } from "@/lib/firestoreData";
 
 export interface Property {
@@ -47,6 +47,21 @@ export async function getPropertyById(id: string): Promise<Property | null> {
 export async function getPropertiesForOwner(ownerId: string): Promise<Property[]> {
   const result = await queryFirestoreCollection<Property>("properties", [["ownerId", ownerId]]);
   return result ?? [];
+}
+
+/** Duplicate a building (fresh copy — no units attached). */
+export async function duplicateProperty(p: Property): Promise<WriteResult> {
+  return addFirestoreDocWithId("properties", {
+    ...p,
+    name: `${p.name} (copy)`,
+    totalUnits: 0,
+    createdAt: new Date().toISOString(),
+  } as unknown as Record<string, unknown>);
+}
+
+/** Delete a building — callers must first ensure it has no rented units. */
+export async function deleteProperty(id: string): Promise<WriteResult> {
+  return deleteFirestoreDoc("properties", id);
 }
 
 /** All public properties — for the /apartments listing page */

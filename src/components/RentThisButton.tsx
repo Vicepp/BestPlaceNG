@@ -3,7 +3,7 @@
 import { useState } from "react";
 import Link from "next/link";
 import { useAuth } from "@/context/AuthContext";
-import { requestToRent } from "@/data/tenancies";
+import { requestToRent, findTenantTenancyForApartment } from "@/data/tenancies";
 import { createNotification } from "@/data/notifications";
 import type { ApartmentListing } from "@/data/apartments";
 
@@ -32,6 +32,14 @@ export default function RentThisButton({ listing }: { listing: ApartmentListing 
   async function handleClick() {
     setSubmitting(true);
     setError("");
+    // Guard against duplicate requests for the same unit.
+    const existing = await findTenantTenancyForApartment(user!.uid, listing.id);
+    if (existing) {
+      setSubmitting(false);
+      setError(existing.status === "active" ? "You already rent this unit." : "You've already requested this unit.");
+      setDone(existing.status !== "active");
+      return;
+    }
     const result = await requestToRent({
       apartmentId: listing.id,
       citySlug: listing.citySlug,

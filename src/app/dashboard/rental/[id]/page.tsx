@@ -10,9 +10,10 @@ import { getTenanciesForTenantLive, confirmMoveIn, type Tenancy } from "@/data/t
 import { getPaymentsForTenantLive, createTenantInvoice, type Payment } from "@/data/payments";
 import { getUtilityFeesForTenant, getUtilityRequestsForTenant, markUtilityRequestPaid, type UtilityFee, type UtilityPaymentRequest } from "@/data/utilityFees";
 import { fileReport, type Report } from "@/data/reports";
+import { createNotification } from "@/data/notifications";
 import { formatNaira, type ApartmentListing } from "@/data/apartments";
 import { cities } from "@/data/cities";
-import { isPaystackConfigured, payWithPaystack } from "@/lib/paystack";
+import { isPaystackConfigured, payWithPaystack, verifyPayment } from "@/lib/paystack";
 import PayNowButton from "@/components/dashboard/PayNowButton";
 
 export default function RentalDetailPage() {
@@ -32,6 +33,7 @@ export default function RentalDetailPage() {
   const [reportCategory, setReportCategory] = useState<Report["category"]>("cannot-move-in");
   const [reportMsg, setReportMsg] = useState("");
   const [reportSent, setReportSent] = useState(false);
+  const [upfrontAsked, setUpfrontAsked] = useState<string[]>([]);
 
   const load = useCallback(async () => {
     if (!user) return;
@@ -74,11 +76,7 @@ export default function RentalDetailPage() {
       reference: `bpng-${invoice.id}-${Date.now()}`,
       paymentId: invoice.id,
       onSuccess: async (ref) => {
-        const res = await fetch("/api/payments/verify", {
-          method: "POST", headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ reference: ref, paymentId: invoice.id }),
-        });
-        const json = await res.json();
+        const json = await verifyPayment(ref, invoice.id);
         if (json.ok) await markUtilityRequestPaid(reqDoc.id);
         setPayingReq(null);
         load();
@@ -107,10 +105,7 @@ export default function RentalDetailPage() {
       reference: `bpng-${invoice.id}-${Date.now()}`,
       paymentId: invoice.id,
       onSuccess: async (ref) => {
-        await fetch("/api/payments/verify", {
-          method: "POST", headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ reference: ref, paymentId: invoice.id }),
-        });
+        await verifyPayment(ref, invoice.id);
         setPayingReq(null);
         load();
       },
@@ -131,6 +126,21 @@ export default function RentalDetailPage() {
     } catch { /* release is idempotent; can be retried */ }
     setConfirming(false);
     load();
+  }
+
+  /** Tenant asks the landlord to approve a one-time upfront payment for a fee.
+   * The landlord approves by creating a payment request (Manage tenant), which
+   * then appears here ready to pay — so it never keeps billing per period. */
+  async function requestUpfront(fee: UtilityFee) {
+    if (!user || !tenancy) return;
+    setUpfrontAsked((prev) => [...prev, fee.id]);
+    await createNotification({
+      userId: tenancy.landlordId,
+      type: "payment_made",
+      title: "Upfront payment request",
+      body: `${tenancy.tenantName} wants to pay "${fee.name}" upfront at ${tenancy.apartmentTitle}. Approve by sending them a payment request for the upfront amount.`,
+      link: "/dashboard/tenants",
+    }).catch(() => {});
   }
 
   async function submitReport() {
@@ -162,6 +172,10 @@ export default function RentalDetailPage() {
   const pendingRent = payments.filter((p) => p.status === "pending");
   const paidPayments = payments.filter((p) => p.status === "success");
   const pendingReqs = requests.filter((r) => r.status === "pending");
+  // A fee that already has a pending request is shown only in the requests block
+  // above — never twice.
+  const requestedNames = new Set(pendingReqs.map((r) => r.feeName));
+  const feesWithoutRequest = fees.filter((f) => !requestedNames.has(f.name));
 
   return (
     <div className="max-w-3xl space-y-5">
@@ -268,27 +282,34 @@ export default function RentalDetailPage() {
             </div>
           )}
 
-          {fees.length > 0 && (
+          {/* Recurring fees WITHOUT a pending request (so nothing shows twice). */}
+          {feesWithoutRequest.length > 0 && (
             <div className="rounded-xl bg-zinc-50 p-4">
               <p className="mb-2 text-xs font-semibold text-zinc-500">Recurring charges on this unit</p>
-              <div className="space-y-2">
-                {fees.map((f) => (
-                  <div key={f.id} className="flex items-center justify-between gap-2 text-sm">
+              <div className="space-y-3">
+                {feesWithoutRequest.map((f) => (
+                  <div key={f.id} className="flex flex-wrap items-center justify-between gap-2 text-sm">
                     <div className="flex items-center gap-1.5">
                       <Zap className="h-3.5 w-3.5 text-accent" />
                       <span className="text-foreground">{f.name}</span>
                       <span className="text-zinc-400">· {formatNaira(f.amount)}/{f.period}</span>
                     </div>
-                    {isPaystackConfigured() ? (
-                      <button onClick={() => payFee(f)} disabled={payingReq === f.id} className="rounded-full bg-brand px-3 py-1 text-xs font-semibold text-white hover:bg-brand-dark disabled:opacity-60">
-                        {payingReq === f.id ? "Processing…" : "Make payment"}
+                    <div className="flex items-center gap-2">
+                      {isPaystackConfigured() ? (
+                        <button onClick={() => payFee(f)} disabled={payingReq === f.id} className="rounded-full bg-brand px-3 py-1 text-xs font-semibold text-white hover:bg-brand-dark disabled:opacity-60">
+                          {payingReq === f.id ? "Processing…" : `Pay 1 ${f.period === "yearly" ? "year" : "month"}`}
+                        </button>
+                      ) : (
+                        <span className="text-xs text-zinc-400">Pay landlord directly</span>
+                      )}
+                      <button onClick={() => requestUpfront(f)} disabled={upfrontAsked.includes(f.id)} className="rounded-full border border-zinc-200 px-3 py-1 text-xs font-semibold text-zinc-600 hover:border-brand hover:text-brand disabled:opacity-60">
+                        {upfrontAsked.includes(f.id) ? "Upfront requested" : "Pay upfront"}
                       </button>
-                    ) : (
-                      <span className="text-xs text-zinc-400">Pay landlord directly</span>
-                    )}
+                    </div>
                   </div>
                 ))}
               </div>
+              <p className="mt-2 text-[11px] text-zinc-400">&quot;Pay upfront&quot; asks your landlord to approve a one-time upfront payment (e.g. a full year). Once they approve, it appears above ready to pay — and won&apos;t keep billing you each period.</p>
             </div>
           )}
         </div>

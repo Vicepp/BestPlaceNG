@@ -153,8 +153,13 @@ export default function PaymentsPage() {
               return (
                 <div key={p.id} className="flex flex-wrap items-center justify-between gap-3 px-5 py-4">
                   <div className="min-w-0">
-                    <p className="truncate text-sm font-semibold text-foreground">{p.apartmentTitle}</p>
-                    <p className="text-xs text-zinc-400">
+                    <div className="flex items-center gap-2">
+                      <span className={`rounded-full px-2 py-0.5 text-[10px] font-semibold ${p.kind === "utility" ? "bg-accent/20 text-accent-dark" : "bg-brand-light text-brand-dark"}`}>
+                        {p.kind === "utility" ? "Utility" : "Rent"}
+                      </span>
+                      <p className="truncate text-sm font-semibold text-foreground">{p.apartmentTitle}</p>
+                    </div>
+                    <p className="mt-0.5 text-xs text-zinc-400">
                       Due: <span className={overdue ? "font-semibold text-red-600" : ""}>{new Date(p.dueDate).toLocaleDateString()}{overdue ? " · Overdue" : ""}</span>
                     </p>
                     {p.verifiedAt && <p className="text-xs text-zinc-400">Paid: {new Date(p.verifiedAt).toLocaleDateString()}</p>}

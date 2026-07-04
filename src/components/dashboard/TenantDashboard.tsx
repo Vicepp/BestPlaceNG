@@ -11,7 +11,7 @@ import { formatNaira } from "@/data/apartments";
 import { getTenanciesForTenantLive, approveTenancy, type Tenancy } from "@/data/tenancies";
 import { getPaymentsForTenantLive, type Payment } from "@/data/payments";
 import { getTicketsForTenantLive, type MaintenanceTicket } from "@/data/maintenanceTickets";
-import { getUtilityFeesForTenant, getUtilityRequestsForTenant, type UtilityFee, type UtilityPaymentRequest } from "@/data/utilityFees";
+import { getUtilityRequestsForTenant, type UtilityPaymentRequest } from "@/data/utilityFees";
 import { claimPendingInvitesForEmail } from "@/data/tenancies";
 import PayNowButton from "@/components/dashboard/PayNowButton";
 import { isPaystackConfigured } from "@/lib/paystack";
@@ -53,7 +53,6 @@ export default function TenantDashboard() {
   const [tenancies, setTenancies] = useState<Tenancy[]>([]);
   const [payments, setPayments] = useState<Payment[]>([]);
   const [tickets, setTickets] = useState<MaintenanceTicket[]>([]);
-  const [utilityFees, setUtilityFees] = useState<UtilityFee[]>([]);
   const [utilityRequests, setUtilityRequests] = useState<UtilityPaymentRequest[]>([]);
   const [loading, setLoading] = useState(true);
   const [showHistory, setShowHistory] = useState(false);
@@ -64,17 +63,15 @@ export default function TenantDashboard() {
     // Re-run the auto-link claim (catches invites that arrived while logged in)
     if (user.email) await claimPendingInvitesForEmail(user.uid, user.email);
 
-    const [t, p, tk, uf, ur] = await Promise.all([
+    const [t, p, tk, ur] = await Promise.all([
       getTenanciesForTenantLive(user.uid),
       getPaymentsForTenantLive(user.uid),
       getTicketsForTenantLive(user.uid),
-      getUtilityFeesForTenant(user.uid),
       getUtilityRequestsForTenant(user.uid),
     ]);
     setTenancies(t);
     setPayments(p);
     setTickets(tk);
-    setUtilityFees(uf.filter((f) => f.status === "active"));
     setUtilityRequests(ur.filter((r) => r.status === "pending"));
     setLoading(false);
   }
@@ -216,36 +213,23 @@ export default function TenantDashboard() {
         </div>
       )}
 
-      {/* ── Utility payment requests ─────────────────────────────────────── */}
+      {/* ── Utility payment requests (pay on the rental page) ────────────── */}
       {utilityRequests.length > 0 && (
         <div>
-          <h2 className="mb-3 text-sm font-bold text-foreground">Utility Payment Requests</h2>
+          <h2 className="mb-3 flex items-center gap-1.5 text-sm font-bold text-foreground"><Zap className="h-4 w-4 text-accent" /> Utility Bills Due</h2>
           <div className="space-y-2">
             {utilityRequests.map((r) => (
-              <div key={r.id} className="flex flex-wrap items-center justify-between gap-3 rounded-2xl border border-zinc-100 bg-white p-4 shadow-sm">
+              <Link
+                key={r.id}
+                href={`/dashboard/rental/${r.tenancyId}`}
+                className="flex flex-wrap items-center justify-between gap-3 rounded-2xl border border-zinc-100 bg-white p-4 shadow-sm transition hover:border-brand"
+              >
                 <div>
                   <p className="text-sm font-semibold text-foreground">{r.feeName}</p>
-                  <p className="text-xs text-zinc-400">{r.period} · Due {new Date(r.dueDate).toLocaleDateString()}</p>
+                  <p className="text-xs text-zinc-400">{r.apartmentTitle} · due {new Date(r.dueDate).toLocaleDateString()}</p>
                 </div>
-                <p className="text-base font-bold text-brand-dark">{formatNaira(r.amount)}</p>
-              </div>
-            ))}
-          </div>
-        </div>
-      )}
-
-      {/* ── Active utility fees (recurring charges) ─────────────────────── */}
-      {utilityFees.length > 0 && (
-        <div className="rounded-2xl border border-zinc-100 bg-white p-4 shadow-sm">
-          <h2 className="mb-3 text-sm font-bold text-foreground">Recurring Charges</h2>
-          <div className="space-y-2">
-            {utilityFees.map((f) => (
-              <div key={f.id} className="flex items-center justify-between text-sm">
-                <span className="flex items-center gap-1.5 text-foreground">
-                  <Zap className="h-3.5 w-3.5 text-accent" /> {f.name}
-                </span>
-                <span className="text-zinc-500">{formatNaira(f.amount)}/{f.period}</span>
-              </div>
+                <span className="text-base font-bold text-brand-dark">{formatNaira(r.amount)} <span className="text-xs font-semibold text-brand">Pay →</span></span>
+              </Link>
             ))}
           </div>
         </div>

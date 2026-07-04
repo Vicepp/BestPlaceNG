@@ -1,4 +1,4 @@
-import { collection, addDoc, doc, setDoc, query, where, getDocs } from "firebase/firestore";
+import { collection, addDoc, doc, setDoc, deleteDoc, query, where, getDocs } from "firebase/firestore";
 import { getDb, isFirebaseConfigured } from "./firebase";
 
 /**
@@ -78,6 +78,18 @@ export async function setFirestoreDoc(col: string, id: string, data: Record<stri
   }
   try {
     await setDoc(doc(getDb(), col, id), clean(data), { merge: true });
+    return { ok: true, id };
+  } catch (e) {
+    return firestoreError(`${col}/${id}`, e);
+  }
+}
+
+export async function deleteFirestoreDoc(col: string, id: string): Promise<WriteResult> {
+  if (!isFirebaseConfigured()) {
+    return { ok: false, error: "This feature isn't available right now." };
+  }
+  try {
+    await deleteDoc(doc(getDb(), col, id));
     return { ok: true, id };
   } catch (e) {
     return firestoreError(`${col}/${id}`, e);

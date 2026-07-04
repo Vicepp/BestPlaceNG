@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import { useAuth } from "@/context/AuthContext";
-import { isPaystackConfigured, payWithPaystack } from "@/lib/paystack";
+import { isPaystackConfigured, payWithPaystack, verifyPayment } from "@/lib/paystack";
 import { formatNaira } from "@/data/apartments";
 import type { Payment } from "@/data/payments";
 
@@ -35,12 +35,7 @@ export default function PayNowButton({ payment, onSuccess }: { payment: Payment;
       paymentId: payment.id,
       onSuccess: async (ref) => {
         setVerifying(true);
-        const res = await fetch("/api/payments/verify", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ reference: ref, paymentId: payment.id }),
-        });
-        const json = await res.json();
+        const json = await verifyPayment(ref, payment.id);
         setVerifying(false);
         if (json.ok) {
           setDone(true);
@@ -49,6 +44,7 @@ export default function PayNowButton({ payment, onSuccess }: { payment: Payment;
           setError(json.error ?? "Verification failed. Please contact your landlord.");
         }
       },
+      onClose: () => setVerifying(false),
     });
   }
 

@@ -213,3 +213,17 @@ export async function getTenanciesForApartmentLive(apartmentId: string): Promise
   const result = await queryFirestoreCollection<Tenancy>("tenancies", [["apartmentId", apartmentId]]);
   return result ?? [];
 }
+
+/** The tenant's existing tenancy for a given apartment (active/requested/invited),
+ * used to prevent creating duplicate tenancy rows when they re-attempt payment. */
+export async function findTenantTenancyForApartment(tenantId: string, apartmentId: string): Promise<Tenancy | null> {
+  const mine = await getTenanciesForTenantLive(tenantId);
+  const relevant = mine.filter((t) => t.apartmentId === apartmentId && t.status !== "rejected" && t.status !== "ended");
+  // Prefer active, then requested, then invited.
+  return (
+    relevant.find((t) => t.status === "active") ??
+    relevant.find((t) => t.status === "requested") ??
+    relevant.find((t) => t.status === "invited") ??
+    null
+  );
+}

@@ -88,3 +88,10 @@ export async function getPaymentsForTenantLive(tenantId: string): Promise<Paymen
   const result = await queryFirestoreCollection<Payment>("payments", [["tenantId", tenantId]]);
   return result ?? [];
 }
+
+/** Existing pending rent invoice for a tenancy, so we reuse it instead of
+ * creating a duplicate when the tenant retries payment. */
+export async function findPendingRentInvoice(tenancyId: string, tenantId: string): Promise<Payment | null> {
+  const mine = await getPaymentsForTenantLive(tenantId);
+  return mine.find((p) => p.tenancyId === tenancyId && p.status === "pending" && (p.kind ?? "rent") === "rent") ?? null;
+}

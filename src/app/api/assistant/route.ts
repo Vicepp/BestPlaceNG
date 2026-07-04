@@ -113,6 +113,34 @@ interface Recommendation {
   section?: string;
 }
 
+/** Google Gemini (Generative Language API). Converts our OpenAI-style messages
+ * into Gemini's format: all system messages become systemInstruction, and the
+ * user/assistant turns (including the conversation history) become contents,
+ * so the model actually remembers the chat. */
+async function callGemini(model: string, apiKey: string, messages: ChatMessage[]): Promise<string | undefined> {
+  const systemText = messages.filter((m) => m.role === "system").map((m) => m.content).join("\n\n");
+  const contents = messages
+    .filter((m) => m.role !== "system")
+    .map((m) => ({ role: m.role === "assistant" ? "model" : "user", parts: [{ text: m.content }] }));
+
+  const res = await fetch(
+    `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent?key=${apiKey}`,
+    {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        systemInstruction: { parts: [{ text: systemText }] },
+        contents,
+        generationConfig: { temperature: 0.4, maxOutputTokens: 800, responseMimeType: "application/json" },
+      }),
+      signal: AbortSignal.timeout(20000),
+    }
+  );
+  if (!res.ok) throw new Error(`Gemini (${model}) HTTP ${res.status}: ${await res.text()}`);
+  const data = await res.json();
+  return data.candidates?.[0]?.content?.parts?.map((p: { text?: string }) => p.text ?? "").join("") || undefined;
+}
+
 async function callOpenRouter(model: string, messages: ChatMessage[]): Promise<string | undefined> {
   const res = await fetch("https://openrouter.ai/api/v1/chat/completions", {
     method: "POST",
@@ -205,9 +233,19 @@ export async function POST(req: NextRequest) {
     { role: "user", content: message },
   ];
 
-  // Auto-switching fallback chain: OpenRouter (Qwen) -> Qwen direct -> OpenRouter (alternate model).
-  // Each entry is tried in order; the first one that returns a parseable response wins.
+  // Gemini is primary (rotated across all provided keys), then OpenRouter/Qwen
+  // as automatic fallbacks. First provider to return a parseable answer wins.
+  const geminiKeys = [
+    process.env.GEMINI_API_KEY_1,
+    process.env.GEMINI_API_KEY_2,
+    process.env.GEMINI_API_KEY_3,
+  ].filter((k): k is string => Boolean(k));
+
   const providers: { name: string; call: () => Promise<string | undefined> }[] = [
+    ...geminiKeys.flatMap((key, i) => [
+      { name: `gemini-2.5-flash#${i + 1}`, call: () => callGemini("gemini-2.5-flash", key, messages) },
+      { name: `gemini-2.0-flash#${i + 1}`, call: () => callGemini("gemini-2.0-flash", key, messages) },
+    ]),
     { name: "openrouter:qwen-2.5-72b", call: () => callOpenRouter("qwen/qwen-2.5-72b-instruct", messages) },
     { name: "qwen-direct:qwen-plus", call: () => callQwenDirect(messages) },
     { name: "openrouter:gpt-4o-mini", call: () => callOpenRouter("openai/gpt-4o-mini", messages) },

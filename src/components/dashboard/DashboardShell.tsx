@@ -36,6 +36,7 @@ const NAV_ITEMS: NavItem[] = [
 
 const TENANT_NAV_ITEMS: NavItem[] = [
   { label: "Dashboard", href: "/dashboard", icon: LayoutDashboard },
+  { label: "Transactions", href: "/dashboard/payments", icon: CreditCard },
   { label: "Maintenance", href: "/dashboard/maintenance", icon: Wrench },
   { label: "Messages", href: "/dashboard/messages", icon: MessageSquare },
 ];
@@ -57,6 +58,7 @@ const MOBILE_NAV_LANDLORD: NavItem[] = [
 
 const MOBILE_NAV_TENANT: NavItem[] = [
   { label: "Home", href: "/dashboard", icon: LayoutDashboard },
+  { label: "Payments", href: "/dashboard/payments", icon: CreditCard },
   { label: "Maintenance", href: "/dashboard/maintenance", icon: Wrench },
   { label: "Messages", href: "/dashboard/messages", icon: MessageSquare },
   { label: "Account", href: "/dashboard/settings", icon: User },

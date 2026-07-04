@@ -1,5 +1,5 @@
 import { getFirestoreCollection } from "@/lib/firestoreData";
-import { queryFirestoreCollection, setFirestoreDoc, type WriteResult } from "@/lib/firestoreWrite";
+import { queryFirestoreCollection, setFirestoreDoc, addFirestoreDocWithId, deleteFirestoreDoc, type WriteResult } from "@/lib/firestoreWrite";
 
 export type ListingStatus = "active" | "rented" | "archived";
 
@@ -129,6 +129,22 @@ export async function assignUnitToProperty(
 /** Remove a unit from its parent property (make standalone again) */
 export async function removeUnitFromProperty(unitId: string): Promise<WriteResult> {
   return setFirestoreDoc("apartments", unitId, { propertyId: null, propertyName: null });
+}
+
+/** Duplicate a unit listing — a fresh copy (new id, active, no tenants). */
+export async function duplicateApartment(unit: ApartmentListing): Promise<WriteResult> {
+  const { ...copy } = unit;
+  return addFirestoreDocWithId("apartments", {
+    ...copy,
+    title: `${unit.title} (copy)`,
+    status: "active",
+    createdAt: new Date().toISOString(),
+  } as unknown as Record<string, unknown>);
+}
+
+/** Delete a unit — callers must first ensure it isn't rented. */
+export async function deleteApartment(id: string): Promise<WriteResult> {
+  return deleteFirestoreDoc("apartments", id);
 }
 
 /** Public-facing query — only returns active listings (hides rented/archived) */
