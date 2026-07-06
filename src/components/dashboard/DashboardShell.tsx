@@ -15,6 +15,7 @@ import {
   LogOut,
   User,
   Wallet,
+  CalendarDays,
 } from "lucide-react";
 import { useAuth, type DashboardView } from "@/context/AuthContext";
 
@@ -33,6 +34,10 @@ const NAV_ITEMS: NavItem[] = [
   { label: "Maintenance", href: "/dashboard/maintenance", icon: Wrench },
   { label: "Messages", href: "/dashboard/messages", icon: MessageSquare },
 ];
+
+// Only relevant when the landlord uses the built-in tour calendar (not an
+// external booking link) — inserted into the landlord nav conditionally below.
+const CALENDAR_ITEM: NavItem = { label: "Tour calendar", href: "/dashboard/calendar", icon: CalendarDays };
 
 const TENANT_NAV_ITEMS: NavItem[] = [
   { label: "Dashboard", href: "/dashboard", icon: LayoutDashboard },
@@ -69,7 +74,13 @@ export default function DashboardShell({ children }: { children: React.ReactNode
   const pathname = usePathname();
   const router = useRouter();
 
-  const navItems = activeView === "landlord" ? NAV_ITEMS : TENANT_NAV_ITEMS;
+  const navItems =
+    activeView === "landlord"
+      ? profile?.bookingMode === "external"
+        ? NAV_ITEMS
+        : // insert the tour calendar right after "Properties"
+          [...NAV_ITEMS.slice(0, 2), CALENDAR_ITEM, ...NAV_ITEMS.slice(2)]
+      : TENANT_NAV_ITEMS;
   const mobileNavItems = activeView === "landlord" ? MOBILE_NAV_LANDLORD : MOBILE_NAV_TENANT;
 
   async function handleSignOut() {
