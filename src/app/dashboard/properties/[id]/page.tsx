@@ -25,6 +25,7 @@ import {
 } from "@/data/utilityFees";
 import { createNotification } from "@/data/notifications";
 import { getBookingsForApartment, formatSlot, type TourBooking } from "@/data/tours";
+import CancelTourModal from "@/components/dashboard/CancelTourModal";
 
 const TICKET_STYLES: Record<string, string> = {
   pending: "bg-red-100 text-red-700",
@@ -41,6 +42,7 @@ export default function PropertyDetailPage() {
   const [tenancies, setTenancies] = useState<Tenancy[]>([]);
   const [tickets, setTickets] = useState<MaintenanceTicket[]>([]);
   const [tours, setTours] = useState<TourBooking[]>([]);
+  const [cancelTarget, setCancelTarget] = useState<TourBooking | null>(null);
   const [loading, setLoading] = useState(true);
   const [openingChat, setOpeningChat] = useState(false);
   const [chatMsg, setChatMsg] = useState("");
@@ -179,7 +181,13 @@ export default function PropertyDetailPage() {
                     <p className="font-semibold text-foreground">{new Date(t.date).toLocaleDateString(undefined, { weekday: "short", month: "short", day: "numeric" })} · {formatSlot(t.time)}</p>
                     <p className="text-xs text-zinc-400">{t.tenantName}{t.tenantPhone ? ` · ${t.tenantPhone}` : ""}</p>
                   </div>
-                  <span className="rounded-full bg-brand-light px-2.5 py-1 text-[10px] font-semibold text-brand-dark">Booked</span>
+                  <div className="flex items-center gap-2">
+                    <span className="rounded-full bg-brand-light px-2.5 py-1 text-[10px] font-semibold text-brand-dark">Booked</span>
+                    <button onClick={() => setCancelTarget(t)}
+                      className="rounded-full border border-zinc-200 px-2.5 py-1 text-[11px] font-semibold text-zinc-500 hover:border-red-300 hover:text-red-600">
+                      Cancel
+                    </button>
+                  </div>
                 </div>
               ))}
             </div>
@@ -314,6 +322,16 @@ export default function PropertyDetailPage() {
           landlordId={user?.uid ?? ""}
           apartmentTitle={apartment?.title ?? ""}
           apartmentId={id}
+        />
+      )}
+
+      {cancelTarget && user && (
+        <CancelTourModal
+          booking={cancelTarget}
+          landlordUid={user.uid}
+          landlordName={profile?.displayName ?? user.email ?? "Landlord"}
+          onCancelled={(cid) => setTours((prev) => prev.filter((x) => x.id !== cid))}
+          onClose={() => setCancelTarget(null)}
         />
       )}
     </div>

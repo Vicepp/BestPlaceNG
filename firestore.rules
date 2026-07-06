@@ -269,9 +269,11 @@ service cloud.firestore {
     match /tourBookings/{id} {
       allow read: if request.auth != null;
       allow create: if request.auth != null && request.resource.data.tenantId == request.auth.uid;
+      // Either party may cancel; the only fields a cancel may touch are the
+      // status and (when the canceller gives one) the reason + timestamp.
       allow update: if request.auth != null
         && (resource.data.tenantId == request.auth.uid || resource.data.landlordId == request.auth.uid)
-        && request.resource.data.diff(resource.data).affectedKeys().hasOnly(["status"]);
+        && request.resource.data.diff(resource.data).affectedKeys().hasOnly(["status", "cancelReason", "cancelledAt"]);
       allow delete: if false;
     }
 

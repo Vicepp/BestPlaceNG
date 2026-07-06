@@ -25,6 +25,9 @@ export interface TourBooking {
   time: string;
   status: TourStatus;
   createdAt: string;
+  /** Why the tour was cancelled (set by whoever cancels, usually the landlord). */
+  cancelReason?: string;
+  cancelledAt?: string;
 }
 
 export interface TourAvailability {
@@ -79,9 +82,23 @@ export async function bookTour(params: Omit<TourBooking, "id" | "status" | "crea
   return addFirestoreDoc("tourBookings", { ...params, status: "booked", createdAt: new Date().toISOString() });
 }
 
-export async function cancelTour(id: string): Promise<WriteResult> {
-  return setFirestoreDoc("tourBookings", id, { status: "cancelled" });
+export async function cancelTour(id: string, reason?: string): Promise<WriteResult> {
+  const trimmed = reason?.trim();
+  return setFirestoreDoc("tourBookings", id, {
+    status: "cancelled",
+    ...(trimmed ? { cancelReason: trimmed, cancelledAt: new Date().toISOString() } : {}),
+  });
 }
+
+/** Common landlord reasons for cancelling a tour; "Other" lets them type their own. */
+export const TOUR_CANCEL_REASONS = [
+  "The unit has just been rented",
+  "The property is no longer available for viewing",
+  "I have a scheduling conflict at that time",
+  "Please reschedule — pick another time that works for you",
+  "Maintenance or repairs are ongoing",
+  "Other",
+];
 
 /* ── External booking-link validation (anti-phishing) ─────────── */
 

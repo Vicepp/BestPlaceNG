@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { getAdminDb, isFirebaseAdminConfigured, verifyIdToken } from "@/lib/firebaseAdmin";
 
 export const runtime = "nodejs";
+export const maxDuration = 60;
 
 /**
  * Transfer a unit (or a whole building) to another landlord — works even when
@@ -66,31 +67,79 @@ export async function POST(req: NextRequest) {
       await batch.commit();
     }
 
-    // Reassign the landlord on any live tenancies for those apartments.
+    // Reassign the landlord on any live tenancies for those apartments, and
+    // remember which tenants to notify. (This is the "tenant comes with it" step.)
     let movedTenancies = 0;
+    const affectedTenants: { tenantId: string; apartmentTitle: string }[] = [];
     for (const aptId of apartmentIds) {
       const tenSnap = await db.collection("tenancies").where("apartmentId", "==", aptId).get();
       const batch = db.batch();
+      let inBatch = 0;
       tenSnap.docs.forEach((d) => {
-        const st = d.data().status;
-        if (st === "active" || st === "requested" || st === "invited") {
+        const t = d.data();
+        if (t.status === "active" || t.status === "requested" || t.status === "invited") {
           batch.update(d.ref, { landlordId: newOwnerUid });
-          movedTenancies++;
+          inBatch++;
+          if (t.tenantId) affectedTenants.push({ tenantId: t.tenantId as string, apartmentTitle: (t.apartmentTitle as string) ?? "your home" });
         }
       });
-      if (movedTenancies > 0) await batch.commit();
+      if (inBatch > 0) { await batch.commit(); movedTenancies += inBatch; }
+    }
+
+    // Everything past this point is best-effort: the ownership + tenancy moves
+    // above are what matter, so a failed notification/chat update must not fail
+    // (or roll back) the transfer.
+    const sideEffects: Promise<unknown>[] = [];
+
+    // Move each property group chat to the new landlord so they're immediately
+    // connected to the tenant (swap the old owner out of the participants).
+    for (const aptId of apartmentIds) {
+      sideEffects.push(
+        db.collection("conversations").where("apartmentId", "==", aptId).get().then(async (convSnap) => {
+          for (const c of convSnap.docs) {
+            const data = c.data();
+            const ids: string[] = Array.isArray(data.participantIds) ? data.participantIds : [];
+            if (!ids.includes(uid)) continue; // only chats the old owner was in
+            const names: Record<string, string> = { ...(data.participantNames ?? {}) };
+            delete names[uid];
+            names[newOwnerUid] = (newOwner.displayName as string) ?? "Landlord";
+            const nextIds = Array.from(new Set(ids.filter((p) => p !== uid).concat(newOwnerUid)));
+            await c.ref.update({ participantIds: nextIds, participantNames: names });
+          }
+        })
+      );
+    }
+
+    // Tell each affected tenant their property has a new manager.
+    for (const t of affectedTenants) {
+      sideEffects.push(
+        db.collection("notifications").add({
+          userId: t.tenantId,
+          type: "tenancy",
+          title: "Your property has a new manager",
+          body: `${newOwner.displayName ?? "A new landlord"} now manages ${t.apartmentTitle}. Your tenancy, rent and payments continue as before.`,
+          link: "/dashboard",
+          read: false,
+          createdAt: now,
+        })
+      );
     }
 
     // Notify the new owner.
-    await db.collection("notifications").add({
-      userId: newOwnerUid,
-      type: "system",
-      title: "A property was transferred to you",
-      body: `You now own ${label}${movedTenancies > 0 ? ` (with ${movedTenancies} active tenant${movedTenancies !== 1 ? "s" : ""})` : ""}. Find it under Properties.`,
-      link: "/dashboard/properties",
-      read: false,
-      createdAt: now,
-    });
+    sideEffects.push(
+      db.collection("notifications").add({
+        userId: newOwnerUid,
+        type: "system",
+        title: "A property was transferred to you",
+        body: `You now own ${label}${movedTenancies > 0 ? ` (with ${movedTenancies} active tenant${movedTenancies !== 1 ? "s" : ""})` : ""}. Find it under Properties.`,
+        link: "/dashboard/properties",
+        read: false,
+        createdAt: now,
+      })
+    );
+
+    const settled = await Promise.allSettled(sideEffects);
+    settled.forEach((r) => { if (r.status === "rejected") console.error("[property/transfer] side-effect failed:", r.reason); });
 
     return NextResponse.json({ ok: true, units: apartmentIds.length, tenancies: movedTenancies });
   } catch (e) {

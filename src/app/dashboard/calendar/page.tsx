@@ -4,7 +4,8 @@ import { useEffect, useMemo, useState } from "react";
 import Link from "next/link";
 import { CalendarDays, ChevronLeft, ChevronRight, Clock, User, Phone, Building2, X } from "lucide-react";
 import { useAuth } from "@/context/AuthContext";
-import { getToursForLandlord, cancelTour, formatSlot, WEEKDAY_LABELS, type TourBooking } from "@/data/tours";
+import { getToursForLandlord, formatSlot, WEEKDAY_LABELS, type TourBooking } from "@/data/tours";
+import CancelTourModal from "@/components/dashboard/CancelTourModal";
 
 const MONTHS = ["January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"];
 
@@ -18,7 +19,7 @@ export default function CalendarPage() {
   const [loading, setLoading] = useState(true);
   const [view, setView] = useState(() => { const d = new Date(); return { year: d.getFullYear(), month: d.getMonth() }; });
   const [selected, setSelected] = useState<string | null>(ymd(new Date()));
-  const [cancelling, setCancelling] = useState<string | null>(null);
+  const [cancelTarget, setCancelTarget] = useState<TourBooking | null>(null);
 
   const usesExternal = profile?.bookingMode === "external";
 
@@ -64,15 +65,6 @@ export default function CalendarPage() {
       const d = new Date(v.year, v.month + delta, 1);
       return { year: d.getFullYear(), month: d.getMonth() };
     });
-  }
-
-  async function handleCancel(b: TourBooking) {
-    if (!confirm(`Cancel the ${formatSlot(b.time)} tour of "${b.apartmentTitle}" with ${b.tenantName}?`)) return;
-    setCancelling(b.id);
-    const res = await cancelTour(b.id);
-    setCancelling(null);
-    if (res.ok) setBookings((prev) => prev.filter((x) => x.id !== b.id));
-    else alert(res.error ?? "Couldn't cancel that tour.");
   }
 
   const selectedBookings = selected ? byDate[selected] ?? [] : [];
@@ -181,8 +173,8 @@ export default function CalendarPage() {
                     <li key={b.id} className="rounded-xl border border-zinc-100 p-3">
                       <div className="flex items-center justify-between">
                         <span className="flex items-center gap-1.5 text-sm font-bold text-brand"><Clock className="h-3.5 w-3.5" /> {formatSlot(b.time)}</span>
-                        <button onClick={() => handleCancel(b)} disabled={cancelling === b.id}
-                          className="rounded-full p-1 text-zinc-300 hover:bg-red-50 hover:text-red-500 disabled:opacity-50" aria-label="Cancel tour">
+                        <button onClick={() => setCancelTarget(b)}
+                          className="rounded-full p-1 text-zinc-300 hover:bg-red-50 hover:text-red-500" aria-label="Cancel tour">
                           <X className="h-3.5 w-3.5" />
                         </button>
                       </div>
@@ -198,6 +190,16 @@ export default function CalendarPage() {
             </div>
           </div>
         </>
+      )}
+
+      {cancelTarget && user && (
+        <CancelTourModal
+          booking={cancelTarget}
+          landlordUid={user.uid}
+          landlordName={profile?.displayName ?? user.email ?? "Landlord"}
+          onCancelled={(id) => setBookings((prev) => prev.filter((x) => x.id !== id))}
+          onClose={() => setCancelTarget(null)}
+        />
       )}
     </div>
   );
