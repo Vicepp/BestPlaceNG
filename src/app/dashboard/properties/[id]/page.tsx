@@ -1,9 +1,10 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { useParams } from "next/navigation";
+import { useParams, useRouter } from "next/navigation";
 import Link from "next/link";
 import { useAuth } from "@/context/AuthContext";
+import { getOrCreatePropertyGroupChat } from "@/data/conversations";
 import { getApartmentsByOwnerLive, formatNaira, type ApartmentListing } from "@/data/apartments";
 import {
   getTenanciesForApartmentLive,
@@ -32,12 +33,15 @@ const TICKET_STYLES: Record<string, string> = {
 
 export default function PropertyDetailPage() {
   const { id } = useParams<{ id: string }>();
-  const { user } = useAuth();
+  const { user, profile } = useAuth();
+  const router = useRouter();
 
   const [apartment, setApartment] = useState<ApartmentListing | null>(null);
   const [tenancies, setTenancies] = useState<Tenancy[]>([]);
   const [tickets, setTickets] = useState<MaintenanceTicket[]>([]);
   const [loading, setLoading] = useState(true);
+  const [openingChat, setOpeningChat] = useState(false);
+  const [chatMsg, setChatMsg] = useState("");
 
   const [inviteEmail, setInviteEmail] = useState("");
   const [inviteName, setInviteName] = useState("");
@@ -118,6 +122,27 @@ export default function PropertyDetailPage() {
   const requestedT = tenancies.filter((t) => t.status === "requested");
   const invitedT = tenancies.filter((t) => t.status === "invited");
 
+  async function openGroupChat() {
+    if (!user || !apartment) return;
+    setChatMsg("");
+    const activeTenants = activeT.filter((t) => t.tenantId).map((t) => ({ id: t.tenantId as string, name: t.tenantName }));
+    if (activeTenants.length === 0) {
+      setChatMsg("The group chat opens once you have at least one active tenant here.");
+      return;
+    }
+    setOpeningChat(true);
+    const convoId = await getOrCreatePropertyGroupChat({
+      apartmentId: apartment.id,
+      apartmentTitle: apartment.title,
+      landlordId: user.uid,
+      landlordName: profile?.displayName ?? user.email ?? "Landlord",
+      tenantIds: activeTenants,
+    });
+    setOpeningChat(false);
+    if (convoId) router.push(`/dashboard/messages?c=${convoId}`);
+    else setChatMsg("Couldn't open the group chat. Please try again.");
+  }
+
   return (
     <div className="space-y-6">
       <div className="flex items-start justify-between gap-4">
@@ -128,10 +153,11 @@ export default function PropertyDetailPage() {
           <h1 className="text-xl font-bold text-foreground">{apartment.title}</h1>
           <p className="text-sm text-zinc-500">{apartment.area}</p>
         </div>
-        <Link href={`/dashboard/messages?property=${apartment.id}`} className="rounded-full border border-zinc-200 px-4 py-2 text-sm font-semibold text-foreground hover:border-brand hover:text-brand">
-          Group Chat
-        </Link>
+        <button onClick={openGroupChat} disabled={openingChat} className="rounded-full border border-zinc-200 px-4 py-2 text-sm font-semibold text-foreground hover:border-brand hover:text-brand disabled:opacity-60">
+          {openingChat ? "Opening…" : "Group Chat"}
+        </button>
       </div>
+      {chatMsg && <p className="rounded-xl bg-zinc-50 px-4 py-2 text-xs text-zinc-500">{chatMsg}</p>}
 
       {requestedT.length > 0 && (
         <div className="rounded-2xl border border-zinc-100 bg-white p-5 shadow-sm">

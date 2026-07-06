@@ -194,6 +194,40 @@ export async function ensurePropertyGroupConversation(params: {
   });
 }
 
+/** Opens (or creates) the per-property group chat and returns its id — used by
+ * the landlord's "Group Chat" button. Creates a landlord-only group if none
+ * exists yet (tenants are auto-added when their tenancy activates). */
+export async function getOrCreatePropertyGroupChat(params: {
+  apartmentId: string;
+  apartmentTitle: string;
+  landlordId: string;
+  landlordName: string;
+  tenantIds?: { id: string; name: string }[];
+}): Promise<string> {
+  const existing = await getDocs(
+    query(collection(getDb(), "conversations"), where("apartmentId", "==", params.apartmentId), where("type", "==", "group"))
+  );
+  if (!existing.empty) return existing.docs[0].id;
+
+  const participantIds = [params.landlordId, ...(params.tenantIds ?? []).map((t) => t.id)];
+  const participantNames: Record<string, string> = { [params.landlordId]: params.landlordName };
+  for (const t of params.tenantIds ?? []) participantNames[t.id] = t.name;
+
+  // A group needs >=2 participants (rules). If there are no tenants yet, the
+  // landlord can't create a "group" of one — return "" so the caller can inform them.
+  if (participantIds.length < 2) return "";
+
+  const ref = await addDoc(collection(getDb(), "conversations"), {
+    type: "group",
+    apartmentId: params.apartmentId,
+    title: params.apartmentTitle,
+    participantIds,
+    participantNames,
+    createdAt: new Date().toISOString(),
+  });
+  return ref.id;
+}
+
 export async function getConversation(conversationId: string): Promise<Conversation | null> {
   const snap = await getDoc(doc(getDb(), "conversations", conversationId));
   return snap.exists() ? ({ id: snap.id, ...snap.data() } as Conversation) : null;

@@ -5,7 +5,7 @@ import Link from "next/link";
 import { useParams, useRouter } from "next/navigation";
 import {
   Building2, Home, Plus, MoreVertical, Eye, EyeOff,
-  Archive, RotateCcw, Pencil, Trash2, ArrowLeft, MapPin,
+  Archive, RotateCcw, Pencil, ArrowLeft, MapPin,
 } from "lucide-react";
 import { useAuth } from "@/context/AuthContext";
 import { getPropertyById, type Property } from "@/data/properties";
@@ -13,7 +13,6 @@ import {
   getApartmentsByPropertyLive, formatNaira, setListingStatus,
   type ApartmentListing, type ListingStatus,
 } from "@/data/apartments";
-import { setFirestoreDoc } from "@/lib/firestoreWrite";
 
 const STATUS_STYLES: Record<ListingStatus, string> = {
   active: "bg-green-100 text-green-700",
