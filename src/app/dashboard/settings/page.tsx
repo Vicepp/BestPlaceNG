@@ -4,8 +4,15 @@ import { useEffect, useState } from "react";
 import { useAuth, type DashboardView } from "@/context/AuthContext";
 import { setFirestoreDoc } from "@/lib/firestoreWrite";
 import { uploadFile } from "@/lib/storage";
-import { isAllowedBookingLink, ALLOWED_BOOKING_PROVIDERS } from "@/data/tours";
+import { isAllowedBookingLink, ALLOWED_BOOKING_PROVIDERS, WEEKDAY_LABELS, DEFAULT_AVAILABILITY } from "@/data/tours";
 import { Camera, Save, CalendarDays } from "lucide-react";
+
+const HOURS = Array.from({ length: 24 }, (_, h) => h);
+function hourLabel(h: number) {
+  const period = h >= 12 ? "PM" : "AM";
+  const h12 = h % 12 === 0 ? 12 : h % 12;
+  return `${h12}:00 ${period}`;
+}
 
 export default function SettingsPage() {
   const { user, profile, activeView, setActiveView } = useAuth();
@@ -21,6 +28,9 @@ export default function SettingsPage() {
 
   const [bookingMode, setBookingMode] = useState<"internal" | "external">("internal");
   const [bookingLink, setBookingLink] = useState("");
+  const [availDays, setAvailDays] = useState<number[]>(DEFAULT_AVAILABILITY.days);
+  const [startHour, setStartHour] = useState<number>(DEFAULT_AVAILABILITY.startHour);
+  const [endHour, setEndHour] = useState<number>(DEFAULT_AVAILABILITY.endHour);
   const [bookingSaving, setBookingSaving] = useState(false);
   const [bookingMsg, setBookingMsg] = useState<{ ok: boolean; text: string } | null>(null);
 
@@ -33,7 +43,15 @@ export default function SettingsPage() {
     setAvatarUrl(profile.avatarUrl ?? "");
     setBookingMode(profile.bookingMode ?? "internal");
     setBookingLink(profile.bookingLink ?? "");
+    const av = profile.tourAvailability ?? DEFAULT_AVAILABILITY;
+    setAvailDays(av.days);
+    setStartHour(av.startHour);
+    setEndHour(av.endHour);
   }, [profile]);
+
+  function toggleDay(d: number) {
+    setAvailDays((prev) => (prev.includes(d) ? prev.filter((x) => x !== d) : [...prev, d].sort((a, b) => a - b)));
+  }
 
   async function handleSaveBooking() {
     if (!user) return;
@@ -42,11 +60,21 @@ export default function SettingsPage() {
         setBookingMsg({ ok: false, text: `That link isn't accepted. Use a secure (https) link from a known scheduler: ${ALLOWED_BOOKING_PROVIDERS}.` });
         return;
       }
+    } else {
+      if (availDays.length === 0) {
+        setBookingMsg({ ok: false, text: "Pick at least one day you're available for tours." });
+        return;
+      }
+      if (endHour <= startHour) {
+        setBookingMsg({ ok: false, text: "Your tour end time must be after the start time." });
+        return;
+      }
     }
     setBookingSaving(true);
     await setFirestoreDoc("users", user.uid, {
       bookingMode,
       bookingLink: bookingMode === "external" ? bookingLink.trim() : undefined,
+      tourAvailability: bookingMode === "internal" ? { days: availDays, startHour, endHour } : undefined,
     });
     setBookingSaving(false);
     setBookingMsg({ ok: true, text: "Tour booking settings saved." });
@@ -191,6 +219,40 @@ export default function SettingsPage() {
 
         {bookingMode === "external" && (
           <p className="mt-2 text-[11px] text-zinc-400">For your safety and tenants&apos;, only links from known schedulers are accepted ({ALLOWED_BOOKING_PROVIDERS}). Other links are rejected to prevent phishing.</p>
+        )}
+
+        {bookingMode === "internal" && (
+          <div className="mt-4 rounded-xl border border-zinc-100 bg-zinc-50/60 p-4">
+            <p className="text-xs font-bold text-foreground">Your availability</p>
+            <p className="mt-0.5 text-[11px] text-zinc-400">Tenants can only pick days and hours you&apos;ve opened here.</p>
+
+            <label className="mt-3 block text-[11px] font-semibold text-zinc-500">Days</label>
+            <div className="mt-1 flex flex-wrap gap-1.5">
+              {WEEKDAY_LABELS.map((label, d) => (
+                <button key={d} type="button" onClick={() => toggleDay(d)}
+                  className={`rounded-full px-3 py-1.5 text-xs font-semibold transition ${availDays.includes(d) ? "bg-brand text-white" : "bg-white text-zinc-500 ring-1 ring-zinc-200 hover:ring-brand"}`}>
+                  {label}
+                </button>
+              ))}
+            </div>
+
+            <div className="mt-3 grid grid-cols-2 gap-3">
+              <div>
+                <label className="block text-[11px] font-semibold text-zinc-500">From</label>
+                <select value={startHour} onChange={(e) => setStartHour(Number(e.target.value))}
+                  className="mt-1 w-full rounded-lg border border-zinc-200 bg-white px-3 py-2 text-sm outline-none focus:border-brand">
+                  {HOURS.map((h) => <option key={h} value={h}>{hourLabel(h)}</option>)}
+                </select>
+              </div>
+              <div>
+                <label className="block text-[11px] font-semibold text-zinc-500">To</label>
+                <select value={endHour} onChange={(e) => setEndHour(Number(e.target.value))}
+                  className="mt-1 w-full rounded-lg border border-zinc-200 bg-white px-3 py-2 text-sm outline-none focus:border-brand">
+                  {HOURS.map((h) => <option key={h} value={h}>{hourLabel(h)}</option>)}
+                </select>
+              </div>
+            </div>
+          </div>
         )}
 
         {bookingMsg && <p className={`mt-2 text-xs ${bookingMsg.ok ? "text-green-600" : "text-red-600"}`}>{bookingMsg.text}</p>}

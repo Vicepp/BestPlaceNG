@@ -27,8 +27,26 @@ export interface TourBooking {
   createdAt: string;
 }
 
-/** Time slots offered by the internal calendar (on the hour, 9am–5pm). */
-export const TOUR_SLOTS = ["09:00", "10:00", "11:00", "12:00", "13:00", "14:00", "15:00", "16:00", "17:00"];
+export interface TourAvailability {
+  /** 0=Sun … 6=Sat */
+  days: number[];
+  startHour: number;
+  endHour: number;
+}
+
+/** Sensible default if a landlord hasn't set availability: Mon–Sat, 9am–5pm. */
+export const DEFAULT_AVAILABILITY: TourAvailability = { days: [1, 2, 3, 4, 5, 6], startHour: 9, endHour: 17 };
+
+export const WEEKDAY_LABELS = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
+
+/** Build the hourly slots ("HH:00") a landlord offers, from their availability window. */
+export function slotsFromAvailability(a: TourAvailability): string[] {
+  const start = Math.max(0, Math.min(23, a.startHour));
+  const end = Math.max(start + 1, Math.min(24, a.endHour));
+  const out: string[] = [];
+  for (let h = start; h < end; h++) out.push(`${String(h).padStart(2, "0")}:00`);
+  return out;
+}
 
 export function formatSlot(time: string): string {
   const [h] = time.split(":").map(Number);

@@ -31,6 +31,8 @@ export interface UserProfile {
   // Tour booking preferences (landlords)
   bookingMode?: "internal" | "external";
   bookingLink?: string;
+  /** Availability for the built-in tour calendar. days: 0=Sun..6=Sat. Hours 24h. */
+  tourAvailability?: { days: number[]; startHour: number; endHour: number };
 }
 
 export type DashboardView = "tenant" | "landlord";
