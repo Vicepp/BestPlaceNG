@@ -68,10 +68,16 @@ function getAdminApp(): App {
 export function getAdminDb(): Firestore {
   if (db) return db;
   db = getFirestore(getAdminApp());
-  try {
-    db.settings({ preferRest: true });
-  } catch {
-    // settings() throws if called twice; safe to ignore on a reused instance.
+  // Only prefer REST in the serverless environment it's meant for (Vercel), where
+  // it avoids the slow gRPC channel warm-up on cold starts. Locally we keep the
+  // default gRPC transport — some networks reset the long-lived REST connection
+  // (ECONNRESET), which would break `npm run dev` for no benefit off-serverless.
+  if (process.env.VERCEL) {
+    try {
+      db.settings({ preferRest: true });
+    } catch {
+      // settings() throws if called twice; safe to ignore on a reused instance.
+    }
   }
   return db;
 }
