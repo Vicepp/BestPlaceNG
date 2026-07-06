@@ -2,6 +2,7 @@
 
 import { useEffect, useRef, useState, useCallback } from "react";
 import Link from "next/link";
+import { usePathname } from "next/navigation";
 import { AnimatePresence, motion } from "framer-motion";
 import { Mic, MessageCircle, Send, Square, X, Plus, ChevronLeft, History } from "lucide-react";
 import { cities, type CityData } from "@/data/cities";
@@ -118,6 +119,10 @@ async function saveThreadsToFirestore(uid: string, threads: SavedThread[]): Prom
 
 export default function FloatingAssistant() {
   const { user } = useAuth();
+  const pathname = usePathname();
+  // The dashboard has a fixed bottom nav on mobile; lift the launcher above it so
+  // it doesn't cover the last nav item (Account). Desktop is unaffected.
+  const onDashboard = pathname?.startsWith("/dashboard") ?? false;
 
   const [open, setOpen] = useState(false);
   const [showHistory, setShowHistory] = useState(false);
@@ -298,7 +303,7 @@ export default function FloatingAssistant() {
   }
 
   return (
-    <div className="fixed bottom-5 right-5 z-50 flex flex-col items-end gap-3">
+    <div className={`fixed right-5 z-50 flex flex-col items-end gap-3 ${onDashboard ? "bottom-24 md:bottom-5" : "bottom-5"}`}>
       <AnimatePresence>
         {open && (
           <motion.div

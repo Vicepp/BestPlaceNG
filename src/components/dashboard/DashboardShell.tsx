@@ -189,6 +189,20 @@ export default function DashboardShell({ children }: { children: React.ReactNode
           pb-24 clears the fixed bottom nav (~60px). Desktop resets all three. */}
       <main className="min-w-0 flex-1 px-4 pb-24 pt-14 md:px-0 md:pb-0 md:pt-0">{children}</main>
 
+      {/* ── Mobile floating Tour-calendar button ─────────────────
+          Only for landlords on the built-in calendar; sits above the chat
+          launcher (which is at bottom-24 on dashboard mobile) and clears the
+          bottom nav. Hidden on the calendar page itself and on desktop. */}
+      {activeView === "landlord" && profile?.bookingMode !== "external" && pathname !== "/dashboard/calendar" && (
+        <Link
+          href="/dashboard/calendar"
+          aria-label="Tour calendar"
+          className="fixed bottom-44 right-5 z-50 flex h-12 w-12 items-center justify-center rounded-full border border-zinc-200 bg-white text-brand shadow-xl md:hidden"
+        >
+          <CalendarDays className="h-5 w-5" />
+        </Link>
+      )}
+
       {/* ── Mobile bottom navigation ─────────────────────────── */}
       <nav className="fixed bottom-0 left-0 right-0 z-30 border-t border-zinc-100 bg-white/95 backdrop-blur safe-area-inset-bottom md:hidden">
         <div className="flex">
