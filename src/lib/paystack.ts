@@ -15,7 +15,10 @@ export async function verifyPayment(reference: string, paymentId: string): Promi
     });
     const json = await res.json().catch(() => null);
     if (json && typeof json.ok === "boolean") return json;
-    return { ok: false, error: `Verification failed (HTTP ${res.status}).` };
+    // A non-JSON body means the serverless function itself failed (e.g. it was
+    // killed for exceeding the platform time limit) rather than our handler
+    // returning a clean error — the payment may still have gone through.
+    return { ok: false, error: `Couldn't confirm the payment (HTTP ${res.status}). If you were charged it will reflect shortly — refresh your dashboard in a moment.` };
   } catch (e) {
     const msg = (e as Error)?.name === "TimeoutError"
       ? "Confirming the payment took too long. If you were charged it will reflect shortly — refresh your dashboard."

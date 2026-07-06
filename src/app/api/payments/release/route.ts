@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { getAdminDb, isFirebaseAdminConfigured } from "@/lib/firebaseAdmin";
 
 export const runtime = "nodejs";
+export const maxDuration = 60;
 
 /**
  * Releases escrowed rent to the landlord once the tenant has confirmed move-in.

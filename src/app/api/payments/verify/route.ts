@@ -2,6 +2,10 @@ import { NextRequest, NextResponse } from "next/server";
 import { getAdminDb, isFirebaseAdminConfigured } from "@/lib/firebaseAdmin";
 
 export const runtime = "nodejs";
+// Give the function real headroom (used where the platform plan allows it) so a
+// slightly slow Paystack call or Firestore write can't trip the default limit
+// and return a non-JSON 500. The work itself targets ~1-2s with REST transport.
+export const maxDuration = 60;
 
 export async function POST(req: NextRequest) {
   if (!isFirebaseAdminConfigured()) {
@@ -27,19 +31,24 @@ export async function POST(req: NextRequest) {
   // error here (bad admin creds, Paystack timeout, Firestore error) must never
   // leave the caller's "Confirming payment…" spinner hanging forever.
   try {
-    const verifyRes = await fetch(`https://api.paystack.co/transaction/verify/${encodeURIComponent(reference)}`, {
-      headers: { Authorization: `Bearer ${process.env.PAYSTACK_SECRET_KEY!.trim()}` },
-      signal: AbortSignal.timeout(20000),
-    });
+    // Run the two independent network reads concurrently — verifying with
+    // Paystack and loading the invoice don't depend on each other, so overlapping
+    // them roughly halves the route's latency.
+    const db = getAdminDb();
+    const paymentRef = db.collection("payments").doc(paymentId);
+    const [verifyRes, snap] = await Promise.all([
+      fetch(`https://api.paystack.co/transaction/verify/${encodeURIComponent(reference)}`, {
+        headers: { Authorization: `Bearer ${process.env.PAYSTACK_SECRET_KEY!.trim()}` },
+        signal: AbortSignal.timeout(15000),
+      }),
+      paymentRef.get(),
+    ]);
     const verifyJson = await verifyRes.json().catch(() => null);
 
     if (!verifyRes.ok || verifyJson?.data?.status !== "success") {
       return NextResponse.json({ ok: false, error: "Payment not verified by Paystack." }, { status: 402 });
     }
 
-    const db = getAdminDb();
-    const paymentRef = db.collection("payments").doc(paymentId);
-    const snap = await paymentRef.get();
     if (!snap.exists) {
       return NextResponse.json({ ok: false, error: "Payment invoice not found" }, { status: 404 });
     }
@@ -60,6 +69,7 @@ export async function POST(req: NextRequest) {
     const payment = snap.data()!;
     const now = new Date().toISOString();
 
+    // The one write that must succeed before we tell the client "paid".
     await paymentRef.update({
       status: "success",
       escrowStatus: "held", // funds held in escrow until the tenant confirms move-in
@@ -67,47 +77,45 @@ export async function POST(req: NextRequest) {
       verifiedAt: now,
     });
 
-  // Paying is what makes someone a tenant: activate the tenancy if it isn't already,
-  // and take the apartment off the public market (status -> "rented").
-  if (payment.tenancyId) {
-    try {
-      const tenancyRef = db.collection("tenancies").doc(payment.tenancyId as string);
-      const tSnap = await tenancyRef.get();
-      if (tSnap.exists && tSnap.data()!.status !== "active") {
-        await tenancyRef.update({ status: "active", activatedAt: now });
-      }
-    } catch (e) {
-      console.error("[verify] tenancy activation failed:", e);
-    }
-  }
-  if (payment.apartmentId) {
-    try {
-      await db.collection("apartments").doc(payment.apartmentId as string).update({ status: "rented" });
-    } catch (e) {
-      console.error("[verify] apartment mark-rented failed:", e);
-    }
-  }
+    // The follow-on effects are independent of each other, so run them
+    // concurrently and don't let a slow/failed one hold up (or fail) the
+    // response — the payment is already recorded as successful. Each is
+    // best-effort and its own errors are swallowed by allSettled.
+    const { FieldValue } = await import("firebase-admin/firestore");
+    const sideEffects: Promise<unknown>[] = [];
 
-  // Escrow: credit the landlord's HELD balance (not withdrawable yet). It only
-  // moves to the withdrawable balance once the tenant confirms move-in, via
-  // /api/payments/release. Atomic increment so concurrent payments can't clobber.
-  if (payment.landlordId) {
-    try {
-      const { FieldValue } = await import("firebase-admin/firestore");
-      const walletRef = db.collection("wallets").doc(payment.landlordId as string);
-      await walletRef.set(
-        {
-          landlordId: payment.landlordId,
-          held: FieldValue.increment(payment.amount as number),
-          totalReceived: FieldValue.increment(payment.amount as number),
-          updatedAt: now,
-        },
-        { merge: true }
+    // Paying is what makes someone a tenant: activate the tenancy if not already.
+    if (payment.tenancyId) {
+      sideEffects.push(
+        db.collection("tenancies").doc(payment.tenancyId as string).get().then((tSnap) => {
+          if (tSnap.exists && tSnap.data()!.status !== "active") {
+            return db.collection("tenancies").doc(payment.tenancyId as string).update({ status: "active", activatedAt: now });
+          }
+        })
       );
-    } catch (e) {
-      console.error("[verify] wallet escrow credit failed:", e);
     }
-  }
+    // Take the apartment off the public market.
+    if (payment.apartmentId) {
+      sideEffects.push(db.collection("apartments").doc(payment.apartmentId as string).update({ status: "rented" }));
+    }
+    // Escrow: credit the landlord's HELD balance (not withdrawable until the
+    // tenant confirms move-in, via /api/payments/release). Atomic increment.
+    if (payment.landlordId) {
+      sideEffects.push(
+        db.collection("wallets").doc(payment.landlordId as string).set(
+          {
+            landlordId: payment.landlordId,
+            held: FieldValue.increment(payment.amount as number),
+            totalReceived: FieldValue.increment(payment.amount as number),
+            updatedAt: now,
+          },
+          { merge: true }
+        )
+      );
+    }
+
+    const results = await Promise.allSettled(sideEffects);
+    results.forEach((r) => { if (r.status === "rejected") console.error("[verify] side-effect failed:", r.reason); });
 
     return NextResponse.json({ ok: true });
   } catch (e) {

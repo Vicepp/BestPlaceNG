@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { getAdminDb, isFirebaseAdminConfigured, verifyIdToken } from "@/lib/firebaseAdmin";
 
 export const runtime = "nodejs";
+export const maxDuration = 60;
 
 const PAYSTACK = "https://api.paystack.co";
 
