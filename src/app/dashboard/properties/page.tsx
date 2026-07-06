@@ -363,10 +363,13 @@ export default function PropertiesPage() {
           {/* Archived */}
           {archivedUnits.length > 0 && (
             <section>
+              <h2 className="mb-3 text-sm font-semibold text-zinc-500 uppercase tracking-wide">Archived</h2>
               <button onClick={() => setShowArchived((v) => !v)}
-                className="flex items-center gap-1.5 text-xs font-semibold text-zinc-400 hover:text-zinc-600">
+                className={`flex items-center gap-1.5 rounded-full border px-4 py-2 text-sm font-semibold transition ${
+                  showArchived ? "border-brand bg-brand-light text-brand-dark" : "border-zinc-200 text-zinc-600 hover:border-brand hover:text-brand"
+                }`}>
                 <Archive className="h-4 w-4" />
-                {showArchived ? "Hide Archived" : `Show Archived Units (${archivedUnits.length})`}
+                {showArchived ? "Hide archived" : `Show archived (${archivedUnits.length})`}
               </button>
               {showArchived && (
                 <div className="mt-3 grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-3">
