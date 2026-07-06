@@ -13,7 +13,33 @@ import { getPaymentsForTenantLive, type Payment } from "@/data/payments";
 import { getTicketsForTenantLive, type MaintenanceTicket } from "@/data/maintenanceTickets";
 import { getUtilityRequestsForTenant, type UtilityPaymentRequest } from "@/data/utilityFees";
 import { claimPendingInvitesForEmail } from "@/data/tenancies";
+import { createNotification } from "@/data/notifications";
 import PayNowButton from "@/components/dashboard/PayNowButton";
+
+/** Warn the tenant ~1 month before a lease ends — once per lease end date,
+ * guarded in localStorage so it doesn't re-notify on every visit. */
+function warnUpcomingLeaseEnds(tenancies: Tenancy[], uid: string) {
+  if (typeof window === "undefined") return;
+  const THIRTY_DAYS = 30 * 864e5;
+  const now = Date.now();
+  for (const t of tenancies) {
+    if (t.status !== "active" || !t.leaseEnd) continue;
+    const end = new Date(t.leaseEnd).getTime();
+    const daysLeft = Math.ceil((end - now) / 864e5);
+    if (end - now > 0 && end - now <= THIRTY_DAYS) {
+      const key = `bpng:leaseWarn:${t.id}:${t.leaseEnd}`;
+      if (window.localStorage.getItem(key)) continue;
+      window.localStorage.setItem(key, "1");
+      createNotification({
+        userId: uid,
+        type: "tenancy",
+        title: "Your rent is expiring soon",
+        body: `Your tenancy at ${t.apartmentTitle} ends in ${daysLeft} day${daysLeft !== 1 ? "s" : ""} (${new Date(t.leaseEnd).toLocaleDateString()}). Renew with your landlord or plan your move.`,
+        link: `/dashboard/rental/${t.id}`,
+      }).catch(() => {});
+    }
+  }
+}
 import { isPaystackConfigured } from "@/lib/paystack";
 
 const PAYMENT_STATUS_STYLE: Record<string, { cls: string; icon: React.ReactNode; label: string }> = {
@@ -73,6 +99,7 @@ export default function TenantDashboard() {
     setPayments(p);
     setTickets(tk);
     setUtilityRequests(ur.filter((r) => r.status === "pending"));
+    warnUpcomingLeaseEnds(t, user.uid);
     setLoading(false);
   }
 

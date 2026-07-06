@@ -4,7 +4,7 @@ import { useEffect, useState, useRef } from "react";
 import Link from "next/link";
 import {
   Plus, Building2, Home, MoreVertical, Eye, EyeOff,
-  Archive, RotateCcw, Pencil, MapPin, ChevronRight, Copy, Trash2,
+  Archive, RotateCcw, Pencil, MapPin, ChevronRight, Copy, Trash2, ArrowRightLeft,
 } from "lucide-react";
 import { useAuth } from "@/context/AuthContext";
 import { getPropertiesForOwner, duplicateProperty, deleteProperty, type Property } from "@/data/properties";
@@ -13,6 +13,9 @@ import {
   assignUnitToProperty, removeUnitFromProperty, duplicateApartment, deleteApartment,
   type ApartmentListing, type ListingStatus,
 } from "@/data/apartments";
+import { getFirebaseAuth } from "@/lib/firebase";
+import TransferModal from "@/components/dashboard/TransferModal";
+import type { UserProfile } from "@/context/AuthContext";
 
 const STATUS_STYLES: Record<ListingStatus, string> = {
   active: "bg-green-100 text-green-700",
@@ -22,8 +25,8 @@ const STATUS_STYLES: Record<ListingStatus, string> = {
 
 /* ── Building card (grid tile) ─────────────────────────────── */
 function BuildingCard({
-  property, unitCount, activeCount, rentedCount, onRefresh,
-}: { property: Property; unitCount: number; activeCount: number; rentedCount: number; onRefresh: () => void }) {
+  property, unitCount, activeCount, rentedCount, onRefresh, onTransfer,
+}: { property: Property; unitCount: number; activeCount: number; rentedCount: number; onRefresh: () => void; onTransfer: (p: Property) => void }) {
   const [menuOpen, setMenuOpen] = useState(false);
   const ref = useRef<HTMLDivElement>(null);
   useEffect(() => {
@@ -50,6 +53,10 @@ function BuildingCard({
             <button onClick={async () => { await duplicateProperty(property); setMenuOpen(false); onRefresh(); }}
               className="flex w-full items-center gap-2 px-3 py-2 text-sm text-foreground hover:bg-zinc-50">
               <Copy className="h-4 w-4 text-zinc-400" /> Duplicate building
+            </button>
+            <button onClick={() => { setMenuOpen(false); onTransfer(property); }}
+              className="flex w-full items-center gap-2 px-3 py-2 text-sm text-foreground hover:bg-zinc-50">
+              <ArrowRightLeft className="h-4 w-4 text-zinc-400" /> Transfer building
             </button>
             {rentedCount > 0 ? (
               <span className="flex items-center gap-2 px-3 py-2 text-sm text-zinc-300" title="A building with rented units can't be deleted">
@@ -96,8 +103,8 @@ function BuildingCard({
 
 /* ── Standalone unit 3-dot menu ────────────────────────────── */
 function UnitDotMenu({
-  unit, onRefresh, availableProperties,
-}: { unit: ApartmentListing; onRefresh: () => void; availableProperties: Property[] }) {
+  unit, onRefresh, availableProperties, onTransfer,
+}: { unit: ApartmentListing; onRefresh: () => void; availableProperties: Property[]; onTransfer: (unit: ApartmentListing) => void }) {
   const [open, setOpen] = useState(false);
   const [showAssign, setShowAssign] = useState(false);
   const ref = useRef<HTMLDivElement>(null);
@@ -160,6 +167,10 @@ function UnitDotMenu({
             className="flex w-full items-center gap-2 px-3 py-2 text-sm text-foreground hover:bg-zinc-50">
             <Copy className="h-4 w-4 text-zinc-400" /> Duplicate unit
           </button>
+          <button onClick={() => { setOpen(false); onTransfer(unit); }}
+            className="flex w-full items-center gap-2 px-3 py-2 text-sm text-foreground hover:bg-zinc-50">
+            <ArrowRightLeft className="h-4 w-4 text-zinc-400" /> Transfer to landlord
+          </button>
           {/* A rented unit cannot be deleted (a tenant depends on it). */}
           {status === "rented" ? (
             <span className="flex items-center gap-2 px-3 py-2 text-sm text-zinc-300" title="Rented units can't be deleted">
@@ -211,6 +222,8 @@ export default function PropertiesPage() {
   const [loading, setLoading] = useState(true);
   const [showArchived, setShowArchived] = useState(false);
   const [filter, setFilter] = useState<"all" | "active" | "rented">("all");
+  const [transfer, setTransfer] = useState<{ kind: "unit" | "building"; id: string; title: string } | null>(null);
+  const [transferMsg, setTransferMsg] = useState("");
 
   async function load() {
     if (!user) return;
@@ -222,12 +235,42 @@ export default function PropertiesPage() {
 
   useEffect(() => { load(); }, [user]); // eslint-disable-line
 
+  async function handleTransfer(recipient: UserProfile) {
+    if (!transfer) return;
+    const token = await getFirebaseAuth().currentUser?.getIdToken();
+    const res = await fetch("/api/property/transfer", {
+      method: "POST",
+      headers: { "Content-Type": "application/json", Authorization: `Bearer ${token}` },
+      body: JSON.stringify({ kind: transfer.kind, id: transfer.id, newOwnerUid: recipient.uid }),
+    });
+    const json = await res.json().catch(() => null);
+    setTransfer(null);
+    if (json?.ok) {
+      setTransferMsg(`Transferred "${transfer.title}" to ${recipient.displayName || recipient.email}.`);
+      load();
+    } else {
+      setTransferMsg(json?.error ?? "Transfer failed. Please try again.");
+    }
+  }
+
   const allStandalone = units.filter((u) => !u.propertyId && (u.status ?? "active") !== "archived");
   const standaloneUnits = allStandalone.filter((u) => filter === "all" || (u.status ?? "active") === filter);
   const archivedUnits = units.filter((u) => (u.status ?? "active") === "archived");
 
   return (
     <div className="space-y-8">
+      {transferMsg && (
+        <div className="rounded-xl bg-brand-light px-4 py-3 text-sm text-brand-dark">{transferMsg}</div>
+      )}
+      {transfer && (
+        <TransferModal
+          title={transfer.kind === "building" ? "Transfer building" : "Transfer unit"}
+          subtitle={`Give "${transfer.title}" to another landlord. Rented units move with their tenants.`}
+          currentUid={user?.uid ?? ""}
+          onConfirm={handleTransfer}
+          onClose={() => setTransfer(null)}
+        />
+      )}
       {/* Header */}
       <div className="flex flex-wrap items-end justify-between gap-4">
         <div>
@@ -278,7 +321,7 @@ export default function PropertiesPage() {
                   const activeCount = pUnits.filter((u) => (u.status ?? "active") === "active").length;
                   const rentedCount = pUnits.filter((u) => u.status === "rented").length;
                   return (
-                    <BuildingCard key={p.id} property={p} unitCount={pUnits.length} activeCount={activeCount} rentedCount={rentedCount} onRefresh={load} />
+                    <BuildingCard key={p.id} property={p} unitCount={pUnits.length} activeCount={activeCount} rentedCount={rentedCount} onRefresh={load} onTransfer={(pr) => { setTransferMsg(""); setTransfer({ kind: "building", id: pr.id, title: pr.name }); }} />
                   );
                 })}
               </div>
@@ -308,7 +351,7 @@ export default function PropertiesPage() {
                       </div>
                       <div className="flex shrink-0 items-center gap-2">
                         <span className={`rounded-full px-2 py-0.5 text-[10px] font-semibold capitalize ${STATUS_STYLES[status]}`}>{status}</span>
-                        <UnitDotMenu unit={unit} onRefresh={load} availableProperties={properties} />
+                        <UnitDotMenu unit={unit} onRefresh={load} availableProperties={properties} onTransfer={(u) => { setTransferMsg(""); setTransfer({ kind: "unit", id: u.id, title: u.title }); }} />
                       </div>
                     </div>
                   );
@@ -336,7 +379,7 @@ export default function PropertiesPage() {
                         <p className="truncate text-sm font-medium text-zinc-600">{unit.title}</p>
                         <p className="text-xs text-zinc-400">{unit.area} · {formatNaira(unit.priceNaira)}</p>
                       </div>
-                      <UnitDotMenu unit={unit} onRefresh={load} availableProperties={properties} />
+                      <UnitDotMenu unit={unit} onRefresh={load} availableProperties={properties} onTransfer={(u) => { setTransferMsg(""); setTransfer({ kind: "unit", id: u.id, title: u.title }); }} />
                     </div>
                   ))}
                 </div>

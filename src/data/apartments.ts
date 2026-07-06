@@ -147,6 +147,22 @@ export async function deleteApartment(id: string): Promise<WriteResult> {
   return deleteFirestoreDoc("apartments", id);
 }
 
+/** Transfer ownership of a unit to another landlord. The current owner sets the
+ * new ownerId (allowed by the update rule since the pre-write doc is still
+ * theirs). Also detaches it from any building the old owner grouped it under. */
+export async function transferApartment(
+  unitId: string,
+  newOwner: { uid: string; name?: string; businessName?: string }
+): Promise<WriteResult> {
+  return setFirestoreDoc("apartments", unitId, {
+    ownerId: newOwner.uid,
+    ownerName: newOwner.name ?? null,
+    businessName: newOwner.businessName ?? null,
+    propertyId: null,
+    propertyName: null,
+  });
+}
+
 /** Public-facing query — only returns active listings (hides rented/archived) */
 export async function getApartmentsPublicLive(): Promise<ApartmentListing[]> {
   const all = await getApartmentsLive();

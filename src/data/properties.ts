@@ -64,6 +64,19 @@ export async function deleteProperty(id: string): Promise<WriteResult> {
   return deleteFirestoreDoc("properties", id);
 }
 
+/** Transfer a building's ownership to another landlord. The building's units are
+ * transferred separately by the caller (each unit is its own doc). */
+export async function transferProperty(
+  id: string,
+  newOwner: { uid: string; name?: string; businessName?: string }
+): Promise<WriteResult> {
+  return setFirestoreDoc("properties", id, {
+    ownerId: newOwner.uid,
+    ownerName: newOwner.name ?? null,
+    businessName: newOwner.businessName ?? null,
+  });
+}
+
 /** All public properties — for the /apartments listing page */
 export async function getAllPropertiesLive(): Promise<Property[]> {
   const { getFirestoreCollection } = await import("@/lib/firestoreData");

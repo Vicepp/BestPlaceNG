@@ -3,7 +3,7 @@
 import { useEffect, useState, useCallback } from "react";
 import { useParams, useRouter } from "next/navigation";
 import Link from "next/link";
-import { Home, MapPin, FileText, Download, Zap, Wrench, ArrowLeft, MapPinned, CheckCircle, CalendarClock, Flag, X } from "lucide-react";
+import { Home, MapPin, FileText, Download, Zap, Wrench, ArrowLeft, MapPinned, CheckCircle, CalendarClock, Flag, X, LogOut } from "lucide-react";
 import { useAuth } from "@/context/AuthContext";
 import { getFirestoreDoc } from "@/lib/firestoreData";
 import { getTenanciesForTenantLive, confirmMoveIn, type Tenancy } from "@/data/tenancies";
@@ -13,6 +13,7 @@ import { fileReport, type Report } from "@/data/reports";
 import { createNotification } from "@/data/notifications";
 import { formatNaira, type ApartmentListing } from "@/data/apartments";
 import { cities } from "@/data/cities";
+import { getFirebaseAuth } from "@/lib/firebase";
 import { isPaystackConfigured, payWithPaystack, verifyPayment } from "@/lib/paystack";
 import PayNowButton from "@/components/dashboard/PayNowButton";
 
@@ -34,6 +35,7 @@ export default function RentalDetailPage() {
   const [reportMsg, setReportMsg] = useState("");
   const [reportSent, setReportSent] = useState(false);
   const [upfrontAsked, setUpfrontAsked] = useState<string[]>([]);
+  const [leaving, setLeaving] = useState(false);
 
   const load = useCallback(async () => {
     if (!user) return;
@@ -143,6 +145,28 @@ export default function RentalDetailPage() {
     }).catch(() => {});
   }
 
+  /** Tenant leaves/vacates the unit. Ends the tenancy, sends the unit to the
+   * landlord's archive (not back on the market), and notifies the landlord. */
+  async function handleLeave() {
+    if (!tenancy) return;
+    if (!confirm(`Leave ${tenancy.apartmentTitle}? This ends your tenancy. You can do this before your next payment period.`)) return;
+    setLeaving(true);
+    try {
+      const token = await getFirebaseAuth().currentUser?.getIdToken();
+      const res = await fetch("/api/tenancy/leave", {
+        method: "POST",
+        headers: { "Content-Type": "application/json", Authorization: `Bearer ${token}` },
+        body: JSON.stringify({ tenancyId: tenancy.id }),
+      });
+      const json = await res.json().catch(() => null);
+      if (json?.ok) { router.push("/dashboard"); return; }
+      alert(json?.error ?? "Couldn't leave right now. Please try again.");
+    } catch {
+      alert("Couldn't leave right now. Please try again.");
+    }
+    setLeaving(false);
+  }
+
   async function submitReport() {
     if (!user || !tenancy || !reportMsg.trim()) return;
     const res = await fileReport({
@@ -211,6 +235,11 @@ export default function RentalDetailPage() {
           <button onClick={() => { setReportOpen(true); setReportSent(false); }} className="flex items-center gap-1.5 rounded-full border border-zinc-200 px-4 py-2 text-sm font-semibold text-zinc-600 hover:border-red-300 hover:text-red-600">
             <Flag className="h-4 w-4" /> Report a problem
           </button>
+          {isActive && (
+            <button onClick={handleLeave} disabled={leaving} className="flex items-center gap-1.5 rounded-full border border-zinc-200 px-4 py-2 text-sm font-semibold text-zinc-600 hover:border-red-300 hover:text-red-600 disabled:opacity-60">
+              <LogOut className="h-4 w-4" /> {leaving ? "Leaving…" : "Leave apartment"}
+            </button>
+          )}
         </div>
       </div>
 
