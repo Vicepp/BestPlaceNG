@@ -15,6 +15,9 @@ import ConversationList from "@/components/chat/ConversationList";
 import MessageThread from "@/components/chat/MessageThread";
 import MessageInput from "@/components/chat/MessageInput";
 import ChatAttachMenu from "@/components/chat/ChatAttachMenu";
+import RequestTourButton from "@/components/RequestTourButton";
+import { getFirestoreDoc } from "@/lib/firestoreData";
+import type { ApartmentListing } from "@/data/apartments";
 
 function ChatHeader({ conversation, myUid }: { conversation: Conversation | null; myUid: string }) {
   if (!conversation) return null;
@@ -66,8 +69,16 @@ function MessagesContent() {
   const [messages, setMessages] = useState<ChatMessage[]>([]);
   const [loading, setLoading] = useState(true);
   const [attachOpen, setAttachOpen] = useState(false);
+  const [tourApt, setTourApt] = useState<ApartmentListing | null>(null);
 
   const activeConversation = conversations.find((c) => c.id === activeId) ?? null;
+
+  // If this chat is about an apartment, load it so we can offer "Request a tour".
+  useEffect(() => {
+    const aptId = activeConversation?.apartmentId;
+    if (!aptId) { setTourApt(null); return; }
+    getFirestoreDoc<ApartmentListing>("apartments", aptId).then(setTourApt);
+  }, [activeConversation?.apartmentId]);
 
   useEffect(() => {
     if (!user) return;
@@ -118,6 +129,13 @@ function MessagesContent() {
                 <ChatHeader conversation={activeConversation} myUid={user!.uid} />
               </div>
             </div>
+            {/* Request-a-tour when the chat is about a specific apartment */}
+            {tourApt && (
+              <div className="flex items-center justify-between gap-2 border-b border-zinc-100 bg-zinc-50/60 px-4 py-2">
+                <span className="truncate text-xs text-zinc-500">About: <span className="font-semibold text-foreground">{tourApt.title}</span></span>
+                <RequestTourButton listing={tourApt} />
+              </div>
+            )}
             <MessageThread messages={messages} myUid={user!.uid} />
             {attachOpen && activeId && (
               <ChatAttachMenu conversationId={activeId} onClose={() => setAttachOpen(false)} />

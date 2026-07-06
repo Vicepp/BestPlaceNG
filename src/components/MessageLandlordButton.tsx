@@ -33,7 +33,8 @@ export default function MessageLandlordButton({ listing }: { listing: ApartmentL
       user!.uid,
       profile?.displayName ?? user!.email ?? "User",
       listing.ownerId!,
-      listing.ownerName ?? landlordProfile?.displayName ?? "Landlord"
+      listing.ownerName ?? landlordProfile?.displayName ?? "Landlord",
+      { id: listing.id, title: listing.title }
     );
     setLoading(false);
     router.push(`/dashboard/messages?c=${conversationId}`);

@@ -8,6 +8,7 @@ import { getApartmentsByCityLive, formatNaira, firstYearTotal, type ApartmentLis
 import { extractYouTubeId } from "@/data/properties";
 import RentThisButton from "@/components/RentThisButton";
 import MessageLandlordButton from "@/components/MessageLandlordButton";
+import RequestTourButton from "@/components/RequestTourButton";
 
 /* ── Image carousel ───────────────────────────────────────────── */
 function Carousel({ images, title }: { images: string[]; title: string }) {
@@ -129,6 +130,7 @@ function Detail({ apt, cityName, onBack }: { apt: ApartmentListing; cityName: st
           )}
           <RentThisButton listing={apt} />
           <MessageLandlordButton listing={apt} />
+          <RequestTourButton listing={apt} />
         </div>
       </div>
     </div>

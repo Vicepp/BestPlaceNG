@@ -4,7 +4,8 @@ import { useEffect, useState } from "react";
 import { useAuth, type DashboardView } from "@/context/AuthContext";
 import { setFirestoreDoc } from "@/lib/firestoreWrite";
 import { uploadFile } from "@/lib/storage";
-import { Camera, Save } from "lucide-react";
+import { isAllowedBookingLink, ALLOWED_BOOKING_PROVIDERS } from "@/data/tours";
+import { Camera, Save, CalendarDays } from "lucide-react";
 
 export default function SettingsPage() {
   const { user, profile, activeView, setActiveView } = useAuth();
@@ -18,6 +19,11 @@ export default function SettingsPage() {
   const [saving, setSaving] = useState(false);
   const [saved, setSaved] = useState(false);
 
+  const [bookingMode, setBookingMode] = useState<"internal" | "external">("internal");
+  const [bookingLink, setBookingLink] = useState("");
+  const [bookingSaving, setBookingSaving] = useState(false);
+  const [bookingMsg, setBookingMsg] = useState<{ ok: boolean; text: string } | null>(null);
+
   useEffect(() => {
     if (!profile) return;
     setDisplayName(profile.displayName ?? "");
@@ -25,7 +31,26 @@ export default function SettingsPage() {
     setPhone(profile.phone ?? "");
     setAddress(profile.address ?? "");
     setAvatarUrl(profile.avatarUrl ?? "");
+    setBookingMode(profile.bookingMode ?? "internal");
+    setBookingLink(profile.bookingLink ?? "");
   }, [profile]);
+
+  async function handleSaveBooking() {
+    if (!user) return;
+    if (bookingMode === "external") {
+      if (!isAllowedBookingLink(bookingLink)) {
+        setBookingMsg({ ok: false, text: `That link isn't accepted. Use a secure (https) link from a known scheduler: ${ALLOWED_BOOKING_PROVIDERS}.` });
+        return;
+      }
+    }
+    setBookingSaving(true);
+    await setFirestoreDoc("users", user.uid, {
+      bookingMode,
+      bookingLink: bookingMode === "external" ? bookingLink.trim() : undefined,
+    });
+    setBookingSaving(false);
+    setBookingMsg({ ok: true, text: "Tour booking settings saved." });
+  }
 
   async function handleAvatarChange(e: React.ChangeEvent<HTMLInputElement>) {
     const file = e.target.files?.[0];
@@ -133,6 +158,47 @@ export default function SettingsPage() {
           {saved && <span className="text-xs font-semibold text-green-600">Saved!</span>}
         </div>
       </form>
+
+      {/* Tour bookings (landlord) */}
+      <div className="rounded-2xl border border-zinc-100 bg-white p-5 shadow-sm">
+        <h2 className="flex items-center gap-1.5 text-sm font-bold text-foreground"><CalendarDays className="h-4 w-4 text-brand" /> Property tour bookings</h2>
+        <p className="mt-1 text-xs text-zinc-400">How prospective tenants book a viewing of your listings.</p>
+
+        <div className="mt-3 space-y-2">
+          <label className={`flex cursor-pointer items-start gap-3 rounded-xl border p-3 ${bookingMode === "internal" ? "border-brand bg-brand-light" : "border-zinc-200"}`}>
+            <input type="radio" name="bookingMode" checked={bookingMode === "internal"} onChange={() => setBookingMode("internal")} className="mt-0.5 h-4 w-4 accent-brand" />
+            <div>
+              <p className="text-sm font-semibold text-foreground">Built-in calendar</p>
+              <p className="text-xs text-zinc-500">Tenants pick a free time slot on BestPlaceNG; booked slots are blocked automatically and you&apos;re notified.</p>
+            </div>
+          </label>
+          <label className={`flex cursor-pointer items-start gap-3 rounded-xl border p-3 ${bookingMode === "external" ? "border-brand bg-brand-light" : "border-zinc-200"}`}>
+            <input type="radio" name="bookingMode" checked={bookingMode === "external"} onChange={() => setBookingMode("external")} className="mt-0.5 h-4 w-4 accent-brand" />
+            <div className="min-w-0 flex-1">
+              <p className="text-sm font-semibold text-foreground">My own booking link</p>
+              <p className="text-xs text-zinc-500">Tenants open your scheduling page instead.</p>
+              {bookingMode === "external" && (
+                <input
+                  value={bookingLink}
+                  onChange={(e) => setBookingLink(e.target.value)}
+                  placeholder="https://calendly.com/your-name"
+                  className="mt-2 w-full rounded-lg border border-zinc-200 px-3 py-2 text-sm outline-none focus:border-brand"
+                />
+              )}
+            </div>
+          </label>
+        </div>
+
+        {bookingMode === "external" && (
+          <p className="mt-2 text-[11px] text-zinc-400">For your safety and tenants&apos;, only links from known schedulers are accepted ({ALLOWED_BOOKING_PROVIDERS}). Other links are rejected to prevent phishing.</p>
+        )}
+
+        {bookingMsg && <p className={`mt-2 text-xs ${bookingMsg.ok ? "text-green-600" : "text-red-600"}`}>{bookingMsg.text}</p>}
+
+        <button onClick={handleSaveBooking} disabled={bookingSaving} className="mt-3 rounded-full bg-brand px-5 py-2 text-sm font-semibold text-white hover:bg-brand-dark disabled:opacity-60">
+          {bookingSaving ? "Saving…" : "Save booking settings"}
+        </button>
+      </div>
 
       <div className="rounded-2xl border border-zinc-100 bg-white p-5 shadow-sm">
         <h2 className="text-sm font-bold text-foreground">Account</h2>

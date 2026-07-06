@@ -24,6 +24,7 @@ import {
   type UtilityPeriod,
 } from "@/data/utilityFees";
 import { createNotification } from "@/data/notifications";
+import { getBookingsForApartment, formatSlot, type TourBooking } from "@/data/tours";
 
 const TICKET_STYLES: Record<string, string> = {
   pending: "bg-red-100 text-red-700",
@@ -39,6 +40,7 @@ export default function PropertyDetailPage() {
   const [apartment, setApartment] = useState<ApartmentListing | null>(null);
   const [tenancies, setTenancies] = useState<Tenancy[]>([]);
   const [tickets, setTickets] = useState<MaintenanceTicket[]>([]);
+  const [tours, setTours] = useState<TourBooking[]>([]);
   const [loading, setLoading] = useState(true);
   const [openingChat, setOpeningChat] = useState(false);
   const [chatMsg, setChatMsg] = useState("");
@@ -55,13 +57,15 @@ export default function PropertyDetailPage() {
 
   async function loadAll() {
     if (!user || !id) return;
-    const [apts, ten, tix] = await Promise.all([
+    const [apts, ten, tix, trs] = await Promise.all([
       getApartmentsByOwnerLive(user.uid),
       getTenanciesForApartmentLive(id),
       getTicketsForLandlordLive(user.uid),
+      getBookingsForApartment(id),
     ]);
     setApartment(apts.find((a) => a.id === id) ?? null);
     setTenancies(ten);
+    setTours(trs);
     setTickets(tix.filter((t) => t.apartmentId === id));
     setLoading(false);
   }
@@ -158,6 +162,30 @@ export default function PropertyDetailPage() {
         </button>
       </div>
       {chatMsg && <p className="rounded-xl bg-zinc-50 px-4 py-2 text-xs text-zinc-500">{chatMsg}</p>}
+
+      {/* Upcoming tour requests */}
+      {(() => {
+        const upcoming = tours
+          .filter((t) => new Date(`${t.date}T${t.time}`) >= new Date(Date.now() - 864e5))
+          .sort((a, b) => (a.date + a.time).localeCompare(b.date + b.time));
+        if (upcoming.length === 0) return null;
+        return (
+          <div className="rounded-2xl border border-zinc-100 bg-white p-5 shadow-sm">
+            <h2 className="text-sm font-bold text-foreground">Tour Requests ({upcoming.length})</h2>
+            <div className="mt-3 space-y-2">
+              {upcoming.map((t) => (
+                <div key={t.id} className="flex flex-wrap items-center justify-between gap-3 rounded-xl bg-zinc-50 p-3 text-sm">
+                  <div>
+                    <p className="font-semibold text-foreground">{new Date(t.date).toLocaleDateString(undefined, { weekday: "short", month: "short", day: "numeric" })} · {formatSlot(t.time)}</p>
+                    <p className="text-xs text-zinc-400">{t.tenantName}{t.tenantPhone ? ` · ${t.tenantPhone}` : ""}</p>
+                  </div>
+                  <span className="rounded-full bg-brand-light px-2.5 py-1 text-[10px] font-semibold text-brand-dark">Booked</span>
+                </div>
+              ))}
+            </div>
+          </div>
+        );
+      })()}
 
       {requestedT.length > 0 && (
         <div className="rounded-2xl border border-zinc-100 bg-white p-5 shadow-sm">

@@ -28,6 +28,9 @@ export interface UserProfile {
   address?: string;
   avatarUrl?: string;
   lastOnline?: string;
+  // Tour booking preferences (landlords)
+  bookingMode?: "internal" | "external";
+  bookingLink?: string;
 }
 
 export type DashboardView = "tenant" | "landlord";

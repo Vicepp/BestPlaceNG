@@ -19,6 +19,9 @@ export interface Conversation {
   id: string;
   type: "direct" | "group";
   apartmentId?: string;
+  /** Apartment this chat is about (direct inquiries from a listing) — powers the
+   * "Request a tour" action in the chat. */
+  apartmentTitle?: string;
   title?: string;
   participantIds: string[];
   participantNames: Record<string, string>;
@@ -143,19 +146,27 @@ export async function getOrCreateDirectConversation(
   myUid: string,
   myName: string,
   otherUid: string,
-  otherName: string
+  otherName: string,
+  apartment?: { id: string; title: string }
 ): Promise<string> {
   const existing = await getDocs(query(collection(getDb(), "conversations"), where("participantIds", "array-contains", myUid)));
   const match = existing.docs.find((d) => {
     const data = d.data() as Conversation;
     return data.type === "direct" && data.participantIds.includes(otherUid) && data.participantIds.length === 2;
   });
-  if (match) return match.id;
+  if (match) {
+    // Tag an existing chat with the apartment it's now about, if not already set.
+    if (apartment && !(match.data() as Conversation).apartmentId) {
+      await updateDoc(doc(getDb(), "conversations", match.id), { apartmentId: apartment.id, apartmentTitle: apartment.title }).catch(() => {});
+    }
+    return match.id;
+  }
 
   const ref = await addDoc(collection(getDb(), "conversations"), {
     type: "direct",
     participantIds: [myUid, otherUid],
     participantNames: { [myUid]: myName, [otherUid]: otherName },
+    ...(apartment ? { apartmentId: apartment.id, apartmentTitle: apartment.title } : {}),
     createdAt: new Date().toISOString(),
   });
   return ref.id;

@@ -262,6 +262,19 @@ service cloud.firestore {
       allow write: if false;
     }
 
+    // --- Property tour bookings ---
+    // Any signed-in user may read (needed so prospective tenants see which slots
+    // are already taken and can't double-book). A tenant creates their own
+    // booking; either party may cancel (status only).
+    match /tourBookings/{id} {
+      allow read: if request.auth != null;
+      allow create: if request.auth != null && request.resource.data.tenantId == request.auth.uid;
+      allow update: if request.auth != null
+        && (resource.data.tenantId == request.auth.uid || resource.data.landlordId == request.auth.uid)
+        && request.resource.data.diff(resource.data).affectedKeys().hasOnly(["status"]);
+      allow delete: if false;
+    }
+
     // --- Reports / disputes to the admin ---
     // A tenant (or any signed-in user) files a report; only the platform admin
     // reads them (via the Firebase console). Reporter can read their own.
