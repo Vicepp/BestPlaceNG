@@ -22,6 +22,11 @@ import crimeConfigData from "../src/data/crime-config.json";
 import crimeHistoryData from "../src/data/crime-history.json";
 import notableIncidentsData from "../src/data/notable-incidents.json";
 import climateNormalsData from "../src/data/climate-normals.json";
+import infrastructureConfig from "../src/data/infrastructure-config.json";
+import jobsConfig from "../src/data/jobs-config.json";
+import religionConfig from "../src/data/religion-config.json";
+import waecConfig from "../src/data/waec-config.json";
+import stateInsights from "../src/data/state-insights.json";
 
 const firebaseConfig = {
   apiKey: process.env.NEXT_PUBLIC_FIREBASE_API_KEY,
@@ -81,6 +86,16 @@ async function main() {
   }
   ops.push({ col: "config", id: "crime", data: crimeConfigData });
   ops.push({ col: "config", id: "crimeHistory", data: crimeHistoryData });
+
+  console.log("Queuing infrastructure / jobs / religion / WAEC configs + state insights...");
+  ops.push({ col: "config", id: "infrastructure", data: infrastructureConfig });
+  ops.push({ col: "config", id: "jobs", data: jobsConfig });
+  ops.push({ col: "config", id: "religion", data: religionConfig });
+  ops.push({ col: "config", id: "waec", data: waecConfig });
+  for (const [stateSlug, insight] of Object.entries(stateInsights)) {
+    if (stateSlug === "_source") continue;
+    ops.push({ col: "stateInsights", id: stateSlug, data: insight as Record<string, unknown> });
+  }
 
   console.log(`Queuing ${notableIncidentsData.length} notable incidents...`);
   notableIncidentsData.forEach((incident, i) => {

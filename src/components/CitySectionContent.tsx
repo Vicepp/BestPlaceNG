@@ -14,7 +14,15 @@ import JobsPanel from "@/components/JobsPanel";
 import PoliticsPanel from "@/components/PoliticsPanel";
 import ReligionPanel from "@/components/ReligionPanel";
 import SchoolPanel from "@/components/SchoolPanel";
-import { getCostOfLivingProfile } from "@/data/costOfLiving";
+import EconomyPanel from "@/components/EconomyPanel";
+import EducationStatsPanel from "@/components/EducationStatsPanel";
+import PeopleStatsPanel from "@/components/PeopleStatsPanel";
+import CommutePanel from "@/components/CommutePanel";
+import InternetPanel from "@/components/InternetPanel";
+import ElectricityPanel from "@/components/ElectricityPanel";
+import TransportationPanel from "@/components/TransportationPanel";
+import RoadConditionPanel from "@/components/RoadConditionPanel";
+import { getCostOfLivingProfile, getStateReferenceCity } from "@/data/costOfLiving";
 import ReviewBox from "@/components/ReviewBox";
 import ApartmentsExplorer from "@/components/ApartmentsExplorer";
 
@@ -75,7 +83,18 @@ async function renderSectionBody(city: CityData, section: string) {
               <IndexBar label="Safety Index" value={city.safetyIndex!} helpText="Higher = perceived safer (100 = national average)" />
             </div>
           ) : (
-            <ComingSoon topic="Cost of living and safety index" />
+            await (async () => {
+              const ref = await getStateReferenceCity(city.stateSlug);
+              if (!ref || ref.costOfLivingIndex === undefined) return null;
+              return (
+                <div className="grid grid-cols-1 gap-6 sm:grid-cols-2">
+                  <IndexBar label="Cost of Living Index" value={ref.costOfLivingIndex} helpText={`Estimated from ${ref.name}, the reference city for ${city.stateName} State (national avg = 100)`} />
+                  {ref.safetyIndex !== undefined && (
+                    <IndexBar label="Safety Index" value={ref.safetyIndex} helpText={`Estimated from ${ref.name} — higher = perceived safer (100 = national average)`} />
+                  )}
+                </div>
+              );
+            })()
           )}
           {sameStateCities.length > 0 && (
             <div>
@@ -121,31 +140,16 @@ async function renderSectionBody(city: CityData, section: string) {
       return <SchoolPanel city={city} />;
 
     case "education-stats":
-      return <ComingSoon topic="Education statistics" />;
+      return <EducationStatsPanel city={city} />;
 
     case "economy":
-      return (
-        <div className="space-y-6">
-          {city.description && <p className="text-sm text-zinc-600">{city.description}</p>}
-          {city.costOfLivingIndex !== undefined && (
-            <IndexBar label="Cost of Living (proxy for local economic activity)" value={city.costOfLivingIndex} helpText="National average = 100" />
-          )}
-          <ComingSoon topic="Economic" />
-        </div>
-      );
+      return <EconomyPanel city={city} />;
 
     case "jobs":
       return <JobsPanel city={city} />;
 
     case "people-stats":
-      return (
-        <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
-          <StatCard label="Population" value={city.population.toLocaleString()} />
-          <StatCard label="Annual Growth" value={`${city.growthRatePercent}%`} />
-          <StatCard label="Region" value={city.region} />
-          <StatCard label="Population Rank (NG)" value={`#${city.rank}`} />
-        </div>
-      );
+      return <PeopleStatsPanel city={city} />;
 
     case "housing-stats": {
       const [saleListings, colProfile] = await Promise.all([
@@ -383,11 +387,23 @@ async function renderSectionBody(city: CityData, section: string) {
       return <PoliticsPanel city={city} />;
 
     case "commute-time":
+      return <CommutePanel city={city} />;
+
     case "internet":
+      return <InternetPanel city={city} />;
+
     case "electricity":
+      return <ElectricityPanel city={city} />;
+
     case "transportation":
+      return <TransportationPanel city={city} />;
+
     case "road-condition":
+      return <RoadConditionPanel city={city} />;
+
     default:
+      // Unreachable for the current citySections list — every section has a
+      // real panel. Kept as a safety net for sections added in the future.
       return <ComingSoon topic={section.replace(/-/g, " ")} />;
   }
 }

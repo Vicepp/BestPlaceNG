@@ -1,0 +1,229 @@
+{
+  "_source": "Compiled from NBS (GDP rebase 2024, CPI, Labour Force Survey), CBN, NERC/MYTO 2024 tariff bands, NCC industry statistics, FERMA/Federal Ministry of Works statements, NUC/NBTE counts, NDHS household surveys, and public reporting (TomTom/Numbeo congestion, Ookla/Opensignal speeds). City-level figures are clearly-labelled estimates; national figures are the latest published. Edit this data in Firestore: config/infrastructure.",
+  "asOf": "2025",
+
+  "economy": {
+    "gdpTrillionNaira": 372.8,
+    "gdpNote": "Nominal GDP, 2024 — NBS rebased series (July 2025 release).",
+    "gdpGrowthPercent": 3.4,
+    "gdpGrowthYear": "2024",
+    "vatPercent": 7.5,
+    "incomeTaxNote": "Personal income tax 0–25% (Nigeria Tax Act 2025, effective Jan 2026) — first ₦800,000/year is tax-free.",
+    "inflationTrend": [
+      { "year": 2016, "rate": 15.7 },
+      { "year": 2017, "rate": 16.5 },
+      { "year": 2018, "rate": 12.1 },
+      { "year": 2019, "rate": 11.4 },
+      { "year": 2020, "rate": 13.2 },
+      { "year": 2021, "rate": 17.0 },
+      { "year": 2022, "rate": 18.8 },
+      { "year": 2023, "rate": 24.7 },
+      { "year": 2024, "rate": 33.2 },
+      { "year": 2025, "rate": 20.5 }
+    ],
+    "inflationNote": "NBS headline CPI, annual average. The CPI was rebased in January 2025 (new 2024 base year), which lowered the published rate — the 2025 figure is on the rebased series.",
+    "stateKeyIndustries": {
+      "lagos": ["Trade & commerce", "Banking & fintech", "Tech startups", "Ports & logistics", "Entertainment (Nollywood, music)"],
+      "fct": ["Government & public service", "Construction & real estate", "Hospitality", "Professional services"],
+      "rivers": ["Oil & gas", "Ports & maritime", "Manufacturing", "Trade"],
+      "kano": ["Commerce & distribution", "Agriculture & agro-processing", "Textiles & leather", "Manufacturing"],
+      "oyo": ["Agriculture", "Education & research", "Trade", "Agro-processing"],
+      "kaduna": ["Agriculture (ginger, maize)", "Manufacturing", "Defence & aviation institutions", "Education"],
+      "enugu": ["Trade", "Education", "Hospitality", "Tech (growing hub)"],
+      "anambra": ["Trade (Onitsha Main Market)", "Manufacturing (Nnewi auto parts)", "Agriculture"],
+      "abia": ["Leather & garments (Aba)", "Trade", "SME manufacturing"],
+      "edo": ["Agriculture (rubber, oil palm)", "Trade", "Education"],
+      "delta": ["Oil & gas", "Agriculture", "Trade"],
+      "akwa-ibom": ["Oil & gas", "Aviation (Ibom Air)", "Agriculture"],
+      "cross-river": ["Tourism & hospitality", "Agriculture (cocoa)", "Trade"],
+      "plateau": ["Agriculture (potatoes, vegetables)", "Mining heritage (tin)", "Tourism"],
+      "kwara": ["Agriculture", "Education", "Services"],
+      "borno": ["Agriculture & livestock", "Cross-border trade (reviving)"],
+      "ogun": ["Manufacturing (industrial corridor)", "Cement & ceramics", "Agriculture", "Lagos-overflow logistics"]
+    },
+    "regionKeyIndustries": {
+      "South West": ["Agriculture (cocoa, cassava)", "Trade", "Manufacturing"],
+      "South East": ["Trade & SMEs", "Manufacturing", "Agriculture"],
+      "South South": ["Oil & gas", "Agriculture (oil palm)", "Fishing & maritime"],
+      "North Central": ["Agriculture (grains, tubers)", "Mining", "Trade"],
+      "North West": ["Agriculture (grains, cotton)", "Livestock", "Trade"],
+      "North East": ["Agriculture & livestock", "Cross-border trade"]
+    }
+  },
+
+  "education": {
+    "nationalLiteracyPercent": 62,
+    "literacyMetric": "Adult literacy (age 15+, any language) — estimates compiled from NBS/UNESCO surveys (2018–2022). State figures are approximate and rounded.",
+    "universities": 274,
+    "polytechnics": 183,
+    "collegesOfEducation": 205,
+    "tertiaryNote": "Approximate national counts (NUC/NBTE/NCCE, 2025) — federal, state and private combined.",
+    "primaryEnrollmentPercent": 68,
+    "outOfSchoolChildrenMillions": 18.3,
+    "enrollmentNote": "UNICEF/UBEC estimates — Nigeria has one of the world's largest out-of-school populations, concentrated in the North.",
+    "stateLiteracy": {
+      "abia": 92, "adamawa": 55, "akwa-ibom": 89, "anambra": 92, "bauchi": 40, "bayelsa": 86,
+      "benue": 76, "borno": 38, "cross-river": 87, "delta": 89, "ebonyi": 78, "edo": 90,
+      "ekiti": 89, "enugu": 88, "fct": 82, "gombe": 45, "imo": 94, "jigawa": 38,
+      "kaduna": 62, "kano": 55, "katsina": 42, "kebbi": 35, "kogi": 80, "kwara": 75,
+      "lagos": 96, "nasarawa": 68, "niger": 54, "ogun": 84, "ondo": 85, "osun": 87,
+      "oyo": 82, "plateau": 72, "rivers": 91, "sokoto": 33, "taraba": 52, "yobe": 32, "zamfara": 35
+    }
+  },
+
+  "people": {
+    "medianAgeYears": 18.1,
+    "lifeExpectancyYears": 54.6,
+    "avgHouseholdSize": 4.9,
+    "urbanSharePercent": 54,
+    "fertilityRate": 4.8,
+    "under15SharePercent": 42,
+    "languagesNote": "Nigeria has over 500 living languages. English is the official language; Nigerian Pidgin is the everyday lingua franca in most cities.",
+    "peopleNote": "National figures from NBS/UN/NDHS estimates. Regional household sizes from NDHS surveys.",
+    "regionProfiles": {
+      "South West": { "householdSize": 4.0, "languages": ["Yoruba", "English", "Pidgin"] },
+      "South East": { "householdSize": 4.3, "languages": ["Igbo", "English", "Pidgin"] },
+      "South South": { "householdSize": 4.4, "languages": ["Pidgin", "English", "Ijaw", "Edo", "Efik/Ibibio", "Urhobo"] },
+      "North Central": { "householdSize": 5.0, "languages": ["Hausa", "English", "Tiv", "Nupe", "Idoma", "Berom"] },
+      "North West": { "householdSize": 6.0, "languages": ["Hausa", "Fulfulde", "English"] },
+      "North East": { "householdSize": 5.7, "languages": ["Hausa", "Kanuri", "Fulfulde", "English"] }
+    }
+  },
+
+  "commute": {
+    "nationalAvgOneWayMinutes": 42,
+    "commuteNote": "Average one-way commute in Nigerian cities — estimates compiled from TomTom/Numbeo congestion reporting and local surveys. Lagos commutes are among the longest in the world.",
+    "tierDefaultMinutes": { "major": 30, "lga": 20 },
+    "cityOneWayMinutes": {
+      "lagos-lagos": 85, "ikorodu-lagos": 95, "abuja-fct": 45, "port-harcourt-rivers": 55,
+      "kano-kano": 35, "ibadan-oyo": 40, "onitsha-anambra": 50, "okpoko-anambra": 50,
+      "aba-abia": 45, "benin-city-edo": 40, "enugu-enugu": 35, "kaduna-kaduna": 30,
+      "warri-delta": 40, "uyo-akwa-ibom": 30, "calabar-cross-river": 30, "owerri-imo": 35,
+      "jos-plateau": 35, "ilorin-kwara": 30, "abeokuta-ogun": 35
+    },
+    "modes": [
+      { "name": "Bus / danfo / minibus", "sharePercent": 45 },
+      { "name": "Walking", "sharePercent": 20 },
+      { "name": "Keke (tricycle)", "sharePercent": 12 },
+      { "name": "Okada (motorcycle taxi)", "sharePercent": 10 },
+      { "name": "Private car", "sharePercent": 8 },
+      { "name": "Taxi / ride-hailing", "sharePercent": 3 },
+      { "name": "Rail / ferry", "sharePercent": 2 }
+    ],
+    "modesNote": "Urban mode shares are national estimates — the exact mix varies by city (e.g. okada bans in Lagos, keke dominance in the East)."
+  },
+
+  "internet": {
+    "internetSubscriptionsMillions": 141,
+    "broadbandPenetrationPercent": 48,
+    "avgMobileDownloadMbps": 27,
+    "typicalDataCostPerGBNaira": 500,
+    "internetNote": "NCC industry statistics (2025). Data prices rose ~50% in the Feb 2025 tariff review; ₦/GB varies widely by bundle size.",
+    "providers": [
+      { "name": "MTN Nigeria", "note": "Largest operator (~51% of subscriptions), widest 4G/5G coverage." },
+      { "name": "Airtel Nigeria", "note": "Second largest (~34%), strong data pricing and 4G coverage." },
+      { "name": "Globacom (Glo)", "note": "National operator (~12%) with aggressive data bundles." },
+      { "name": "9mobile", "note": "Smallest national operator (~2%), rebuilding coverage." },
+      { "name": "Starlink", "note": "Satellite broadband available nationwide — fast (100Mbps+) but premium-priced hardware + subscription." },
+      { "name": "Fibre ISPs (Spectranet, FibreOne, ipNX…)", "note": "Fixed fibre/4G-LTE home internet in Lagos, Abuja, PH and other big cities." }
+    ],
+    "stateBroadbandPercent": {
+      "lagos": 68, "fct": 62, "ogun": 55, "rivers": 52, "edo": 50, "oyo": 48, "delta": 48,
+      "anambra": 47, "enugu": 45, "kano": 42, "kaduna": 41
+    },
+    "regionBroadbandPercent": {
+      "South West": 46, "South East": 43, "South South": 44,
+      "North Central": 38, "North West": 30, "North East": 26
+    }
+  },
+
+  "electricity": {
+    "gridInstalledMW": 13500,
+    "gridTypicalDeliveredMW": 5000,
+    "gridNote": "Nigeria's grid has ~13,500MW installed capacity but typically delivers 4,000–5,500MW nationwide — hence widespread generator and solar backup.",
+    "generatorHouseholdsPercent": 40,
+    "bands": [
+      { "band": "A", "hoursPerDay": "20+ hrs", "tariffPerKWh": 209.5 },
+      { "band": "B", "hoursPerDay": "16–20 hrs", "tariffPerKWh": 64.07 },
+      { "band": "C", "hoursPerDay": "12–16 hrs", "tariffPerKWh": 52.05 },
+      { "band": "D", "hoursPerDay": "8–12 hrs", "tariffPerKWh": 43.27 },
+      { "band": "E", "hoursPerDay": "4–8 hrs", "tariffPerKWh": 32.44 }
+    ],
+    "bandsNote": "NERC service-based tariff bands (April 2024 review). Only Band A feeders pay the cost-reflective rate; most residential areas are Band B–E.",
+    "tierDefaultGridHours": { "major": 10, "lga": 6 },
+    "cityAvgGridHours": {
+      "lagos-lagos": 13, "ikorodu-lagos": 11, "abuja-fct": 16, "port-harcourt-rivers": 9,
+      "kano-kano": 10, "ibadan-oyo": 11, "benin-city-edo": 8, "onitsha-anambra": 10,
+      "enugu-enugu": 11, "kaduna-kaduna": 10, "uyo-akwa-ibom": 12, "calabar-cross-river": 12,
+      "warri-delta": 9, "aba-abia": 10, "owerri-imo": 11, "jos-plateau": 9,
+      "maiduguri-borno": 8, "ilorin-kwara": 12, "abeokuta-ogun": 11, "akure-ondo": 10,
+      "osogbo-osun": 11, "asaba-delta": 11, "awka-anambra": 10, "yenagoa-bayelsa": 9
+    },
+    "gridHoursNote": "Average daily grid supply hours are household-experience estimates — actual hours vary street by street with your feeder's band.",
+    "discoByState": {
+      "abia": "Enugu DisCo (EEDC)", "adamawa": "Yola DisCo (YEDC)", "akwa-ibom": "Port Harcourt DisCo (PHED)",
+      "anambra": "Enugu DisCo (EEDC)", "bauchi": "Jos DisCo (JED)", "bayelsa": "Port Harcourt DisCo (PHED)",
+      "benue": "Jos DisCo (JED)", "borno": "Yola DisCo (YEDC)", "cross-river": "Port Harcourt DisCo (PHED)",
+      "delta": "Benin DisCo (BEDC)", "ebonyi": "Enugu DisCo (EEDC)", "edo": "Benin DisCo (BEDC)",
+      "ekiti": "Benin DisCo (BEDC)", "enugu": "Enugu DisCo (EEDC)", "fct": "Abuja DisCo (AEDC)",
+      "gombe": "Jos DisCo (JED)", "imo": "Enugu DisCo (EEDC)", "jigawa": "Kano DisCo (KEDCO)",
+      "kaduna": "Kaduna Electric", "kano": "Kano DisCo (KEDCO)", "katsina": "Kano DisCo (KEDCO)",
+      "kebbi": "Kaduna Electric", "kogi": "Abuja DisCo (AEDC)", "kwara": "Ibadan DisCo (IBEDC)",
+      "lagos": "Ikeja Electric / Eko DisCo", "nasarawa": "Abuja DisCo (AEDC)", "niger": "Abuja DisCo (AEDC)",
+      "ogun": "Ibadan DisCo (IBEDC)", "ondo": "Benin DisCo (BEDC)", "osun": "Ibadan DisCo (IBEDC)",
+      "oyo": "Ibadan DisCo (IBEDC)", "plateau": "Jos DisCo (JED)", "rivers": "Port Harcourt DisCo (PHED)",
+      "sokoto": "Kaduna Electric", "taraba": "Yola DisCo (YEDC)", "yobe": "Yola DisCo (YEDC)",
+      "zamfara": "Kaduna Electric"
+    }
+  },
+
+  "transportation": {
+    "petrolPerLitreNaira": 950,
+    "dieselPerLitreNaira": 1100,
+    "fuelNote": "Pump prices after subsidy removal (2023) and Dangote refinery supply — typical 2025 range ₦850–₦1,050/litre for petrol, varying by city and marketer.",
+    "modes": [
+      { "name": "Danfo / shared minibus", "typicalFare": "₦300–₦800 per trip", "note": "The backbone of city transport in most of Nigeria." },
+      { "name": "BRT / city bus", "typicalFare": "₦500–₦1,000", "note": "Lagos BRT is the largest network; Abuja and other cities run smaller schemes." },
+      { "name": "Keke (tricycle)", "typicalFare": "₦150–₦400", "note": "Short hops and estate/inner-street routes." },
+      { "name": "Okada (motorcycle taxi)", "typicalFare": "₦200–₦500", "note": "Fast in traffic; banned/restricted in parts of Lagos and Abuja." },
+      { "name": "Ride-hailing (Bolt, Uber, inDrive)", "typicalFare": "₦3,000–₦8,000 cross-town", "note": "Available in all major cities." },
+      { "name": "Urban rail", "typicalFare": "₦750–₦1,500", "note": "Lagos Blue & Red Lines and the Abuja light rail / metro are operational." },
+      { "name": "Ferry", "typicalFare": "₦500–₦1,500", "note": "Lagos waterways (LAGFERRY and private operators)." }
+    ],
+    "cityHighlights": {
+      "lagos-lagos": "BRT network, Blue & Red Line rail, LAGFERRY waterways — plus the heaviest road traffic in Africa.",
+      "abuja-fct": "Light rail to the airport corridor, organised taxis, wide expressways.",
+      "port-harcourt-rivers": "Road-dominated; keke and shared taxis lead. Airport link via Ikwerre Road.",
+      "kano-kano": "Keke napep dominates inner-city movement; major trailer/haulage hub for the North.",
+      "ibadan-oyo": "Lagos–Ibadan standard-gauge rail (Moniya station) plus extensive micra/shared-taxi routes."
+    },
+    "intercity": [
+      { "name": "Road (luxury bus / sienna)", "typicalFare": "₦15,000–₦45,000", "note": "GUO, ABC, God is Good and co. link every major city." },
+      { "name": "Rail (Lagos–Ibadan, Abuja–Kaduna, Warri–Itakpe)", "typicalFare": "₦4,000–₦10,000", "note": "Standard-gauge services with airport-style booking." },
+      { "name": "Domestic flights", "typicalFare": "₦80,000–₦200,000 one-way", "note": "Air Peace, Ibom Air, United Nigeria, Arik and others." }
+    ]
+  },
+
+  "roads": {
+    "totalNetworkKm": 195000,
+    "federalNetworkKm": 35000,
+    "pavedSharePercent": 32,
+    "federalNeedingRehabPercent": 50,
+    "roadsNote": "FERMA / Federal Ministry of Works figures — roughly half of the federal network needs rehabilitation at any time; paved share is an engineering estimate for the whole network.",
+    "flagshipProjects": [
+      "Lagos–Calabar Coastal Highway (700km, under construction)",
+      "Second Niger Bridge (opened 2023)",
+      "Abuja–Kaduna–Zaria–Kano expressway rehabilitation",
+      "Lagos–Ibadan expressway (completed sections)"
+    ],
+    "regionCondition": {
+      "South West": { "score": 58, "note": "Best-maintained corridor network (Lagos–Ibadan axis), but heavy traffic wear." },
+      "South East": { "score": 45, "note": "Gully erosion is the big enemy; Second Niger Bridge has eased Onitsha bottlenecks." },
+      "South South": { "score": 44, "note": "Wet climate and heavy tankers punish roads; East–West Road remains a sore point." },
+      "North Central": { "score": 50, "note": "Key federal corridors fair; rural links poor. Abuja area roads are Nigeria's best." },
+      "North West": { "score": 42, "note": "Long distances, aging trunk roads; Abuja–Kano rehab improving the spine." },
+      "North East": { "score": 35, "note": "Insurgency-era damage still being repaired; steady reconstruction underway." }
+    },
+    "conditionMetric": "Road condition score 0–100 (higher = better), BestPlaceNG editorial estimate per region based on FERMA/Ministry reporting."
+  }
+}
