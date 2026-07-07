@@ -3,6 +3,7 @@ import { cities, searchCities, type CityData } from "@/data/cities";
 import { getApartmentsLive } from "@/data/apartments";
 import { getDirectoryListingsLive } from "@/data/directoryListings";
 import { citySections } from "@/data/citySections";
+import { getInfraConfig } from "@/data/infrastructure";
 import jobsConfig from "@/data/jobs-config.json";
 import stateInsights from "@/data/state-insights.json";
 
@@ -23,8 +24,9 @@ Before answering, think carefully about what the user actually needs and reason 
 MOST IMPORTANT: Actually ANSWER the user's question directly using the specific numbers in the data below. If they ask "what is the highest paying job in Uyo", state the actual sector and salary. If they ask "cost of living in Ibadan", give the actual index and what it means. Do NOT reply with a vague "here is a place worth a look" — that is a failure. Lead with the concrete answer, then point them to the relevant city section. Use Nigerian context and plain language (naira, "annual rent", etc.), never American framing.
 
 Hard rules:
-- Only use the data provided to you below (city stats, jobs/economy figures, state voting & religion data, AND the listings inventory). Never invent a city, statistic, listing, or fact not present in that data.
+- Only use the data provided to you below (city stats, jobs/economy figures, state voting & religion data, INFRASTRUCTURE data, AND the listings inventory). Never invent a city, statistic, listing, or fact not present in that data.
 - For jobs/salary questions, use the JOBS & ECONOMY data. For voting/politics, use the STATE VOTING data. For religion, use the STATE RELIGION data. City-level stats for smaller towns fall back to their state's reference city — say so when you do.
+- INFRASTRUCTURE data covers: electricity/power supply (each state's DisCo, average daily grid hours per city, NERC tariff bands, generator dependence) — use it for "light"/NEPA/power questions and recommend the "electricity" section; internet (broadband % per state, speeds, data cost, providers incl. Starlink) → "internet" section; commute times (one-way minutes per city vs national average, transport mode shares) → "commute-time"; transport fares & fuel prices (danfo/BRT/keke/okada/rail fares, petrol/diesel ₦/litre, intercity road/rail/air) → "transportation"; road condition (regional 0-100 scores, network stats, flagship projects) → "road-condition"; macro-economy (GDP, growth, inflation trend, VAT, income tax, minimum wage, key industries per state) → "economy"; literacy per state, WAEC trend & tertiary counts → "education-stats"; demographics (median age, household size, languages per region, urban share) → "people-stats". Cities without a city-specific figure use their tier default or state/region figure — say it's an estimate when you use one.
 - The listings inventory (apartments, jobs, schools, hospitals, etc.) is the live, current, complete set of everything posted on the site right now - nothing more exists beyond what's listed. If a city has no listing in a category, that means there genuinely isn't one yet, not that you lack information.
 - When the user asks about a specific category in a specific city (e.g. "is there a job in X", "find an apartment in Y", "any hospitals in Z"):
   1. Check the listings data for that EXACT city first. If there's a match, mention it specifically by name.
@@ -101,6 +103,47 @@ function buildInsightsContext(): string {
 
 STATE VOTING (presidential winners per election) & RELIGION (by state slug — a city inherits its state's figures):
 ${stateLines}`;
+}
+
+/** Compact summary of the infrastructure config (economy, education, people,
+ * commute, internet, electricity, transport, roads) for the AI. Reads the LIVE
+ * Firestore config with static fallback — so edits made in the database are
+ * reflected in the assistant's answers within the cache TTL. */
+async function buildInfrastructureContext(): Promise<string> {
+  const c = await getInfraConfig();
+  const inflLatest = c.economy.inflationTrend[c.economy.inflationTrend.length - 1];
+  const stateInd = Object.entries(c.economy.stateKeyIndustries).map(([s, inds]) => `${s}: ${inds.join(", ")}`).join(" | ");
+  const literacy = Object.entries(c.education.stateLiteracy).map(([s, v]) => `${s}:${v}%`).join(" ");
+  const regionProfiles = Object.entries(c.people.regionProfiles).map(([r, p]) => `${r}: household ${p.householdSize}, languages ${p.languages.join("/")}`).join(" | ");
+  const commuteCities = Object.entries(c.commute.cityOneWayMinutes).map(([s, m]) => `${s}:${m}min`).join(" ");
+  const modes = c.commute.modes.map((m) => `${m.name} ${m.sharePercent}%`).join(", ");
+  const stateBb = Object.entries(c.internet.stateBroadbandPercent).map(([s, v]) => `${s}:${v}%`).join(" ");
+  const regionBb = Object.entries(c.internet.regionBroadbandPercent).map(([r, v]) => `${r}:${v}%`).join(", ");
+  const providers = c.internet.providers.map((p) => p.name).join(", ");
+  const bands = c.electricity.bands.map((b) => `Band ${b.band}=${b.hoursPerDay}@₦${b.tariffPerKWh}/kWh`).join(", ");
+  const discos = Object.entries(c.electricity.discoByState).map(([s, d]) => `${s}:${d}`).join(" | ");
+  const gridHours = Object.entries(c.electricity.cityAvgGridHours).map(([s, h]) => `${s}:${h}h`).join(" ");
+  const cityFares = c.transportation.modes.map((m) => `${m.name}: ${m.typicalFare}`).join(" | ");
+  const intercity = c.transportation.intercity.map((m) => `${m.name}: ${m.typicalFare}`).join(" | ");
+  const roadRegions = Object.entries(c.roads.regionCondition).map(([r, rc]) => `${r}:${rc.score}/100`).join(", ");
+
+  return `INFRASTRUCTURE & CIVIC DATA (asOf ${c.asOf}; city figures are estimates where noted; states use their slug):
+
+ECONOMY (national): GDP ₦${c.economy.gdpTrillionNaira}trn (2024 rebased), growth ${c.economy.gdpGrowthPercent}% (${c.economy.gdpGrowthYear}), inflation ${inflLatest?.rate}% (${inflLatest?.year} avg; trend ${c.economy.inflationTrend.map((t) => `${t.year}:${t.rate}%`).join(" ")}), VAT ${c.economy.vatPercent}%, ${c.economy.incomeTaxNote} Key industries by state — ${stateInd}. Other states: use their region — ${Object.entries(c.economy.regionKeyIndustries).map(([r, i]) => `${r}: ${i.join(", ")}`).join(" | ")}.
+
+EDUCATION STATS: national adult literacy ${c.education.nationalLiteracyPercent}%. Per-state literacy: ${literacy}. Tertiary (national): ${c.education.universities} universities, ${c.education.polytechnics} polytechnics, ${c.education.collegesOfEducation} colleges of education. ~${c.education.outOfSchoolChildrenMillions}M children out of school.
+
+PEOPLE: median age ${c.people.medianAgeYears}yrs, life expectancy ${c.people.lifeExpectancyYears}yrs, avg household ${c.people.avgHouseholdSize}, urban share ${c.people.urbanSharePercent}%, fertility ${c.people.fertilityRate}. By region — ${regionProfiles}.
+
+COMMUTE (one-way): national urban avg ${c.commute.nationalAvgOneWayMinutes}min. City-specific: ${commuteCities}. Other cities: ~${c.commute.tierDefaultMinutes.major}min (major) / ~${c.commute.tierDefaultMinutes.lga}min (small town), estimates. Mode shares: ${modes}.
+
+INTERNET: ${c.internet.internetSubscriptionsMillions}M subscriptions, national broadband ${c.internet.broadbandPenetrationPercent}%, avg mobile ${c.internet.avgMobileDownloadMbps}Mbps, ~₦${c.internet.typicalDataCostPerGBNaira}/GB. State broadband: ${stateBb}. Regional fallback: ${regionBb}. Providers: ${providers}.
+
+ELECTRICITY: grid ${c.electricity.gridInstalledMW}MW installed but ~${c.electricity.gridTypicalDeliveredMW}MW delivered; ~${c.electricity.generatorHouseholdsPercent}% of homes use generator backup. Tariff bands: ${bands}. DisCo per state: ${discos}. Avg daily grid hours per city (estimates): ${gridHours}; other cities ~${c.electricity.tierDefaultGridHours.major}h (major) / ~${c.electricity.tierDefaultGridHours.lga}h (small town).
+
+TRANSPORT: petrol ~₦${c.transportation.petrolPerLitreNaira}/L, diesel ~₦${c.transportation.dieselPerLitreNaira}/L. In-city fares: ${cityFares}. Intercity: ${intercity}. City notes: ${Object.entries(c.transportation.cityHighlights).map(([s, h]) => `${s}: ${h}`).join(" | ")}.
+
+ROADS: network ${c.roads.totalNetworkKm.toLocaleString()}km (~${c.roads.pavedSharePercent}% paved), federal ${c.roads.federalNetworkKm.toLocaleString()}km (~${c.roads.federalNeedingRehabPercent}% needing rehab). Regional condition scores: ${roadRegions}. Flagship projects: ${c.roads.flagshipProjects.join("; ")}.`;
 }
 
 interface ChatMessage {
@@ -223,11 +266,13 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: "message too long" }, { status: 400 });
   }
 
+  const [listingsCtx, infraCtx] = await Promise.all([buildListingsContext(), buildInfrastructureContext()]);
   const messages: ChatMessage[] = [
     { role: "system", content: SYSTEM_PROMPT },
     { role: "system", content: buildCityContext(message) },
     { role: "system", content: buildInsightsContext() },
-    { role: "system", content: await buildListingsContext() },
+    { role: "system", content: infraCtx },
+    { role: "system", content: listingsCtx },
     // Inject conversation history so the AI remembers what was already discussed
     ...history,
     { role: "user", content: message },
