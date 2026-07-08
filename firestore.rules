@@ -26,6 +26,13 @@ service cloud.firestore {
       allow read: if true;
       allow write: if false;
     }
+
+    // State-level civic data (elections, religion split) — public read, edited
+    // only via the console/seed script.
+    match /stateInsights/{stateSlug} {
+      allow read: if true;
+      allow write: if false;
+    }
     match /notableIncidents/{id} {
       allow read: if true;
       allow write: if false;
@@ -56,6 +63,28 @@ service cloud.firestore {
       allow create: if request.resource.data.rating is int
         && request.resource.data.rating >= 1
         && request.resource.data.rating <= 5
+        && request.resource.data.name is string
+        && request.resource.data.name.size() > 0
+        && request.resource.data.name.size() < 100
+        && request.resource.data.comment is string
+        && request.resource.data.comment.size() > 0
+        && request.resource.data.comment.size() < 2000;
+      // Public like/dislike: only those two counters may change, each can only
+      // go up, and by at most 1 per write (no wiping or bulk-inflating counts).
+      allow update: if request.resource.data.diff(resource.data).affectedKeys().hasOnly(["likes", "dislikes"])
+        && request.resource.data.get("likes", 0) is int
+        && request.resource.data.get("dislikes", 0) is int
+        && request.resource.data.get("likes", 0) >= resource.data.get("likes", 0)
+        && request.resource.data.get("likes", 0) <= resource.data.get("likes", 0) + 1
+        && request.resource.data.get("dislikes", 0) >= resource.data.get("dislikes", 0)
+        && request.resource.data.get("dislikes", 0) <= resource.data.get("dislikes", 0) + 1;
+      allow delete: if false;
+    }
+
+    // Public replies to reviews — same open-but-size-limited stance as reviews.
+    match /reviewReplies/{id} {
+      allow read: if true;
+      allow create: if request.resource.data.reviewId is string
         && request.resource.data.name is string
         && request.resource.data.name.size() > 0
         && request.resource.data.name.size() < 100

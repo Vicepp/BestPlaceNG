@@ -35,6 +35,9 @@ export interface Tenancy {
   moveInDate?: string;         // set by the landlord after payment
   moveInConfirmed?: boolean;   // tenant clicks "I've moved in"
   moveInConfirmedAt?: string;
+  // Set when the tenant leaves the unit (via /api/tenancy/leave)
+  endedAt?: string;
+  leaveReason?: string;
 }
 
 /** Landlord sets the agreed move-in date after payment is received. Rules allow the

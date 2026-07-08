@@ -16,6 +16,7 @@ import {
   User,
   Wallet,
   CalendarDays,
+  Store,
 } from "lucide-react";
 import { useAuth, type DashboardView } from "@/context/AuthContext";
 
@@ -33,6 +34,7 @@ const NAV_ITEMS: NavItem[] = [
   { label: "Wallet", href: "/dashboard/wallet", icon: Wallet },
   { label: "Maintenance", href: "/dashboard/maintenance", icon: Wrench },
   { label: "Messages", href: "/dashboard/messages", icon: MessageSquare },
+  { label: "My Listings", href: "/dashboard/my-listings", icon: Store },
 ];
 
 // Only relevant when the landlord uses the built-in tour calendar (not an
@@ -44,6 +46,7 @@ const TENANT_NAV_ITEMS: NavItem[] = [
   { label: "Transactions", href: "/dashboard/payments", icon: CreditCard },
   { label: "Maintenance", href: "/dashboard/maintenance", icon: Wrench },
   { label: "Messages", href: "/dashboard/messages", icon: MessageSquare },
+  { label: "My Listings", href: "/dashboard/my-listings", icon: Store },
 ];
 
 const HELP_ITEMS: NavItem[] = [

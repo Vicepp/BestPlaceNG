@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { getAdminDb, isFirebaseAdminConfigured, verifyIdToken } from "@/lib/firebaseAdmin";
 
 export const runtime = "nodejs";
+export const maxDuration = 60;
 
 /**
  * A tenant leaves/vacates a unit. Trusted server action because the tenant is
@@ -19,9 +20,11 @@ export async function POST(req: NextRequest) {
   const uid = await verifyIdToken(req.headers.get("authorization"));
   if (!uid) return NextResponse.json({ ok: false, error: "Not authenticated" }, { status: 401 });
 
-  let tenancyId: string;
+  let tenancyId: string, reason: string;
   try {
-    ({ tenancyId } = await req.json());
+    const body = await req.json();
+    tenancyId = body?.tenancyId;
+    reason = typeof body?.reason === "string" ? body.reason.trim().slice(0, 500) : "";
   } catch {
     return NextResponse.json({ ok: false, error: "Invalid request body" }, { status: 400 });
   }
@@ -38,7 +41,9 @@ export async function POST(req: NextRequest) {
     }
 
     const now = new Date().toISOString();
-    await tRef.update({ status: "ended", endedAt: now });
+    // The reason is stored on the tenancy so the landlord (and admin) can see
+    // why the tenant left, not just that they left.
+    await tRef.update({ status: "ended", endedAt: now, ...(reason ? { leaveReason: reason } : {}) });
 
     if (tenancy.apartmentId) {
       // Archive (not relist) so the landlord chooses when to put it back up.
@@ -50,7 +55,7 @@ export async function POST(req: NextRequest) {
         userId: tenancy.landlordId,
         type: "tenancy",
         title: "A tenant has left",
-        body: `${tenancy.tenantName ?? "Your tenant"} has left ${tenancy.apartmentTitle}. The unit is now in your Archive — re-list it from Properties when you're ready.`,
+        body: `${tenancy.tenantName ?? "Your tenant"} has left ${tenancy.apartmentTitle}.${reason ? ` Reason: ${reason}.` : ""} The unit is now in your Archive — re-list it from Properties when you're ready.`,
         link: "/dashboard/properties",
         read: false,
         createdAt: now,

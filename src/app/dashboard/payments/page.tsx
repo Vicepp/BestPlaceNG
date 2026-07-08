@@ -150,8 +150,13 @@ export default function PaymentsPage() {
             {payments.map((p) => {
               const s = STATUS_STYLES[p.status] ?? STATUS_STYLES.pending;
               const overdue = p.status === "pending" && new Date(p.dueDate) < new Date();
-              return (
-                <div key={p.id} className="flex flex-wrap items-center justify-between gap-3 px-5 py-4">
+              // Each payment clicks through to where its details live: the
+              // property page for landlords, the rental page for tenants.
+              const detailHref = isLandlord
+                ? p.apartmentId ? `/dashboard/properties/${p.apartmentId}` : undefined
+                : p.tenancyId ? `/dashboard/rental/${p.tenancyId}` : undefined;
+              const row = (
+                <div className="flex flex-wrap items-center justify-between gap-3 px-5 py-4 transition hover:bg-zinc-50/60">
                   <div className="min-w-0">
                     <div className="flex items-center gap-2">
                       <span className={`rounded-full px-2 py-0.5 text-[10px] font-semibold ${p.kind === "utility" ? "bg-accent/20 text-accent-dark" : "bg-brand-light text-brand-dark"}`}>
@@ -163,6 +168,7 @@ export default function PaymentsPage() {
                       Due: <span className={overdue ? "font-semibold text-red-600" : ""}>{new Date(p.dueDate).toLocaleDateString()}{overdue ? " · Overdue" : ""}</span>
                     </p>
                     {p.verifiedAt && <p className="text-xs text-zinc-400">Paid: {new Date(p.verifiedAt).toLocaleDateString()}</p>}
+                    {p.paystackReference && <p className="text-xs text-zinc-400">Ref: {p.paystackReference}</p>}
                   </div>
                   <div className="flex items-center gap-3">
                     <p className="text-lg font-bold text-foreground">{formatNaira(p.amount)}</p>
@@ -171,6 +177,11 @@ export default function PaymentsPage() {
                     </span>
                   </div>
                 </div>
+              );
+              return detailHref ? (
+                <Link key={p.id} href={detailHref} className="block">{row}</Link>
+              ) : (
+                <div key={p.id}>{row}</div>
               );
             })}
           </div>

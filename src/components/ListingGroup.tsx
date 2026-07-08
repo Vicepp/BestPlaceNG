@@ -1,5 +1,6 @@
 import Link from "next/link";
-import { getListingsLive, type ListingCategory } from "@/data/directoryListings";
+import { ChevronRight, CirclePlay } from "lucide-react";
+import { getListingsLive, parseYouTubeId, type ListingCategory } from "@/data/directoryListings";
 
 export default async function ListingGroup({
   citySlug,
@@ -29,33 +30,42 @@ export default async function ListingGroup({
   return (
     <div className="space-y-3">
       {listings.map((listing) => (
-        <div key={listing.id} className="rounded-2xl border border-zinc-100 bg-white p-5 shadow-sm">
-          <div className="flex flex-wrap items-start justify-between gap-2">
-            <div>
-              {listing.subtitle && (
-                <p className="text-xs font-semibold uppercase tracking-wide text-brand">{listing.subtitle}</p>
-              )}
-              <h3 className="mt-1 text-base font-bold text-foreground">{listing.name}</h3>
-              {listing.address && <p className="text-sm text-zinc-500">{listing.address}</p>}
-            </div>
-            {listing.meta && <p className="text-sm font-semibold text-brand-dark">{listing.meta}</p>}
-          </div>
-          <p className="mt-3 text-sm text-zinc-600">{listing.description}</p>
-          {listing.phone && (
-            <p className="mt-2 text-sm text-zinc-500">
-              📞 <a href={`tel:${listing.phone.replace(/\s/g, "")}`} className="font-medium text-brand hover:underline">{listing.phone}</a>
-            </p>
-          )}
-          {listing.tags && listing.tags.length > 0 && (
-            <div className="mt-3 flex flex-wrap gap-2">
-              {listing.tags.map((t) => (
-                <span key={t} className="rounded-full bg-zinc-100 px-2.5 py-1 text-xs text-zinc-500">
-                  {t}
+        <Link
+          key={listing.id}
+          href={`/directory/${listing.id}`}
+          className="group block rounded-2xl border border-zinc-100 bg-white p-5 shadow-sm transition hover:-translate-y-0.5 hover:border-brand hover:shadow-md"
+        >
+          <div className="flex gap-4">
+            {listing.imageUrl && (
+              <img src={listing.imageUrl} alt="" className="h-20 w-20 shrink-0 rounded-xl object-cover" />
+            )}
+            <div className="min-w-0 flex-1">
+              <div className="flex flex-wrap items-start justify-between gap-2">
+                <div className="min-w-0">
+                  {listing.subtitle && (
+                    <p className="text-xs font-semibold uppercase tracking-wide text-brand">{listing.subtitle}</p>
+                  )}
+                  <h3 className="mt-1 flex items-center gap-2 text-base font-bold text-foreground group-hover:text-brand">
+                    {listing.name}
+                    {listing.youtubeUrl && parseYouTubeId(listing.youtubeUrl) && <CirclePlay className="h-4 w-4 shrink-0 text-red-500" />}
+                  </h3>
+                  {listing.address && <p className="text-sm text-zinc-500">{listing.address}</p>}
+                </div>
+                {listing.meta && <p className="text-sm font-semibold text-brand-dark">{listing.meta}</p>}
+              </div>
+              <p className="mt-2 text-sm text-zinc-600 line-clamp-2">{listing.description}</p>
+              <div className="mt-2 flex flex-wrap items-center gap-2">
+                {listing.phone && <span className="text-xs text-zinc-500">📞 {listing.phone}</span>}
+                {listing.tags?.map((t) => (
+                  <span key={t} className="rounded-full bg-zinc-100 px-2.5 py-1 text-xs text-zinc-500">{t}</span>
+                ))}
+                <span className="ml-auto flex items-center gap-0.5 text-xs font-semibold text-brand opacity-0 transition group-hover:opacity-100">
+                  View details <ChevronRight className="h-3.5 w-3.5" />
                 </span>
-              ))}
+              </div>
             </div>
-          )}
-        </div>
+          </div>
+        </Link>
       ))}
       <Link href="/list-business" className="inline-block text-sm font-semibold text-brand">
         + Add another {label.toLowerCase()}

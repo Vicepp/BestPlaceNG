@@ -1,4 +1,5 @@
 import { getFirestoreCollection } from "@/lib/firestoreData";
+import { queryFirestoreCollection, setFirestoreDoc, deleteFirestoreDoc, type WriteResult } from "@/lib/firestoreWrite";
 
 export type ListingCategory =
   | "job"
@@ -25,6 +26,10 @@ export interface DirectoryListing {
   /** Contact phone number (used especially for churches/mosques/schools). */
   phone?: string;
   tags?: string[];
+  /** Cover photo (Cloudinary URL) — optional. */
+  imageUrl?: string;
+  /** YouTube video URL (validated to youtube.com/youtu.be only) — optional. */
+  youtubeUrl?: string;
   /** Firestore auth uid of the business/user who added this listing. Absent on bundled sample listings. */
   ownerId?: string;
   createdAt?: string;
@@ -75,14 +80,18 @@ export const directoryListings: DirectoryListing[] = [
 
 /**
  * All directory listings, live from Firestore (real user/business-submitted
- * entries + seeded samples), with the bundled samples as fallback. Relies on
- * getFirestoreCollection's own 5-minute TTL cache rather than caching again
- * here, so newly-added listings show up within a few minutes rather than only
- * after a server restart.
+ * entries + seeded samples), MERGED with any bundled samples Firestore doesn't
+ * have yet — the remote set was seeded at a point in time, so newer bundled
+ * categories (e.g. churches/mosques added later) must not vanish just because
+ * the remote collection is non-empty. Firestore wins on id conflicts. Relies
+ * on getFirestoreCollection's own 5-minute TTL cache.
  */
 export async function getDirectoryListingsLive(): Promise<DirectoryListing[]> {
   const remote = await getFirestoreCollection<DirectoryListing>("directoryListings");
-  return remote && remote.length > 0 ? remote : directoryListings;
+  if (!remote || remote.length === 0) return directoryListings;
+  const remoteIds = new Set(remote.map((l) => l.id));
+  const missingSamples = directoryListings.filter((l) => !remoteIds.has(l.id));
+  return missingSamples.length > 0 ? [...remote, ...missingSamples] : remote;
 }
 
 export async function getListingsLive(citySlug: string, category: ListingCategory): Promise<DirectoryListing[]> {
@@ -93,4 +102,62 @@ export async function getListingsLive(citySlug: string, category: ListingCategor
 export async function getListingById(id: string): Promise<DirectoryListing | null> {
   const all = await getDirectoryListingsLive();
   return all.find((l) => l.id === id) ?? null;
+}
+
+/** Human-readable label per category — single source for chips, headers, etc. */
+export const CATEGORY_LABELS: Record<ListingCategory, string> = {
+  job: "Job",
+  school: "School",
+  hospital: "Hospital",
+  pharmacy: "Pharmacy",
+  hotel: "Hotel",
+  event: "Event",
+  market: "Market",
+  "shopping-mall": "Shopping Mall",
+  "police-station": "Police Station",
+  church: "Church",
+  mosque: "Mosque",
+};
+
+/** All listings added by one user — fresh query (not the 5-min public cache) so
+ * their manage page reflects edits immediately. */
+export async function getListingsForOwner(ownerId: string): Promise<DirectoryListing[]> {
+  const r = await queryFirestoreCollection<DirectoryListing>("directoryListings", [["ownerId", ownerId]]);
+  return (r ?? []).sort((a, b) => (b.createdAt ?? "").localeCompare(a.createdAt ?? ""));
+}
+
+export async function updateDirectoryListing(
+  id: string,
+  patch: Partial<Omit<DirectoryListing, "id" | "ownerId" | "createdAt">>
+): Promise<WriteResult> {
+  return setFirestoreDoc("directoryListings", id, patch);
+}
+
+export async function deleteDirectoryListing(id: string): Promise<WriteResult> {
+  return deleteFirestoreDoc("directoryListings", id);
+}
+
+/** Extract the video id from a YouTube URL — returns null for anything that
+ * isn't genuinely youtube.com / youtu.be (same anti-phishing stance as booking
+ * links: don't let arbitrary URLs masquerade as videos). */
+export function parseYouTubeId(url: string): string | null {
+  try {
+    const u = new URL(url.trim());
+    const host = u.hostname.toLowerCase().replace(/^www\.|^m\./, "");
+    if (host === "youtu.be") {
+      const id = u.pathname.slice(1).split("/")[0];
+      return /^[\w-]{6,20}$/.test(id) ? id : null;
+    }
+    if (host === "youtube.com" || host === "music.youtube.com") {
+      if (u.pathname === "/watch") {
+        const id = u.searchParams.get("v") ?? "";
+        return /^[\w-]{6,20}$/.test(id) ? id : null;
+      }
+      const m = u.pathname.match(/^\/(?:embed|shorts|live)\/([\w-]{6,20})/);
+      return m ? m[1] : null;
+    }
+    return null;
+  } catch {
+    return null;
+  }
 }

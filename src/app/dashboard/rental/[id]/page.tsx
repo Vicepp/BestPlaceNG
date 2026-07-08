@@ -17,6 +17,17 @@ import { getFirebaseAuth } from "@/lib/firebase";
 import { isPaystackConfigured, payWithPaystack, verifyPayment } from "@/lib/paystack";
 import PayNowButton from "@/components/dashboard/PayNowButton";
 
+/** Common reasons a tenant gives when vacating; "Other" opens a free-text box. */
+const LEAVE_REASONS = [
+  "Relocating for work or family",
+  "Rent is no longer affordable",
+  "Found a better place",
+  "Problems with the property (repairs, power, water…)",
+  "Issues with the landlord or management",
+  "Lease ended — moving on",
+  "Other",
+];
+
 export default function RentalDetailPage() {
   const { id } = useParams<{ id: string }>();
   const { user, profile } = useAuth();
@@ -36,6 +47,10 @@ export default function RentalDetailPage() {
   const [reportSent, setReportSent] = useState(false);
   const [upfrontAsked, setUpfrontAsked] = useState<string[]>([]);
   const [leaving, setLeaving] = useState(false);
+  const [leaveOpen, setLeaveOpen] = useState(false);
+  const [leaveChoice, setLeaveChoice] = useState(LEAVE_REASONS[0]);
+  const [leaveCustom, setLeaveCustom] = useState("");
+  const [leaveError, setLeaveError] = useState("");
 
   const load = useCallback(async () => {
     if (!user) return;
@@ -145,24 +160,27 @@ export default function RentalDetailPage() {
     }).catch(() => {});
   }
 
-  /** Tenant leaves/vacates the unit. Ends the tenancy, sends the unit to the
-   * landlord's archive (not back on the market), and notifies the landlord. */
+  /** Tenant leaves/vacates the unit — with a reason that's stored on the
+   * tenancy in the DB and shown to the landlord. Ends the tenancy and sends
+   * the unit to the landlord's archive (not back on the market). */
   async function handleLeave() {
     if (!tenancy) return;
-    if (!confirm(`Leave ${tenancy.apartmentTitle}? This ends your tenancy. You can do this before your next payment period.`)) return;
+    const reason = leaveChoice === "Other" ? leaveCustom.trim() : leaveChoice;
+    if (!reason) { setLeaveError("Please tell your landlord why you're leaving."); return; }
+    setLeaveError("");
     setLeaving(true);
     try {
       const token = await getFirebaseAuth().currentUser?.getIdToken();
       const res = await fetch("/api/tenancy/leave", {
         method: "POST",
         headers: { "Content-Type": "application/json", Authorization: `Bearer ${token}` },
-        body: JSON.stringify({ tenancyId: tenancy.id }),
+        body: JSON.stringify({ tenancyId: tenancy.id, reason }),
       });
       const json = await res.json().catch(() => null);
       if (json?.ok) { router.push("/dashboard"); return; }
-      alert(json?.error ?? "Couldn't leave right now. Please try again.");
+      setLeaveError(json?.error ?? "Couldn't leave right now. Please try again.");
     } catch {
-      alert("Couldn't leave right now. Please try again.");
+      setLeaveError("Couldn't reach the server. Please try again.");
     }
     setLeaving(false);
   }
@@ -236,8 +254,8 @@ export default function RentalDetailPage() {
             <Flag className="h-4 w-4" /> Report a problem
           </button>
           {isActive && (
-            <button onClick={handleLeave} disabled={leaving} className="flex items-center gap-1.5 rounded-full border border-zinc-200 px-4 py-2 text-sm font-semibold text-zinc-600 hover:border-red-300 hover:text-red-600 disabled:opacity-60">
-              <LogOut className="h-4 w-4" /> {leaving ? "Leaving…" : "Leave apartment"}
+            <button onClick={() => { setLeaveError(""); setLeaveOpen(true); }} className="flex items-center gap-1.5 rounded-full border border-zinc-200 px-4 py-2 text-sm font-semibold text-zinc-600 hover:border-red-300 hover:text-red-600">
+              <LogOut className="h-4 w-4" /> Leave apartment
             </button>
           )}
         </div>
@@ -409,6 +427,50 @@ export default function RentalDetailPage() {
                 </button>
               </>
             )}
+          </div>
+        </div>
+      )}
+
+      {/* Leave apartment — reason modal (reason is saved on the tenancy in the DB) */}
+      {leaveOpen && tenancy && (
+        <div className="fixed inset-0 z-[60] flex items-end justify-center bg-black/40 p-0 sm:items-center sm:p-4" onClick={() => !leaving && setLeaveOpen(false)}>
+          <div className="w-full max-w-md rounded-t-2xl bg-white p-6 shadow-2xl sm:rounded-2xl" onClick={(e) => e.stopPropagation()}>
+            <div className="mb-4 flex items-start justify-between">
+              <div>
+                <h2 className="flex items-center gap-2 text-lg font-bold text-foreground"><LogOut className="h-5 w-5 text-red-500" /> Leave this apartment</h2>
+                <p className="text-xs text-zinc-400">{tenancy.apartmentTitle}</p>
+              </div>
+              <button onClick={() => setLeaveOpen(false)} disabled={leaving} className="text-zinc-400 hover:text-foreground"><X className="h-5 w-5" /></button>
+            </div>
+
+            <p className="mb-3 text-sm text-zinc-500">
+              This ends your tenancy and sends the unit to your landlord&apos;s archive. Your reason is shared with the landlord.
+            </p>
+
+            <label className="mb-1 block text-xs font-semibold text-zinc-500">Why are you leaving?</label>
+            <select value={leaveChoice} onChange={(e) => setLeaveChoice(e.target.value)}
+              className="w-full rounded-lg border border-zinc-200 bg-white px-3 py-2 text-sm outline-none focus:border-brand">
+              {LEAVE_REASONS.map((r) => <option key={r} value={r}>{r}</option>)}
+            </select>
+
+            {leaveChoice === "Other" && (
+              <textarea value={leaveCustom} onChange={(e) => setLeaveCustom(e.target.value)} rows={3}
+                placeholder="Tell your landlord why…"
+                className="mt-2 w-full rounded-lg border border-zinc-200 px-3 py-2 text-sm outline-none focus:border-brand" />
+            )}
+
+            {leaveError && <p className="mt-2 text-xs text-red-600">{leaveError}</p>}
+
+            <div className="mt-4 flex gap-2">
+              <button onClick={() => setLeaveOpen(false)} disabled={leaving}
+                className="flex-1 rounded-full border border-zinc-200 py-2.5 text-sm font-semibold text-zinc-600 hover:border-zinc-300 disabled:opacity-60">
+                Stay
+              </button>
+              <button onClick={handleLeave} disabled={leaving}
+                className="flex-1 rounded-full bg-red-500 py-2.5 text-sm font-bold text-white hover:bg-red-600 disabled:opacity-60">
+                {leaving ? "Leaving…" : "Leave & notify landlord"}
+              </button>
+            </div>
           </div>
         </div>
       )}
