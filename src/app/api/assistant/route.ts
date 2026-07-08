@@ -4,6 +4,7 @@ import { getApartmentsLive } from "@/data/apartments";
 import { getDirectoryListingsLive } from "@/data/directoryListings";
 import { citySections } from "@/data/citySections";
 import { getInfraConfig } from "@/data/infrastructure";
+import { getAllReviewsLive } from "@/data/reviews";
 import jobsConfig from "@/data/jobs-config.json";
 import stateInsights from "@/data/state-insights.json";
 
@@ -27,6 +28,7 @@ Hard rules:
 - Only use the data provided to you below (city stats, jobs/economy figures, state voting & religion data, INFRASTRUCTURE data, AND the listings inventory). Never invent a city, statistic, listing, or fact not present in that data.
 - For jobs/salary questions, use the JOBS & ECONOMY data. For voting/politics, use the STATE VOTING data. For religion, use the STATE RELIGION data. City-level stats for smaller towns fall back to their state's reference city — say so when you do.
 - INFRASTRUCTURE data covers: electricity/power supply (each state's DisCo, average daily grid hours per city, NERC tariff bands, generator dependence) — use it for "light"/NEPA/power questions and recommend the "electricity" section; internet (broadband % per state, speeds, data cost, providers incl. Starlink) → "internet" section; commute times (one-way minutes per city vs national average, transport mode shares) → "commute-time"; transport fares & fuel prices (danfo/BRT/keke/okada/rail fares, petrol/diesel ₦/litre, intercity road/rail/air) → "transportation"; road condition (regional 0-100 scores, network stats, flagship projects) → "road-condition"; macro-economy (GDP, growth, inflation trend, VAT, income tax, minimum wage, key industries per state) → "economy"; literacy per state, WAEC trend & tertiary counts → "education-stats"; demographics (median age, household size, languages per region, urban share) → "people-stats". Cities without a city-specific figure use their tier default or state/region figure — say it's an estimate when you use one.
+- RESIDENT REVIEWS are real opinions users posted on this site's city pages. Use them to answer "what do people say about X" and to add lived-experience colour next to the statistics ("one reviewer says…", "residents rate its cost of living 4.2/5"). They are subjective opinions, not verified facts — never present a review claim as a statistic, and if reviews conflict with the data, present both. Quote at most a short phrase, attribute it to "a reviewer", and mention the topic it was posted under. If a city has no reviews yet, say so and invite the user to read/leave one on the city page (the review box is at the bottom of every section).
 - The listings inventory (apartments, jobs, schools, hospitals, etc.) is the live, current, complete set of everything posted on the site right now - nothing more exists beyond what's listed. If a city has no listing in a category, that means there genuinely isn't one yet, not that you lack information.
 - When the user asks about a specific category in a specific city (e.g. "is there a job in X", "find an apartment in Y", "any hospitals in Z"):
   1. Check the listings data for that EXACT city first. If there's a match, mention it specifically by name.
@@ -144,6 +146,44 @@ ELECTRICITY: grid ${c.electricity.gridInstalledMW}MW installed but ~${c.electric
 TRANSPORT: petrol ~₦${c.transportation.petrolPerLitreNaira}/L, diesel ~₦${c.transportation.dieselPerLitreNaira}/L. In-city fares: ${cityFares}. Intercity: ${intercity}. City notes: ${Object.entries(c.transportation.cityHighlights).map(([s, h]) => `${s}: ${h}`).join(" | ")}.
 
 ROADS: network ${c.roads.totalNetworkKm.toLocaleString()}km (~${c.roads.pavedSharePercent}% paved), federal ${c.roads.federalNetworkKm.toLocaleString()}km (~${c.roads.federalNeedingRehabPercent}% needing rehab). Regional condition scores: ${roadRegions}. Flagship projects: ${c.roads.flagshipProjects.join("; ")}.`;
+}
+
+/** What residents actually say: every on-site review, grouped per city with
+ * avg rating and the most-helpful recent comments (truncated). Capped hard so
+ * a growing review base can't blow up the prompt. */
+async function buildReviewsContext(): Promise<string> {
+  const all = await getAllReviewsLive();
+  if (all.length === 0) {
+    return "RESIDENT REVIEWS: none posted yet anywhere on the site.";
+  }
+
+  const byCity = new Map<string, typeof all>();
+  for (const r of all) {
+    if (!byCity.has(r.citySlug)) byCity.set(r.citySlug, []);
+    byCity.get(r.citySlug)!.push(r);
+  }
+
+  const MAX_COMMENTS_PER_CITY = 5;
+  const MAX_TOTAL_COMMENTS = 120;
+  let used = 0;
+
+  // Cities with the most reviews first — the richest signal gets kept if we hit the cap.
+  const cityBlocks = [...byCity.entries()]
+    .sort((a, b) => b[1].length - a[1].length)
+    .map(([slug, revs]) => {
+      const city = cities.find((c) => c.slug === slug);
+      const avg = revs.reduce((s, r) => s + r.rating, 0) / revs.length;
+      const picked = [...revs]
+        .sort((a, b) => (b.likes ?? 0) - (a.likes ?? 0) || new Date(b.date).getTime() - new Date(a.date).getTime())
+        .slice(0, MAX_COMMENTS_PER_CITY)
+        .filter(() => used++ < MAX_TOTAL_COMMENTS);
+      const lines = picked
+        .map((r) => `  - [${r.section}] ${r.rating}/5${(r.likes ?? 0) > 0 ? ` (${r.likes} found helpful)` : ""}: "${r.comment.length > 160 ? r.comment.slice(0, 157) + "…" : r.comment}"`)
+        .join("\n");
+      return `${slug} (${cityLabel(city, slug)}) | ${revs.length} review${revs.length === 1 ? "" : "s"}, avg ${avg.toFixed(1)}/5:\n${lines}`;
+    });
+
+  return `RESIDENT REVIEWS (real user reviews posted on this site's city pages; [section] = the topic it was posted under; subjective opinions, ${all.length} total):\n${cityBlocks.join("\n")}`;
 }
 
 interface ChatMessage {
@@ -266,12 +306,17 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: "message too long" }, { status: 400 });
   }
 
-  const [listingsCtx, infraCtx] = await Promise.all([buildListingsContext(), buildInfrastructureContext()]);
+  const [listingsCtx, infraCtx, reviewsCtx] = await Promise.all([
+    buildListingsContext(),
+    buildInfrastructureContext(),
+    buildReviewsContext(),
+  ]);
   const messages: ChatMessage[] = [
     { role: "system", content: SYSTEM_PROMPT },
     { role: "system", content: buildCityContext(message) },
     { role: "system", content: buildInsightsContext() },
     { role: "system", content: infraCtx },
+    { role: "system", content: reviewsCtx },
     { role: "system", content: listingsCtx },
     // Inject conversation history so the AI remembers what was already discussed
     ...history,

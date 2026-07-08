@@ -1,6 +1,7 @@
 import { queryFirestoreCollection, addFirestoreDoc, type WriteResult } from "@/lib/firestoreWrite";
 import { doc, updateDoc, increment } from "firebase/firestore";
 import { getDb, isFirebaseConfigured } from "@/lib/firebase";
+import { getFirestoreCollection } from "@/lib/firestoreData";
 
 export interface Review {
   id: string;
@@ -51,6 +52,14 @@ export async function addReview(
     likes: 0,
     dislikes: 0,
   });
+}
+
+/** Every review on the site (5-min TTL cache via getFirestoreCollection) —
+ * used by the AI assistant to know what residents actually say about each
+ * city. Returns [] when there are none or the read fails. */
+export async function getAllReviewsLive(): Promise<Review[]> {
+  const docs = await getFirestoreCollection<Review>("reviews");
+  return docs ?? [];
 }
 
 /* ── Replies ──────────────────────────────────────────────────── */
