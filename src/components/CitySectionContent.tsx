@@ -22,6 +22,7 @@ import InternetPanel from "@/components/InternetPanel";
 import ElectricityPanel from "@/components/ElectricityPanel";
 import TransportationPanel from "@/components/TransportationPanel";
 import RoadConditionPanel from "@/components/RoadConditionPanel";
+import CityReviewsOverview from "@/components/CityReviewsOverview";
 import { getCostOfLivingProfile, getStateReferenceCity } from "@/data/costOfLiving";
 import ReviewBox from "@/components/ReviewBox";
 import ApartmentsExplorer from "@/components/ApartmentsExplorer";
@@ -329,15 +330,7 @@ async function renderSectionBody(city: CityData, section: string) {
     }
 
     case "reviews":
-      return (
-        <div className="rounded-2xl border border-dashed border-zinc-200 bg-zinc-50 px-6 py-12 text-center">
-          <p className="text-sm font-medium text-foreground">Reviews are organized by topic</p>
-          <p className="mt-1 text-xs text-zinc-400">
-            Visit any section of {city.name} — like Cost of Living, Crime, or Apartments — and scroll down to read or
-            leave a review for that topic. No account needed.
-          </p>
-        </div>
-      );
+      return <CityReviewsOverview city={city} />;
 
     case "interactive-map":
       return (

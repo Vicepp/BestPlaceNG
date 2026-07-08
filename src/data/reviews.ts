@@ -62,6 +62,21 @@ export async function getAllReviewsLive(): Promise<Review[]> {
   return docs ?? [];
 }
 
+/** Every review for one city across ALL sections, newest first — powers the
+ * city's aggregated Reviews tab. */
+export async function getReviewsForCityLive(citySlug: string): Promise<Review[]> {
+  const docs = await queryFirestoreCollection<Review>("reviews", [["citySlug", citySlug]]);
+  if (!docs) return [];
+  return [...docs].sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
+}
+
+/** Every reply for one city across all sections (conversation order). */
+export async function getRepliesForCityLive(citySlug: string): Promise<ReviewReply[]> {
+  const docs = await queryFirestoreCollection<ReviewReply>("reviewReplies", [["citySlug", citySlug]]);
+  if (!docs) return [];
+  return [...docs].sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime());
+}
+
 /* ── Replies ──────────────────────────────────────────────────── */
 
 /** All replies for a city section, oldest first (conversation order), grouped client-side by reviewId. */
