@@ -23,6 +23,7 @@ import ElectricityPanel from "@/components/ElectricityPanel";
 import TransportationPanel from "@/components/TransportationPanel";
 import RoadConditionPanel from "@/components/RoadConditionPanel";
 import CityReviewsOverview from "@/components/CityReviewsOverview";
+import CityResearchCard from "@/components/CityResearchCard";
 import { getCostOfLivingProfile, getStateReferenceCity } from "@/data/costOfLiving";
 import ReviewBox from "@/components/ReviewBox";
 import ApartmentsExplorer from "@/components/ApartmentsExplorer";
@@ -72,6 +73,7 @@ async function renderSectionBody(city: CityData, section: string) {
             {city.description ??
               `${city.name} is an LGA in ${city.stateName} State (${city.region}). Detailed profile data for ${city.name} is coming soon.`}
           </p>
+          <CityResearchCard city={city} />
           <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
             <StatCard label="Population" value={city.population.toLocaleString()} />
             <StatCard label="LGA" value={city.lga} />

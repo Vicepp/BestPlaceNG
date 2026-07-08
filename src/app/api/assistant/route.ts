@@ -5,6 +5,8 @@ import { getDirectoryListingsLive } from "@/data/directoryListings";
 import { citySections } from "@/data/citySections";
 import { getInfraConfig } from "@/data/infrastructure";
 import { getAllReviewsLive } from "@/data/reviews";
+import { getFirestoreCollection } from "@/lib/firestoreData";
+import type { ResearchSnapshot } from "@/data/cityResearch";
 import jobsConfig from "@/data/jobs-config.json";
 import stateInsights from "@/data/state-insights.json";
 
@@ -28,6 +30,7 @@ Hard rules:
 - Only use the data provided to you below (city stats, jobs/economy figures, state voting & religion data, INFRASTRUCTURE data, AND the listings inventory). Never invent a city, statistic, listing, or fact not present in that data.
 - For jobs/salary questions, use the JOBS & ECONOMY data. For voting/politics, use the STATE VOTING data. For religion, use the STATE RELIGION data. City-level stats for smaller towns fall back to their state's reference city — say so when you do.
 - INFRASTRUCTURE data covers: electricity/power supply (each state's DisCo, average daily grid hours per city, NERC tariff bands, generator dependence) — use it for "light"/NEPA/power questions and recommend the "electricity" section; internet (broadband % per state, speeds, data cost, providers incl. Starlink) → "internet" section; commute times (one-way minutes per city vs national average, transport mode shares) → "commute-time"; transport fares & fuel prices (danfo/BRT/keke/okada/rail fares, petrol/diesel ₦/litre, intercity road/rail/air) → "transportation"; road condition (regional 0-100 scores, network stats, flagship projects) → "road-condition"; macro-economy (GDP, growth, inflation trend, VAT, income tax, minimum wage, key industries per state) → "economy"; literacy per state, WAEC trend & tertiary counts → "education-stats"; demographics (median age, household size, languages per region, urban share) → "people-stats". Cities without a city-specific figure use their tier default or state/region figure — say it's an estimate when you use one.
+- RESEARCH UPDATES are dated, sourced, on-the-ground snapshots researched for specific cities/states (rent in named areas, actual power hours, security trend, prices). When one exists for a city the user asks about, PREFER its specifics over the generalised estimates, cite the "as of" date, and note things may have changed since. Older cities' figures without an update use the standard estimates.
 - RESIDENT REVIEWS are real opinions users posted on this site's city pages. Use them to answer "what do people say about X" and to add lived-experience colour next to the statistics ("one reviewer says…", "residents rate its cost of living 4.2/5"). They are subjective opinions, not verified facts — never present a review claim as a statistic, and if reviews conflict with the data, present both. Quote at most a short phrase, attribute it to "a reviewer", and mention the topic it was posted under. If a city has no reviews yet, say so and invite the user to read/leave one on the city page (the review box is at the bottom of every section).
 - The listings inventory (apartments, jobs, schools, hospitals, etc.) is the live, current, complete set of everything posted on the site right now - nothing more exists beyond what's listed. If a city has no listing in a category, that means there genuinely isn't one yet, not that you lack information.
 - When the user asks about a specific category in a specific city (e.g. "is there a job in X", "find an apartment in Y", "any hospitals in Z"):
@@ -186,6 +189,32 @@ async function buildReviewsContext(): Promise<string> {
   return `RESIDENT REVIEWS (real user reviews posted on this site's city pages; [section] = the topic it was posted under; subjective opinions, ${all.length} total):\n${cityBlocks.join("\n")}`;
 }
 
+/** Latest researched snapshot per city/state (append-only history in Firestore;
+ * only the newest per slug is sent to the model, capped for prompt safety). */
+async function buildResearchContext(): Promise<string> {
+  const [cityDocs, stateDocs] = await Promise.all([
+    getFirestoreCollection<ResearchSnapshot>("cityResearch"),
+    getFirestoreCollection<ResearchSnapshot>("stateResearch"),
+  ]);
+  const all = [...(cityDocs ?? []), ...(stateDocs ?? [])];
+  if (all.length === 0) return "RESEARCH UPDATES: none yet.";
+
+  // newest per slug
+  const latest = new Map<string, ResearchSnapshot>();
+  for (const s of all) {
+    const prev = latest.get(s.slug);
+    if (!prev || (s.createdAt ?? "") > (prev.createdAt ?? "")) latest.set(s.slug, s);
+  }
+  const lines = [...latest.values()]
+    .sort((a, b) => (b.createdAt ?? "").localeCompare(a.createdAt ?? ""))
+    .slice(0, 60)
+    .map((s) => {
+      const hl = (s.highlights ?? []).slice(0, 5).join("; ");
+      return `${s.slug} (${s.kind}, as of ${s.asOf}): ${s.headline}${hl ? ` — ${hl}` : ""}`;
+    });
+  return `RESEARCH UPDATES (dated, sourced on-the-ground snapshots — prefer these specifics over generalised estimates for the places they cover):\n${lines.join("\n")}`;
+}
+
 interface ChatMessage {
   role: "system" | "user" | "assistant";
   content: string;
@@ -306,16 +335,18 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: "message too long" }, { status: 400 });
   }
 
-  const [listingsCtx, infraCtx, reviewsCtx] = await Promise.all([
+  const [listingsCtx, infraCtx, reviewsCtx, researchCtx] = await Promise.all([
     buildListingsContext(),
     buildInfrastructureContext(),
     buildReviewsContext(),
+    buildResearchContext(),
   ]);
   const messages: ChatMessage[] = [
     { role: "system", content: SYSTEM_PROMPT },
     { role: "system", content: buildCityContext(message) },
     { role: "system", content: buildInsightsContext() },
     { role: "system", content: infraCtx },
+    { role: "system", content: researchCtx },
     { role: "system", content: reviewsCtx },
     { role: "system", content: listingsCtx },
     // Inject conversation history so the AI remembers what was already discussed

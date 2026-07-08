@@ -33,6 +33,17 @@ service cloud.firestore {
       allow read: if true;
       allow write: if false;
     }
+
+    // Append-only research snapshots (written by scripts/append-research.mjs via
+    // the Admin SDK only). Public read; clients can never write or overwrite.
+    match /cityResearch/{id} {
+      allow read: if true;
+      allow write: if false;
+    }
+    match /stateResearch/{id} {
+      allow read: if true;
+      allow write: if false;
+    }
     match /notableIncidents/{id} {
       allow read: if true;
       allow write: if false;

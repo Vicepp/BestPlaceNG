@@ -1,0 +1,69 @@
+# Guyuk (Adamawa State) — City Data Research Skill
+
+> Slug: `guyuk-adamawa` · LGA: Guyuk · Region: North East · Tier: lga
+
+Purpose: replace generalised estimates about Guyuk with CURRENT, city-specific,
+sourced data — and APPEND it to the database as a new dated snapshot (never
+overwrite; the site keeps full history).
+
+## Current baseline in the app (what your research improves on)
+- Population: 303,334 (2026 est.), growth 2.7%/yr, rank #315
+- Rent: no city-specific research yet — currently estimated from the state reference city. YOUR RESEARCH FIXES THIS.
+- Grid power: no city-specific figure yet (tier default used), DisCo: Yola DisCo (YEDC)
+
+## What to research — specifically for Guyuk
+Prioritise recent (last 6 months) sources that name Guyuk or Guyuk LGA directly.
+Cover EVERY section of the city's page — one finding per section where the web has
+anything city-specific (omit a section honestly if nothing local exists):
+
+| Section | What to find for Guyuk |
+|---|---|
+| overview | The one-paragraph "state of Guyuk right now" — what changed this year |
+| cost-of-living | Current everyday costs residents quote (food, transport, services) |
+| crime | Incidents/trend in Guyuk/Guyuk last 6 months; which areas feel safe |
+| apartments | Current annual rent in 2–3 named areas (self-con/1-bed/2-bed/3-bed); supply/demand |
+| climate / weather | Recent flooding, heatwaves, or seasonal disruption affecting Guyuk |
+| jobs | Who is actually hiring in Guyuk; local salary anecdotes |
+| school-ratings | Notable schools opened/closed; WAEC/results news naming Guyuk schools |
+| education-stats | Enrollment/literacy news for Adamawa affecting Guyuk |
+| economy | New businesses, factories, closures; Guyuk's trade pulse |
+| health | Hospital/PHC openings, upgrades, strikes affecting care in Guyuk |
+| religion | Major congregations/events shaping the city's rhythm |
+| people-stats | Migration in/out, population pressure, demographic shifts reported |
+| politics-voting | LGA chairmanship, state/federal projects landing in Guyuk |
+| housing-stats | New estates under construction; land/home price movement |
+| commute-time | Current traffic reality; new routes; fare changes |
+| internet | Strongest network in Guyuk now; fibre/5G rollout news |
+| electricity | Actual daily hours residents report on Yola DisCo (YEDC); band/feeder news |
+| transportation | Fares (danfo/keke/okada), fuel availability, new BRT/rail/ferry service |
+| hotels | New hotels/notable closures; typical room rates |
+| events | Recurring festivals/events that define Guyuk's calendar |
+| road-condition | Specific roads under repair or failing; flood-prone spots |
+| market | Guyuk's main market(s): staples basket prices (rice 50kg, garri, gas 12.5kg) |
+| shopping-malls | Mall openings/closures/anchor changes |
+| police-stations | Division news, new posts, emergency contact changes |
+
+Search hints: "Guyuk rent 2026", "Guyuk Adamawa news", "Guyuk electricity light", "Guyuk road construction", "Guyuk market prices", "Guyuk new estate", "Guyuk hospital".
+
+## How to save (APPEND-ONLY — never overwrite)
+1. Compose a snapshot JSON. `sections` is keyed by the section slugs above — include
+   ONLY sections where you found something city-specific; every claim needs a source:
+```json
+{
+  "headline": "one-sentence summary of the situation in Guyuk right now",
+  "asOf": "YYYY-MM",
+  "highlights": ["3-6 short, concrete findings with numbers"],
+  "sections": {
+    "apartments": { "note": "…", "areas": [{ "area": "…", "oneBedroom": 0, "twoBedroom": 0 }] },
+    "electricity": { "note": "…", "avgDailyHours": 0 },
+    "crime": { "note": "…", "trend": "improving|stable|worsening" },
+    "market": { "note": "…" }
+  },
+  "sources": ["url or publication + date", "…"]
+}
+```
+2. Save it to a temp file, then run:
+```
+node scripts/append-research.mjs city guyuk-adamawa <path-to-json>
+```
+This creates a NEW doc `cityResearch/guyuk-adamawa__<timestamp>` — previous snapshots remain untouched (historical record). The city page and the AI assistant pick up the latest snapshot automatically.
