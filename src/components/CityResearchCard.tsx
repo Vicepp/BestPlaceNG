@@ -26,20 +26,13 @@ export default async function CityResearchCard({ city }: { city: CityData }) {
       <p className="mt-2 text-sm font-semibold text-foreground">{snapshot.headline}</p>
       {snapshot.highlights && snapshot.highlights.length > 0 && (
         <ul className="mt-2 space-y-1 text-sm text-zinc-600">
-          {snapshot.highlights.map((h) => <li key={h}>— {h}</li>)}
+          {snapshot.highlights.slice(0, 4).map((h) => <li key={h}>— {h}</li>)}
         </ul>
       )}
       {snapshot.sections && Object.keys(snapshot.sections).length > 0 && (
-        <div className="mt-3 space-y-1.5">
-          {Object.entries(snapshot.sections).map(([slug, f]) =>
-            f?.note ? (
-              <p key={slug} className="text-sm text-zinc-600">
-                <span className="mr-1.5 rounded-full bg-white px-2 py-0.5 text-[10px] font-bold uppercase tracking-wide text-brand-dark ring-1 ring-brand/20">{slug.replace(/-/g, " ")}</span>
-                {f.note}
-              </p>
-            ) : null
-          )}
-        </div>
+        <p className="mt-2 text-xs text-zinc-500">
+          Topic-by-topic details appear on their own pages: {Object.keys(snapshot.sections).filter((s) => s !== "overview").map((s) => s.replace(/-/g, " ")).join(", ")}.
+        </p>
       )}
       <p className="mt-3 flex items-center gap-1.5 text-xs text-zinc-400">
         <History className="h-3.5 w-3.5" />

@@ -45,6 +45,16 @@ anything city-specific (omit a section honestly if nothing local exists):
 
 Search hints: "Ido-Osi rent 2026", "Ido-Osi Ekiti news", "Ido-Osi electricity light", "Ido-Osi road construction", "Ido-Osi market prices", "Ido-Osi new estate", "Ido-Osi hospital".
 
+## Tone & distribution (IMPORTANT)
+This is a relocation guide, not a news site. Write for someone deciding whether to
+LIVE in Ido-Osi: rents, prices, power hours, commutes, schools, day-to-day life.
+- Every finding goes under `sections.<slug>` so it renders on that section's OWN
+  page — do not pack findings into the overview.
+- Politics/government material goes ONLY under `politics-voting`, brief and factual.
+- Security goes ONLY under `crime`: what, where, trend — no alarmism.
+- The headline and highlights must read like advice to a mover, and must not lead
+  with politics or security unless it genuinely changes the decision to move.
+
 ## How to save (APPEND-ONLY — never overwrite)
 1. Compose a snapshot JSON. `sections` is keyed by the section slugs above — include
    ONLY sections where you found something city-specific; every claim needs a source:

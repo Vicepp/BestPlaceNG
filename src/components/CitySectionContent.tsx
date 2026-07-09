@@ -23,19 +23,11 @@ import ElectricityPanel from "@/components/ElectricityPanel";
 import TransportationPanel from "@/components/TransportationPanel";
 import RoadConditionPanel from "@/components/RoadConditionPanel";
 import CityReviewsOverview from "@/components/CityReviewsOverview";
-import CityResearchCard from "@/components/CityResearchCard";
-import { getCostOfLivingProfile, getStateReferenceCity } from "@/data/costOfLiving";
+import CityOverview from "@/components/CityOverview";
+import { getLatestCityResearch, getStateResearchHistory, type ResearchSectionFinding } from "@/data/cityResearch";
+import { getCostOfLivingProfile } from "@/data/costOfLiving";
 import ReviewBox from "@/components/ReviewBox";
 import ApartmentsExplorer from "@/components/ApartmentsExplorer";
-
-function StatCard({ label, value }: { label: string; value: string }) {
-  return (
-    <div className="rounded-xl border border-zinc-100 bg-white p-4">
-      <p className="text-xs uppercase tracking-wide text-zinc-400">{label}</p>
-      <p className="mt-1 text-lg font-bold text-foreground">{value}</p>
-    </div>
-  );
-}
 
 export default async function CitySectionContent({
   city,
@@ -45,89 +37,60 @@ export default async function CitySectionContent({
   section: string;
 }) {
   const sectionLabel = citySections.find((s) => s.slug === section)?.label ?? section.replace(/-/g, " ");
-  const [body, initialReviews] = await Promise.all([
+  const [body, initialReviews, note] = await Promise.all([
     renderSectionBody(city, section),
     getReviewsLive(city.slug, section),
+    getSectionResearchNote(city, section),
   ]);
   return (
     <div>
+      {note}
       {body}
       <ReviewBox citySlug={city.slug} section={section} sectionLabel={sectionLabel} cityName={city.name} initialReviews={initialReviews} />
     </div>
   );
 }
 
+/** Researched updates land on THEIR OWN section page: the latest snapshot's
+ * finding for this section (city snapshot first, else the state's) renders as
+ * a dated strip above the section body. The overview only gets the headline
+ * card — details are distributed here, not piled on the overview. */
+async function getSectionResearchNote(city: CityData, section: string) {
+  if (section === "overview") return null;
+  const key = section === "weather" ? "climate" : section;
+  const cityRes = await getLatestCityResearch(city.slug);
+  let snapshot = cityRes?.latest ?? null;
+  let finding: ResearchSectionFinding | undefined = snapshot?.sections?.[key];
+  if (!finding?.note) {
+    const stateHistory = await getStateResearchHistory(city.stateSlug);
+    snapshot = stateHistory[0] ?? null;
+    finding = snapshot?.sections?.[key];
+  }
+  if (!snapshot || !finding?.note) return null;
+  return (
+    <div className="mb-6 rounded-2xl border border-brand/20 bg-brand-light/40 p-4">
+      <p className="text-[11px] font-bold uppercase tracking-wide text-brand-dark">
+        Latest researched update · as of {snapshot.asOf}
+      </p>
+      <p className="mt-1 text-sm leading-relaxed text-zinc-700">{finding.note}</p>
+      {finding.areas && finding.areas.length > 0 && (
+        <p className="mt-1.5 text-xs text-zinc-500">
+          {finding.areas.map((a) => `${a.area}${a.twoBedroom ? `: 2-bed ~₦${a.twoBedroom.toLocaleString()}/yr` : ""}`).join(" · ")}
+        </p>
+      )}
+      <p className="mt-1.5 text-[11px] text-zinc-400">{snapshot.sources.length} source{snapshot.sources.length === 1 ? "" : "s"} · full history kept in the database</p>
+    </div>
+  );
+}
+
 async function renderSectionBody(city: CityData, section: string) {
   switch (section) {
-    case "overview": {
-      const allSameState = cities.filter(
-        (c) => c.stateSlug === city.stateSlug && c.slug !== city.slug
-      );
-      const sameStateCities = allSameState
-        .sort((a, b) => b.population - a.population)
-        .slice(0, 12);
-      const moreCount = allSameState.length - sameStateCities.length;
-      return (
-        <div className="space-y-8">
-          <p className="text-base leading-relaxed text-zinc-600">
-            {city.description ??
-              `${city.name} is an LGA in ${city.stateName} State (${city.region}). Detailed profile data for ${city.name} is coming soon.`}
-          </p>
-          <CityResearchCard city={city} />
-          <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
-            <StatCard label="Population" value={city.population.toLocaleString()} />
-            <StatCard label="LGA" value={city.lga} />
-            {city.zipCode && <StatCard label="ZIP Code" value={city.zipCode} />}
-            <StatCard label="Region" value={city.region} />
-          </div>
-          {city.tier === "major" ? (
-            <div className="grid grid-cols-1 gap-6 sm:grid-cols-2">
-              <IndexBar label="Cost of Living Index" value={city.costOfLivingIndex!} helpText="National average = 100" />
-              <IndexBar label="Safety Index" value={city.safetyIndex!} helpText="Higher = perceived safer (100 = national average)" />
-            </div>
-          ) : (
-            await (async () => {
-              const ref = await getStateReferenceCity(city.stateSlug);
-              if (!ref || ref.costOfLivingIndex === undefined) return null;
-              return (
-                <div className="grid grid-cols-1 gap-6 sm:grid-cols-2">
-                  <IndexBar label="Cost of Living Index" value={ref.costOfLivingIndex} helpText={`Estimated from ${ref.name}, the reference city for ${city.stateName} State (national avg = 100)`} />
-                  {ref.safetyIndex !== undefined && (
-                    <IndexBar label="Safety Index" value={ref.safetyIndex} helpText={`Estimated from ${ref.name} — higher = perceived safer (100 = national average)`} />
-                  )}
-                </div>
-              );
-            })()
-          )}
-          {sameStateCities.length > 0 && (
-            <div>
-              <h3 className="mb-2 text-sm font-semibold text-foreground">
-                Other cities in {city.stateName} State
-              </h3>
-              <div className="flex flex-wrap gap-2">
-                {sameStateCities.map((c) => (
-                  <Link
-                    key={c.slug}
-                    href={`/city/${c.slug}`}
-                    className="rounded-full border border-zinc-200 px-3 py-1 text-xs text-foreground/70 hover:border-brand hover:text-brand"
-                  >
-                    {c.name}
-                  </Link>
-                ))}
-                {moreCount > 0 && (
-                  <Link
-                    href={`/search?q=${encodeURIComponent(city.stateName)}`}
-                    className="rounded-full border border-dashed border-zinc-300 px-3 py-1 text-xs text-zinc-400 hover:border-brand hover:text-brand"
-                  >
-                    +{moreCount} more
-                  </Link>
-                )}
-              </div>
-            </div>
-          )}
-        </div>
-      );
-    }
+    case "overview":
+      // BestPlaces-style relocation guide: intro, location details, cost/safety
+      // panels, minimum income, rankings, pros & cons, "Dig Deeper" — built
+      // from database-backed data; lifestyle-focused (politics stays in its
+      // own section).
+      return <CityOverview city={city} />;
 
     case "cost-of-living":
       return <CostOfLivingPanel city={city} />;

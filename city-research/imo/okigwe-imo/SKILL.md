@@ -45,6 +45,16 @@ anything city-specific (omit a section honestly if nothing local exists):
 
 Search hints: "Okigwe rent 2026", "Okigwe Imo news", "Okigwe electricity light", "Okigwe road construction", "Okigwe market prices", "Okigwe new estate", "Okigwe hospital".
 
+## Tone & distribution (IMPORTANT)
+This is a relocation guide, not a news site. Write for someone deciding whether to
+LIVE in Okigwe: rents, prices, power hours, commutes, schools, day-to-day life.
+- Every finding goes under `sections.<slug>` so it renders on that section's OWN
+  page — do not pack findings into the overview.
+- Politics/government material goes ONLY under `politics-voting`, brief and factual.
+- Security goes ONLY under `crime`: what, where, trend — no alarmism.
+- The headline and highlights must read like advice to a mover, and must not lead
+  with politics or security unless it genuinely changes the decision to move.
+
 ## How to save (APPEND-ONLY — never overwrite)
 1. Compose a snapshot JSON. `sections` is keyed by the section slugs above — include
    ONLY sections where you found something city-specific; every claim needs a source:
