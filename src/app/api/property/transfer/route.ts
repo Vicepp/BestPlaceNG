@@ -15,7 +15,7 @@ export const maxDuration = 60;
  */
 export async function POST(req: NextRequest) {
   if (!isFirebaseAdminConfigured()) {
-    return NextResponse.json({ ok: false, error: "Transfers aren't available right now." }, { status: 503 });
+    return NextResponse.json({ ok: false, error: "Transfers aren't available: the server is missing its Firebase Admin credentials (set FIREBASE_ADMIN_PRIVATE_KEY_BASE64 and redeploy)." }, { status: 503 });
   }
   const uid = await verifyIdToken(req.headers.get("authorization"));
   if (!uid) return NextResponse.json({ ok: false, error: "Not authenticated" }, { status: 401 });

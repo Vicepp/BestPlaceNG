@@ -237,19 +237,31 @@ export default function PropertiesPage() {
 
   async function handleTransfer(recipient: UserProfile) {
     if (!transfer) return;
-    const token = await getFirebaseAuth().currentUser?.getIdToken();
-    const res = await fetch("/api/property/transfer", {
-      method: "POST",
-      headers: { "Content-Type": "application/json", Authorization: `Bearer ${token}` },
-      body: JSON.stringify({ kind: transfer.kind, id: transfer.id, newOwnerUid: recipient.uid }),
-    });
-    const json = await res.json().catch(() => null);
-    setTransfer(null);
-    if (json?.ok) {
-      setTransferMsg(`Transferred "${transfer.title}" to ${recipient.displayName || recipient.email}.`);
-      load();
-    } else {
-      setTransferMsg(json?.error ?? "Transfer failed. Please try again.");
+    try {
+      const token = await getFirebaseAuth().currentUser?.getIdToken();
+      if (!token) {
+        setTransfer(null);
+        setTransferMsg("Your session has expired — log out and back in, then try the transfer again.");
+        return;
+      }
+      const res = await fetch("/api/property/transfer", {
+        method: "POST",
+        headers: { "Content-Type": "application/json", Authorization: `Bearer ${token}` },
+        body: JSON.stringify({ kind: transfer.kind, id: transfer.id, newOwnerUid: recipient.uid }),
+      });
+      const json = await res.json().catch(() => null);
+      setTransfer(null);
+      if (json?.ok) {
+        setTransferMsg(`Transferred "${transfer.title}" to ${recipient.displayName || recipient.email}.`);
+        load();
+      } else {
+        // Surface the server's exact reason (plus the HTTP status when the
+        // function crashed before returning JSON) so failures are diagnosable.
+        setTransferMsg(json?.error ?? `Transfer failed (HTTP ${res.status}) — the server couldn't process it. If this is the live site, check the server configuration (admin key) and try again.`);
+      }
+    } catch {
+      setTransfer(null);
+      setTransferMsg("Couldn't reach the server — check your connection and try again.");
     }
   }
 
