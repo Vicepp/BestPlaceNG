@@ -26,6 +26,7 @@ import {
 import { createNotification } from "@/data/notifications";
 import { getBookingsForApartment, formatSlot, type TourBooking } from "@/data/tours";
 import CancelTourModal from "@/components/dashboard/CancelTourModal";
+import { getPaymentsForLandlordLive, type Payment } from "@/data/payments";
 
 const TICKET_STYLES: Record<string, string> = {
   pending: "bg-red-100 text-red-700",
@@ -42,6 +43,7 @@ export default function PropertyDetailPage() {
   const [tenancies, setTenancies] = useState<Tenancy[]>([]);
   const [tickets, setTickets] = useState<MaintenanceTicket[]>([]);
   const [tours, setTours] = useState<TourBooking[]>([]);
+  const [payments, setPayments] = useState<Payment[]>([]);
   const [cancelTarget, setCancelTarget] = useState<TourBooking | null>(null);
   const [loading, setLoading] = useState(true);
   const [openingChat, setOpeningChat] = useState(false);
@@ -59,15 +61,17 @@ export default function PropertyDetailPage() {
 
   async function loadAll() {
     if (!user || !id) return;
-    const [apts, ten, tix, trs] = await Promise.all([
+    const [apts, ten, tix, trs, pays] = await Promise.all([
       getApartmentsByOwnerLive(user.uid),
       getTenanciesForApartmentLive(id),
       getTicketsForLandlordLive(user.uid),
       getBookingsForApartment(id),
+      getPaymentsForLandlordLive(user.uid),
     ]);
     setApartment(apts.find((a) => a.id === id) ?? null);
     setTenancies(ten);
     setTours(trs);
+    setPayments(pays.filter((p) => p.apartmentId === id).sort((a, b) => b.createdAt.localeCompare(a.createdAt)));
     setTickets(tix.filter((t) => t.apartmentId === id));
     setLoading(false);
   }
@@ -231,18 +235,87 @@ export default function PropertyDetailPage() {
           {invitedT.length > 0 && <p className="mt-1 text-xs text-zinc-400">{invitedT.length} invite(s) pending claim by email.</p>}
           <div className="mt-3 space-y-3">
             {activeT.length === 0 && invitedT.length === 0 && <p className="text-xs text-zinc-400">No tenants yet.</p>}
-            {activeT.map((t) => (
-              <div key={t.id} className="flex items-center justify-between border-b border-zinc-50 pb-2 last:border-b-0">
-                <div>
-                  <p className="text-sm font-semibold text-foreground">{t.tenantName}</p>
-                  <p className="text-xs text-zinc-400">{t.tenantEmail}</p>
+            {activeT.map((t) => {
+              const tPaid = payments.filter((p) => p.tenancyId === t.id && p.status === "success");
+              const tPending = payments.filter((p) => p.tenancyId === t.id && p.status === "pending");
+              const totalPaid = tPaid.reduce((s, p) => s + p.amount, 0);
+              const tTickets = tickets.filter((x) => x.tenantId === t.tenantId);
+              const openTickets = tTickets.filter((x) => x.status !== "completed");
+              return (
+                <div key={t.id} className="rounded-xl border border-zinc-100 p-4">
+                  <div className="flex flex-wrap items-center justify-between gap-2">
+                    <div>
+                      <p className="text-sm font-semibold text-foreground">{t.tenantName}</p>
+                      <p className="text-xs text-zinc-400">{t.tenantEmail}</p>
+                    </div>
+                    <div className="text-right text-xs text-zinc-500">
+                      <p className="font-semibold text-foreground">{formatNaira(t.rentAmount)}/{t.rentPeriod}</p>
+                      {t.leaseEnd && <p>Lease ends {new Date(t.leaseEnd).toLocaleDateString()}</p>}
+                    </div>
+                  </div>
+
+                  {/* Move-in status */}
+                  <p className={`mt-2 inline-flex rounded-full px-2.5 py-1 text-[11px] font-semibold ${
+                    t.moveInConfirmed ? "bg-green-100 text-green-700" : t.moveInDate ? "bg-amber-100 text-amber-700" : "bg-zinc-100 text-zinc-500"
+                  }`}>
+                    {t.moveInConfirmed
+                      ? `Moved in ✓${t.moveInConfirmedAt ? ` on ${new Date(t.moveInConfirmedAt).toLocaleDateString()}` : ""}`
+                      : t.moveInDate
+                      ? `Move-in set for ${new Date(t.moveInDate).toLocaleDateString()} — awaiting tenant confirmation`
+                      : "Move-in date not set yet"}
+                  </p>
+
+                  {/* Transactions: paid + pending (rent AND utilities) */}
+                  <div className="mt-3 grid grid-cols-1 gap-3 sm:grid-cols-2">
+                    <div className="rounded-lg bg-zinc-50 p-3">
+                      <p className="text-[11px] font-bold uppercase tracking-wide text-zinc-400">Paid · {formatNaira(totalPaid)} total</p>
+                      {tPaid.length === 0 ? (
+                        <p className="mt-1 text-xs text-zinc-400">No payments yet.</p>
+                      ) : (
+                        <ul className="mt-1.5 space-y-1">
+                          {tPaid.slice(0, 4).map((p) => (
+                            <li key={p.id} className="flex items-center justify-between text-xs">
+                              <span className="flex items-center gap-1.5 text-zinc-600">
+                                <span className={`rounded-full px-1.5 py-0.5 text-[9px] font-bold ${p.kind === "utility" ? "bg-accent/20 text-accent-dark" : "bg-brand-light text-brand-dark"}`}>{p.kind === "utility" ? "Utility" : "Rent"}</span>
+                                {new Date(p.verifiedAt ?? p.createdAt).toLocaleDateString()}
+                              </span>
+                              <span className="font-semibold text-green-600">{formatNaira(p.amount)}</span>
+                            </li>
+                          ))}
+                          {tPaid.length > 4 && <li className="text-[11px] text-zinc-400">+{tPaid.length - 4} more in Payments</li>}
+                        </ul>
+                      )}
+                    </div>
+                    <div className="rounded-lg bg-zinc-50 p-3">
+                      <p className="text-[11px] font-bold uppercase tracking-wide text-zinc-400">To be paid</p>
+                      {tPending.length === 0 ? (
+                        <p className="mt-1 text-xs text-zinc-400">Nothing outstanding.</p>
+                      ) : (
+                        <ul className="mt-1.5 space-y-1">
+                          {tPending.map((p) => {
+                            const overdue = new Date(p.dueDate) < new Date();
+                            return (
+                              <li key={p.id} className="flex items-center justify-between text-xs">
+                                <span className="flex items-center gap-1.5 text-zinc-600">
+                                  <span className={`rounded-full px-1.5 py-0.5 text-[9px] font-bold ${p.kind === "utility" ? "bg-accent/20 text-accent-dark" : "bg-brand-light text-brand-dark"}`}>{p.kind === "utility" ? "Utility" : "Rent"}</span>
+                                  <span className={overdue ? "font-semibold text-red-500" : ""}>due {new Date(p.dueDate).toLocaleDateString()}{overdue ? " · overdue" : ""}</span>
+                                </span>
+                                <span className="font-semibold text-foreground">{formatNaira(p.amount)}</span>
+                              </li>
+                            );
+                          })}
+                        </ul>
+                      )}
+                    </div>
+                  </div>
+
+                  {/* Maintenance summary for this tenant */}
+                  <p className="mt-2 text-xs text-zinc-500">
+                    Maintenance: {tTickets.length === 0 ? "no requests" : `${tTickets.length} request${tTickets.length === 1 ? "" : "s"}${openTickets.length > 0 ? ` (${openTickets.length} open — see Maintenance Tickets below)` : " — all resolved"}`}
+                  </p>
                 </div>
-                <div className="text-right text-xs text-zinc-500">
-                  <p>{formatNaira(t.rentAmount)}/{t.rentPeriod}</p>
-                  {t.leaseEnd && <p>Ends {new Date(t.leaseEnd).toLocaleDateString()}</p>}
-                </div>
-              </div>
-            ))}
+              );
+            })}
             {invitedT.map((t) => (
               <div key={t.id} className="flex items-center justify-between border-b border-zinc-50 pb-2 last:border-b-0 opacity-60">
                 <div>
