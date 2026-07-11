@@ -41,6 +41,17 @@ service cloud.firestore {
       allow delete: if false;
     }
 
+    // Support tickets from the dashboard contact form.
+    match /supportTickets/{id} {
+      allow read: if request.auth != null && resource.data.userId == request.auth.uid;
+      allow create: if request.auth != null
+        && request.resource.data.userId == request.auth.uid
+        && request.resource.data.message is string
+        && request.resource.data.message.size() > 0
+        && request.resource.data.message.size() < 5000;
+      allow update, delete: if false;
+    }
+
     // Reviews about a user (by the other party of a tenancy/tour).
     match /userReviews/{id} {
       allow read: if true;
