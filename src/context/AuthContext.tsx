@@ -33,6 +33,11 @@ export interface UserProfile {
   bookingLink?: string;
   /** Availability for the built-in tour calendar. days: 0=Sun..6=Sat. Hours 24h. */
   tourAvailability?: { days: number[]; startHour: number; endHour: number };
+  /** Public KYC flag only — sensitive details (NIN, documents) live in the
+   * private kyc/{uid} collection, never on this publicly-readable doc. */
+  kycStatus?: "incomplete" | "submitted";
+  /** City slugs the user is interested in living in (max 5). */
+  intentLocations?: string[];
 }
 
 export type DashboardView = "tenant" | "landlord";
