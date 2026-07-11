@@ -7,7 +7,6 @@ import { useAuth } from "@/context/AuthContext";
 import { getApartmentsByOwnerLive, formatNaira, type ApartmentListing } from "@/data/apartments";
 import { getTenanciesForLandlordLive, type Tenancy } from "@/data/tenancies";
 import { getPaymentsForLandlordLive, type Payment } from "@/data/payments";
-import TenantPipeline from "@/components/dashboard/TenantPipeline";
 import { getTicketsForLandlordLive, type MaintenanceTicket } from "@/data/maintenanceTickets";
 import StatCard from "@/components/dashboard/StatCard";
 import TrendChart from "@/components/TrendChart";
@@ -128,9 +127,6 @@ export default function LandlordDashboard() {
           </ul>
         </div>
       )}
-
-      {/* Tenancy & payment lifecycle pipeline */}
-      <TenantPipeline tenancies={tenancies} payments={payments} />
 
       <div className="grid grid-cols-1 gap-6 lg:grid-cols-3">
         <div className="rounded-2xl border border-zinc-100 bg-white p-6 shadow-sm lg:col-span-2">
