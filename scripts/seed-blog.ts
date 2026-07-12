@@ -516,9 +516,64 @@ for (const [key2, name, topics] of vibes) {
 const DEFAULT_REFS: Record<string, { label: string; url: string }[]> = {
   "Cost of Living": [NBS, CBN], Rankings: [NBS, NERC], Comparisons: [NBS], "Renting 101": [NERC, CBN, { label: "Lagos Tenancy Law overview", url: "https://lagosstate.gov.ng" }], "City Guides": [NBS, NCC],
 };
+/* 20 Top Picks — the strongest search/utility posts */
+const FEATURED = new Set(["cost-of-living-in-lagos-2026", "lagos-vs-abuja-where-to-live-2026", "cheapest-safe-cities-nigeria", "how-rent-works-in-nigeria", "why-we-hold-rent-in-escrow", "safest-cities-nigeria-2026", "best-cities-remote-work-nigeria", "spot-rental-scams-nigeria", "ibadan-rent-guide-2026", "verify-land-title-nigeria", "buying-vs-renting-lagos", "bestplaceng-vs-zillow", "bestplaceng-vs-bestplaces-net", "bestplaceng-vs-propertypro", "weekend-in-calabar-cross-river", "weekend-in-lagos-lagos", "best-cities-families-schools-nigeria", "understanding-nepa-bands", "agent-fees-nigeria-explained", "moving-to-lagos-things-nobody-tells-you"]);
+
+/** Deep, parameterized long-form sections appended to EVERY post — each is
+ * original template prose tied to the post's own city/category, dense with
+ * inline internal + external links. Pushes posts to the 1,500–2,500 word band. */
+function expand(p: Spec): Spec {
+  const citySlug = p.ctaMid.href.match(/^\/city\/([a-z0-9-]+)/)?.[1] ?? p.ctaEnd.href.match(/^\/city\/([a-z0-9-]+)/)?.[1];
+  const c = citySlug ? cities.find((x) => x.slug === citySlug.split("/")[0]) : undefined;
+  const cn = c?.name ?? "your shortlisted city";
+  const cref = c ? `/city/${c.slug}` : "/rankings";
+  const rr2 = c ? r2(c.slug) : undefined;
+  const gh = c ? gridHours[c.slug] : undefined;
+
+  const extra: { h2: string; body: string; bullets?: string[] }[] = [
+    {
+      h2: `How far your money actually goes in ${cn}`,
+      body: `Headline rent is only the opening bid. In practice, a Nigerian household budget divides into rent (paid annually — see our full guide to [how rent works in Nigeria](/learn/how-rent-works-in-nigeria)), power (grid tariff plus backup fuel or solar amortisation), transport, food and school fees. ${c ? `For ${cn}, our dataset puts the cost-of-living index at ${c.costOfLivingIndex ?? "the national baseline"} against 100 for the country${rr2 ? `, with a researched 2-bedroom at roughly ${naira(rr2)} a year` : ""}. ` : ""}Cross-checking against community-sourced figures on [Numbeo](https://www.numbeo.com/cost-of-living/) and the official CPI releases from the [National Bureau of Statistics](https://nigerianstat.gov.ng) keeps any single source honest. The pattern that surprises newcomers most: day-to-day costs (food, transport, data) vary far less between cities than housing does — which is why the rent decision IS the cost-of-living decision, and why our [city cost pages](${cref}/cost-of-living) lead with it.`,
+    },
+    {
+      h2: "The rent process here, start to finish",
+      body: `If you're new to the market — or returning from abroad and calibrated to platforms like [Zillow](https://www.zillow.com) or [Apartments.com](https://www.apartments.com) — the Nigerian sequence differs at almost every step. You'll typically view several places through word-of-mouth or listings, negotiate the annual figure and the first-year extras (our [agent fees explainer](/learn/agent-fees-nigeria-explained) breaks down which are movable), sign a tenancy agreement whose clauses deserve real scrutiny (see [every document to check before renting](/learn/documents-before-renting-nigeria)), and then move a year's rent in one transfer. That last step is where the market's fraud concentrates — the [seven red flags of rental scams](/learn/spot-rental-scams-nigeria) all cluster around it — and it's exactly the step [escrow was built to fix](/learn/why-we-hold-rent-in-escrow): money held until you confirm you've moved in, released to the landlord only after.`,
+    },
+    {
+      h2: "Power, internet and daily logistics",
+      body: `No Nigerian relocation guide is honest without the utilities paragraph. ${gh ? `${cn} averages about ${gh} hours of grid supply a day on our estimates` : `Grid supply in most cities runs 8–14 hours a day`}, and the street-by-street variation is governed by the tariff band system — [our NEPA bands explainer](/learn/understanding-nepa-bands) shows how to check a specific street before you commit, and the official band framework lives with the regulator, [NERC](https://nerc.gov.ng). Budget a backup: a 1–2kVA inverter setup has become the default middle-class answer, with rooftop solar spreading fast. Internet is mobile-first — coverage maps from the [NCC](https://www.ncc.gov.ng) tell the national story, but the practical test is which network your prospective neighbours actually use indoors. For remote workers, our ranking of the [best cities for remote work](/learn/best-cities-remote-work-nigeria) weighs exactly these two utilities.`,
+    },
+    {
+      h2: "Reading safety beyond one number",
+      body: `${c ? `${cn} scores ${c.safetyIndex ?? "near the national average"} on our safety index, but a` : "A"} city-level score is a shortlisting tool, not a verdict. Safety in Nigerian cities is intensely local: the same metro can hold serene GRAs and areas you'd route around after dark. The method that works: use the index to compare cities (our [data-ranked safest cities](/learn/safest-cities-nigeria-2026) is the shortlist), then drop to street level — the city's own [crime section](${cref}/crime) carries incident notes and trend lines, resident [reviews](${cref}/reviews) carry the lived texture, and a deliberate visit at night tells you the rest. National context from sources like the [Nigeria Security Tracker](https://www.cfr.org/nigeria/nigeria-security-tracker/p29483) helps separate a state's reputation from a specific city's reality — they diverge more often than headlines suggest.`,
+    },
+    {
+      h2: `A practical relocation checklist${c ? ` for ${cn}` : ""}`,
+      body: `The moves that save money and regret, in order:`,
+      bullets: [
+        `Run the numbers first: [${cn}'s full data profile](${cref}) — cost, safety, power, schools — before any viewing trip`,
+        `Shortlist areas by commute, not aesthetics; test them at rush hour and after rain`,
+        `Ask every landlord which [electricity band](/learn/understanding-nepa-bands) the street is on, and verify with a neighbour`,
+        `Budget rent + 20–30% for first-year extras (the [fee breakdown](/learn/agent-fees-nigeria-explained) shows what's negotiable)`,
+        `Insist on the full [document trail](/learn/documents-before-renting-nigeria) — agreement, receipts, condition photos`,
+        `Pay only where the money is protected until move-in — [here's how escrow works](/learn/why-we-hold-rent-in-escrow)`,
+      ],
+    },
+    {
+      h2: "Frequently asked questions",
+      body: `Q: Is ${cn} affordable compared to Lagos? —  ${c && c.slug !== "lagos-lagos" ? `On the index, ${cn} (${c.costOfLivingIndex ?? "≈100"}) sits ${(c.costOfLivingIndex ?? 100) < (city("lagos-lagos").costOfLivingIndex ?? 138) ? "well below" : "near"} Lagos (${city("lagos-lagos").costOfLivingIndex}) — see the full [Lagos cost breakdown](/learn/cost-of-living-in-lagos-2026) for the comparison baseline.` : `Lagos is Nigeria's most expensive major city — the [full cost breakdown](/learn/cost-of-living-in-lagos-2026) shows where the money goes.`} Q: Can I pay rent monthly? —  Mostly no — annual upfront still dominates, though options are growing; the [annual vs monthly rent](/learn/annual-vs-monthly-rent-nigeria) piece covers the real state of play. Q: How do I avoid being scammed? —  Never pay to view, verify property control, and keep the payment inside a protected flow — the [scam red flags guide](/learn/spot-rental-scams-nigeria) is the five-minute read that pays for itself.`,
+    },
+    {
+      h2: "Where these numbers come from",
+      body: `Figures in this post draw from BestPlaceNG's city dataset: cost-of-living and safety indexes benchmarked to a national average of 100, researched annual rents refreshed periodically, household grid-hour estimates, and school ratings — all browsable on each [city's profile](${cref}) and in the national [rankings](/rankings). National statistics reference the [NBS](https://nigerianstat.gov.ng), tariffs the [NERC](https://nerc.gov.ng), telecoms the [NCC](https://www.ncc.gov.ng), and monetary data the [CBN](https://www.cbn.gov.ng). Where figures are estimates rather than researched values, the underlying city page says so explicitly — the same honesty rule applies here.`,
+    },
+  ];
+  return { ...p, sections: [...p.sections, ...extra], featured: p.featured ?? FEATURED.has(p.slug) };
+}
+
 function finalize(p: Spec): Spec {
   const title = p.title.replace(/\s*\(2026\)/g, "").replace(/ in 2026/g, "").replace(/ 2026/g, "").replace(/2026:?\s*/g, "");
-  return { ...p, title, metaDescription: p.metaDescription.replace(/ 2026/g, "").replace(/2026 /g, ""), references: p.references ?? [...(DEFAULT_REFS[p.category] ?? [NBS]), numbeo("Lagos")] };
+  return expand({ ...p, title, metaDescription: p.metaDescription.replace(/ 2026/g, "").replace(/2026 /g, ""), references: p.references ?? [...(DEFAULT_REFS[p.category] ?? [NBS]), numbeo("Lagos")] });
 }
 
 async function main() {

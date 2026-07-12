@@ -13,7 +13,7 @@ export const revalidate = 300;
 
 export default async function LearnPage() {
   const posts = await getBlogPostsLive();
-  const featured = posts.filter((p) => p.featured).slice(0, 3);
+  const featured = posts.filter((p) => p.featured).slice(0, 20);
   const categories = [...new Set(posts.map((p) => p.category))];
 
   return (
@@ -50,7 +50,7 @@ export default async function LearnPage() {
             {featured.length > 0 && (
               <div className="rounded-2xl border border-zinc-100 bg-white p-5 shadow-sm">
                 <h3 className="flex items-center gap-1.5 text-xs font-bold uppercase tracking-wide text-zinc-400">
-                  <TrendingUp className="h-3.5 w-3.5 text-brand" /> Staff picks
+                  <TrendingUp className="h-3.5 w-3.5 text-brand" /> Top picks
                 </h3>
                 <div className="mt-3 space-y-4">
                   {featured.map((p, i) => (

@@ -37,6 +37,19 @@ export default async function BlogPostPage({ params }: { params: Promise<{ slug:
     publisher: { "@type": "Organization", name: "BestPlaceNG" },
   };
 
+  /** Render [text](href) inline links: internal -> Link, external -> nofollow anchor. */
+  const rich = (text: string) => {
+    const parts = text.split(/(\[[^\]]+\]\([^)]+\))/g);
+    return parts.map((part, i) => {
+      const m = part.match(/^\[([^\]]+)\]\(([^)]+)\)$/);
+      if (!m) return part;
+      const [, label, href] = m;
+      return href.startsWith("/")
+        ? <Link key={i} href={href} className="font-semibold text-brand underline-offset-2 hover:underline">{label}</Link>
+        : <a key={i} href={href} target="_blank" rel="nofollow noopener noreferrer" className="font-semibold text-brand underline-offset-2 hover:underline">{label}</a>;
+    });
+  };
+
   const Cta = ({ label, href }: { label: string; href: string }) => (
     <div className="my-8 rounded-2xl border border-brand/20 bg-brand-light/40 p-6 text-center">
       <p className="text-sm font-semibold text-zinc-600">Ready to see the data for yourself?</p>
@@ -70,10 +83,10 @@ export default async function BlogPostPage({ params }: { params: Promise<{ slug:
           {post.sections.map((s, i) => (
             <section key={s.h2}>
               <h2 className="mt-10 text-2xl font-extrabold text-foreground">{s.h2}</h2>
-              <p className="mt-3 leading-relaxed text-zinc-600">{s.body}</p>
+              <p className="mt-3 leading-relaxed text-zinc-600">{rich(s.body)}</p>
               {s.bullets && s.bullets.length > 0 && (
                 <ul className="mt-3 space-y-1.5 text-zinc-600">
-                  {s.bullets.map((b) => <li key={b} className="flex gap-2"><span className="mt-2 h-1.5 w-1.5 shrink-0 rounded-full bg-brand" /> <span>{b}</span></li>)}
+                  {s.bullets.map((b) => <li key={b} className="flex gap-2"><span className="mt-2 h-1.5 w-1.5 shrink-0 rounded-full bg-brand" /> <span>{rich(b)}</span></li>)}
                 </ul>
               )}
               {i === midpoint - 1 && <Cta {...post.ctaMid} />}
