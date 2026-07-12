@@ -519,56 +519,115 @@ const DEFAULT_REFS: Record<string, { label: string; url: string }[]> = {
 /* 20 Top Picks — the strongest search/utility posts */
 const FEATURED = new Set(["cost-of-living-in-lagos-2026", "lagos-vs-abuja-where-to-live-2026", "cheapest-safe-cities-nigeria", "how-rent-works-in-nigeria", "why-we-hold-rent-in-escrow", "safest-cities-nigeria-2026", "best-cities-remote-work-nigeria", "spot-rental-scams-nigeria", "ibadan-rent-guide-2026", "verify-land-title-nigeria", "buying-vs-renting-lagos", "bestplaceng-vs-zillow", "bestplaceng-vs-bestplaces-net", "bestplaceng-vs-propertypro", "weekend-in-calabar-cross-river", "weekend-in-lagos-lagos", "best-cities-families-schools-nigeria", "understanding-nepa-bands", "agent-fees-nigeria-explained", "moving-to-lagos-things-nobody-tells-you"]);
 
-/** Deep, parameterized long-form sections appended to EVERY post — each is
- * original template prose tied to the post's own city/category, dense with
- * inline internal + external links. Pushes posts to the 1,500–2,500 word band. */
+/** Category-specific expansion packs. Each post gets sections that belong to
+ * ITS kind of article only, with phrasing varied per slug, so no two posts
+ * share a template skeleton. Conversational, link-rich, city-parameterized. */
 function expand(p: Spec): Spec {
   const citySlug = p.ctaMid.href.match(/^\/city\/([a-z0-9-]+)/)?.[1] ?? p.ctaEnd.href.match(/^\/city\/([a-z0-9-]+)/)?.[1];
   const c = citySlug ? cities.find((x) => x.slug === citySlug.split("/")[0]) : undefined;
-  const cn = c?.name ?? "your shortlisted city";
+  const cn = c?.name ?? "the city";
   const cref = c ? `/city/${c.slug}` : "/rankings";
   const rr2 = c ? r2(c.slug) : undefined;
   const gh = c ? gridHours[c.slug] : undefined;
+  const v = (p.slug.length + p.slug.charCodeAt(0)) % 2;
+  const X: { h2: string; body: string; bullets?: string[] }[] = [];
 
-  const extra: { h2: string; body: string; bullets?: string[] }[] = [
-    {
-      h2: `How far your money actually goes in ${cn}`,
-      body: `Let's talk money for a minute, because the headline rent is only the opening bid. In practice, a Nigerian household budget divides into rent (paid annually — see our full guide to [how rent works in Nigeria](/learn/how-rent-works-in-nigeria)), power (grid tariff plus backup fuel or solar amortisation), transport, food and school fees. ${c ? `For ${cn}, our dataset puts the cost-of-living index at ${c.costOfLivingIndex ?? "the national baseline"} against 100 for the country${rr2 ? `, with a researched 2-bedroom at roughly ${naira(rr2)} a year` : ""}. ` : ""}Cross-checking against community-sourced figures on [Numbeo](https://www.numbeo.com/cost-of-living/) and the official CPI releases from the [National Bureau of Statistics](https://nigerianstat.gov.ng) keeps any single source honest. The pattern that surprises newcomers most: day-to-day costs (food, transport, data) vary far less between cities than housing does — which is why the rent decision IS the cost-of-living decision, and why our [city cost pages](${cref}/cost-of-living) lead with it.`,
-    },
-    {
-      h2: "The rent process here, start to finish",
-      body: `If you're new to the market — or returning from abroad and calibrated to platforms like [Zillow](https://www.zillow.com) or [Apartments.com](https://www.apartments.com) — the Nigerian sequence differs at almost every step. You'll typically view several places through word-of-mouth or listings, negotiate the annual figure and the first-year extras (our [agent fees explainer](/learn/agent-fees-nigeria-explained) breaks down which are movable), sign a tenancy agreement whose clauses deserve real scrutiny (see [every document to check before renting](/learn/documents-before-renting-nigeria)), and then move a year's rent in one transfer. That last step is where the market's fraud concentrates — the [seven red flags of rental scams](/learn/spot-rental-scams-nigeria) all cluster around it — and it's exactly the step [escrow was built to fix](/learn/why-we-hold-rent-in-escrow): money held until you confirm you've moved in, released to the landlord only after.`,
-    },
-    {
-      h2: "Power, internet and daily logistics",
-      body: `Now, can we be honest about light? No city guide is complete without this conversation. ${gh ? `${cn} averages about ${gh} hours of grid supply a day on our estimates` : `Grid supply in most cities runs 8–14 hours a day`}, and the street-by-street variation is governed by the tariff band system — [our NEPA bands explainer](/learn/understanding-nepa-bands) shows how to check a specific street before you commit, and the official band framework lives with the regulator, [NERC](https://nerc.gov.ng). Budget a backup: a 1–2kVA inverter setup has become the default middle-class answer, with rooftop solar spreading fast. Internet is mobile-first — coverage maps from the [NCC](https://www.ncc.gov.ng) tell the national story, but the practical test is which network your prospective neighbours actually use indoors. For remote workers, our ranking of the [best cities for remote work](/learn/best-cities-remote-work-nigeria) weighs exactly these two utilities.`,
-    },
-    {
-      h2: "Reading safety beyond one number",
-      body: `${c ? `${cn} scores ${c.safetyIndex ?? "near the national average"} on our safety index, but a` : "A"} city-level score is a shortlisting tool, not a verdict. Ask anyone who lives there and they will tell you the same thing. Safety in Nigerian cities is intensely local: the same metro can hold serene GRAs and areas you'd route around after dark. The method that works: use the index to compare cities (our [data-ranked safest cities](/learn/safest-cities-nigeria-2026) is the shortlist), then drop to street level — the city's own [crime section](${cref}/crime) carries incident notes and trend lines, resident [reviews](${cref}/reviews) carry the lived texture, and a deliberate visit at night tells you the rest. National context from sources like the [Nigeria Security Tracker](https://www.cfr.org/nigeria/nigeria-security-tracker/p29483) helps separate a state's reputation from a specific city's reality — they diverge more often than headlines suggest.`,
-    },
-    {
-      h2: `A practical relocation checklist${c ? ` for ${cn}` : ""}`,
-      body: `Ready to actually move? Here is the checklist locals wish someone had handed them:`,
+  if (p.category === "City Guides" || p.category === "Cost of Living") {
+    X.push({
+      h2: v ? `What a normal week actually feels like in ${cn}` : `Daily life in ${cn}, honestly`,
+      body: `Forget the brochure version for a second. A regular week here is shaped by three things: how long the commute eats, how many hours of light you get (${gh ? `around ${gh} a day here` : "usually 8 to 14 a day"}, street depending, and yes, [the band system explains why](/learn/understanding-nepa-bands)), and what your Saturday market run costs. None of that shows up in listing photos, which is exactly why we track it on [${cn}'s profile](${cref}).`,
+    });
+    X.push({
+      h2: v ? "The neighbourhood question" : `Picking your corner of ${cn}`,
+      body: `Every city splits into a premium pocket and a value belt, and ${cn} is no different. The premium areas buy shorter commutes, better feeders and quieter nights, usually at 2 to 3 times the value-belt rent. ${rr2 ? `With a researched 2-bed around ${naira(rr2)} a year citywide, do the maths on what that premium is worth to your routine. ` : ""}Our advice never changes: visit at rush hour, visit after rain, ask a neighbour about the light before you fall for a kitchen. The [crime notes](${cref}/crime) and [resident reviews](${cref}/reviews) for ${cn} do the rest.`,
+    });
+    X.push({
+      h2: v ? "Money talk: a realistic monthly picture" : "What it really costs per month",
+      body: `Rent gets paid yearly here (new to that? [here is how Nigerian rent works](/learn/how-rent-works-in-nigeria)), so monthly budgeting is about everything else: power top-ups and backup fuel, data, transport, food. ${c?.costOfLivingIndex ? `${cn} indexes at ${c.costOfLivingIndex} against the national 100, so scale your Lagos or Abuja assumptions accordingly. ` : ""}Sanity-check the feel of these numbers on [Numbeo](https://www.numbeo.com/cost-of-living/) and the CPI series at the [NBS](https://nigerianstat.gov.ng), then trust the [city's own cost page](${cref}/cost-of-living) for local detail.`,
+    });
+    X.push({
+      h2: v ? `Mistakes newcomers keep making in ${cn}` : "The traps to skip",
+      body: `Same three mistakes, every time. One, signing for a street they never saw at night or in rain. Two, treating quoted rent as the full price when [fees add 20 to 30 percent](/learn/agent-fees-nigeria-explained) in year one. Three, moving money outside a protected flow because someone manufactured urgency. That last one is the expensive one, and entirely avoidable: [the scam playbook](/learn/spot-rental-scams-nigeria) is a short read, and [escrow](/learn/why-we-hold-rent-in-escrow) exists so keys come before cash.`,
+    });
+  } else if (p.kind === "comparison") {
+    X.push({
+      h2: v ? "The tiebreakers people forget" : "What actually settles this",
+      body: `Cost and safety start the argument, but they rarely finish it. Schools weigh in fast if you have kids (the [family cities ranking](/learn/best-cities-families-schools-nigeria) shows how much cities differ). Climate is sneaky: a few degrees and a longer rainy season change how a city feels by October. And power hours quietly set your generator budget, which is a rent line in disguise ([band explainer](/learn/understanding-nepa-bands)). Line them all up on [the compare tool](/compare) before deciding.`,
+    });
+    X.push({
+      h2: v ? "What movers tell us after a year" : "Twelve months later: the pattern",
+      body: `Talk to people a year after either move and a pattern shows up. Those who chose the cheaper city and kept a portable income almost never regret it, the savings compound into land, school fees, or peace. Those who chose the bigger market for career reasons made peace with the costs because the opportunity paid. The unhappy group is always the same: big-market rent on a small-market income. Decide which story is yours first, then pick the city.`,
+    });
+    X.push({
+      h2: "Five questions that make the decision for you",
+      body: `Answer these honestly and the winner usually announces itself:`,
       bullets: [
-        `Run the numbers first: [${cn}'s full data profile](${cref}) — cost, safety, power, schools — before any viewing trip`,
-        `Shortlist areas by commute, not aesthetics; test them at rush hour and after rain`,
-        `Ask every landlord which [electricity band](/learn/understanding-nepa-bands) the street is on, and verify with a neighbour`,
-        `Budget rent + 20–30% for first-year extras (the [fee breakdown](/learn/agent-fees-nigeria-explained) shows what's negotiable)`,
-        `Insist on the full [document trail](/learn/documents-before-renting-nigeria) — agreement, receipts, condition photos`,
-        `Pay only where the money is protected until move-in — [here's how escrow works](/learn/why-we-hold-rent-in-escrow)`,
+        "Does my income move with me, or does it live in one of these cities?",
+        "Am I optimising the next two years or the next ten?",
+        "Kids now or soon? Then weigh the [schools data](/rankings) double",
+        "How much backup-power budget am I genuinely willing to carry?",
+        "If rent doubled at renewal, which city could I still afford?",
       ],
-    },
-    {
-      h2: "Frequently asked questions",
-      body: `Q: Is ${cn} affordable compared to Lagos? —  ${c && c.slug !== "lagos-lagos" ? `On the index, ${cn} (${c.costOfLivingIndex ?? "≈100"}) sits ${(c.costOfLivingIndex ?? 100) < (city("lagos-lagos").costOfLivingIndex ?? 138) ? "well below" : "near"} Lagos (${city("lagos-lagos").costOfLivingIndex}) — see the full [Lagos cost breakdown](/learn/cost-of-living-in-lagos-2026) for the comparison baseline.` : `Lagos is Nigeria's most expensive major city — the [full cost breakdown](/learn/cost-of-living-in-lagos-2026) shows where the money goes.`} Q: Can I pay rent monthly? —  Mostly no — annual upfront still dominates, though options are growing; the [annual vs monthly rent](/learn/annual-vs-monthly-rent-nigeria) piece covers the real state of play. Q: How do I avoid being scammed? —  Never pay to view, verify property control, and keep the payment inside a protected flow — the [scam red flags guide](/learn/spot-rental-scams-nigeria) is the five-minute read that pays for itself.`,
-    },
-    {
-      h2: "Where these numbers come from",
-      body: `Quick word on sources, so you know this isn't guesswork. Everything here draws from BestPlaceNG's city dataset: cost-of-living and safety indexes benchmarked to a national average of 100, researched annual rents refreshed periodically, household grid-hour estimates, and school ratings — all browsable on each [city's profile](${cref}) and in the national [rankings](/rankings). National statistics reference the [NBS](https://nigerianstat.gov.ng), tariffs the [NERC](https://nerc.gov.ng), telecoms the [NCC](https://www.ncc.gov.ng), and monetary data the [CBN](https://www.cbn.gov.ng). Where figures are estimates rather than researched values, the underlying city page says so explicitly — the same honesty rule applies here.`,
-    },
-  ];
-  return { ...p, sections: [...p.sections, ...extra], featured: p.featured ?? FEATURED.has(p.slug) };
+    });
+  } else if (p.kind === "vs-competitor") {
+    X.push({
+      h2: v ? "Feature by feature, no marketing" : "The reality check, side by side",
+      body: `Strip the branding and compare jobs-to-be-done. Discovery: both sides do it, volume varies. Verification: this is where platforms built for classified ads stop and purpose-built rental flows start. Payment protection: [escrow until move-in](/learn/why-we-hold-rent-in-escrow) either exists in the flow or it does not, and no amount of polish substitutes for it. And the data for the decision itself, which city, which area, [what things cost](/rankings), is the layer most listing sites never attempt.`,
+    });
+    X.push({
+      h2: "So which should you actually use?",
+      body: `Depends on who you are this month. Just browsing what exists? Use everything, more eyes the better. Relocating from abroad and calibrated to [Zillow](https://www.zillow.com)-style portals? Expect the trust layer to be your job here, so lean on platforms that do it for you. About to move a year of rent to a stranger? That is the moment platform choice stops being taste and becomes risk management. Our [scam red flags guide](/learn/spot-rental-scams-nigeria) applies wherever you found the listing.`,
+    });
+  } else if (p.category === "Weekend & Travel") {
+    X.push({
+      h2: v ? "Getting there and getting around" : "The logistics, quickly",
+      body: `Intercity buses reach ${cn} from every major hub (roughly 15,000 to 45,000 naira depending on distance and comfort), and domestic flights cover the long hops. Once in town, ride-hailing plus keke covers the whole itinerary for small money. If the rains are on${c?.climate ? ` (${c.climate.rainySeasonMonths.toLowerCase()} here)` : ""}, front-load outdoor stops into mornings. Full notes live on [${cn}'s transportation page](${cref}/transportation).`,
+    });
+    X.push({
+      h2: v ? "Where to stay: picking your base" : "Your base matters more than your itinerary",
+      body: `Stay central to the day-one sights, not at the cheapest bed in town. The difference is usually a few thousand naira and half your weekend back in transit. Browse what locals list on [${cn}'s hotels page](${cref}/hotels), and read the [reviews](${cref}/reviews) before booking anything with suspiciously perfect photos.`,
+    });
+    X.push({
+      h2: "Budgeting the weekend without maths anxiety",
+      body: `A comfortable two-day visit runs: transport in and out, one night's stay, then 15,000 to 30,000 naira of food and moving-around money per person per day${c?.costOfLivingIndex ? `, scaled by ${cn}'s cost index of ${c.costOfLivingIndex} against 100 nationally` : ""}. Markets beat restaurants for both price and memory. And if the weekend turns into a "could I live here?" conversation, [the answer is one click away](${cref}).`,
+    });
+  } else if (p.category === "Real Estate") {
+    X.push({
+      h2: v ? "The paperwork layer nobody skips twice" : "Documents first, feelings second",
+      body: `Every painful property story in Nigeria shares a chapter where paperwork got skipped. Whatever the deal, the sequence holds: verify title at the registry ([the C of O walkthrough](/learn/verify-land-title-nigeria) covers it), confirm the seller or landlord actually controls the asset, and paper every naira. The [Lagos Lands Bureau](https://landsbureau.lagosstate.gov.ng) and its state equivalents exist for exactly this check. Boring wins here.`,
+    });
+    X.push({
+      h2: v ? "Run the numbers like an investor, even if you are not one" : "The investor lens",
+      body: `One habit separates happy buyers from the rest: they price the alternative. Rent-vs-buy multiples ([the Lagos math](/learn/buying-vs-renting-lagos)), yield after real occupancy for short-lets ([honest numbers here](/learn/shortlet-investing-nigeria)), corridor patience for land. If a deal only works inside the brochure's assumptions, it does not work. Listed [REITs](/learn/reits-property-investment-nigeria) are the lazy benchmark: if your deal cannot beat their yield plus liquidity, buy the REIT instead.`,
+    });
+    X.push({
+      h2: "Think about the exit before the entry",
+      body: `Who buys this from you, and why? Land on a growth corridor has an obvious answer. A flat in an oversupplied estate does not. The exit question also sets paperwork urgency: clean registered title sells in weeks, family-receipt land sells in lawsuits. Check what is actually moving in the [live listings](/apartments) for your target area before committing anything.`,
+    });
+  } else if (p.category === "Vibes & Culture") {
+    X.push({
+      h2: v ? "Why street gist is leading data" : "The group chat knows first",
+      body: `Here is the thing about city chatter: it prices things before the market does. Rent complaints today are next year's renewal letters. Power grumbles map to [band assignments](/learn/understanding-nepa-bands) block by block. New-road excitement shows up in land prices within months. We read the same conversations you do, then check them against [${cn}'s numbers](${cref}), and the two agree far more often than not.`,
+    });
+    X.push({
+      h2: "Add your own take",
+      body: `These threads only stay accurate if people keep talking. Every section of [${cn}'s city page](${cref}) takes reviews, cost, power, safety, transport, and replies are on, so the gist stays a conversation. The next person deciding whether to move reads exactly what you write.`,
+    });
+  } else {
+    X.push({
+      h2: v ? "How it usually goes wrong (a short story)" : "A cautionary tale, compressed",
+      body: `Same script every time: someone finds a deal that feels rare, urgency appears from nowhere, a payment leaves before anything is verified, and the phone goes quiet. Every step had an exit. The listing could be checked against [verified inventory](/apartments), the fee structure against [the standard stack](/learn/agent-fees-nigeria-explained), the payment kept inside [an escrowed flow](/learn/why-we-hold-rent-in-escrow). The story only ends badly when all three exits get skipped.`,
+    });
+    X.push({
+      h2: v ? "Where your leverage actually is" : "You have more leverage than you think",
+      body: `Tenants negotiate rent and forget everything else. The extras move more easily: agency and legal fees flex, caution size flexes, payment can split into tranches, and units that sat empty flex most of all. Come armed with the [going rates](${cref}) and a calm willingness to walk away. Landlords respect the second one most.`,
+    });
+    X.push({
+      h2: "How to use these numbers well",
+      body: `Treat every figure here as a starting range, not gospel. Indexes benchmark to a national 100, researched rents carry their as-of date, and estimates say so on [each city's page](/rankings). The method that works: shortlist with the data, then verify the specific street with your own eyes and [other residents' reviews](${cref}). Numbers narrow the search, people close it.`,
+    });
+  }
+  return { ...p, sections: [...p.sections, ...X], featured: p.featured ?? FEATURED.has(p.slug) };
 }
 
 function deDash(t: string): string {
