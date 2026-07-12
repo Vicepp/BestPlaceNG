@@ -13,7 +13,7 @@ export interface BlogSection {
   /** Optional bullet list rendered after the body. */
   bullets?: string[];
   /** Optional comparison table rendered after the body. */
-  table?: { headers: string[]; rows: string[][] };
+  table?: { headers: string[]; rows: { cells: string[] }[] };
 }
 
 export interface BlogPost {

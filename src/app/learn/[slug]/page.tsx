@@ -100,7 +100,7 @@ export default async function BlogPostPage({ params }: { params: Promise<{ slug:
                     <tbody>
                       {s.table.rows.map((row, ri) => (
                         <tr key={ri} className={ri % 2 === 0 ? "bg-white" : "bg-zinc-50/50"}>
-                          {row.map((cell, ci) => <td key={ci} className={`px-4 py-2.5 ${ci === 0 ? "font-semibold text-foreground" : "text-zinc-600"}`}>{cell}</td>)}
+                          {row.cells.map((cell, ci) => <td key={ci} className={`px-4 py-2.5 ${ci === 0 ? "font-semibold text-foreground" : "text-zinc-600"}`}>{cell}</td>)}
                         </tr>
                       ))}
                     </tbody>

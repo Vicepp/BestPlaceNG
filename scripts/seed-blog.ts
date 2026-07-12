@@ -35,7 +35,7 @@ const bestPower = majors.filter((c) => gridHours[c.slug] !== undefined).sort((a,
 
 const lagos = city("lagos-lagos"), abuja = city("abuja-fct"), ibadan = city("ibadan-oyo"), ph = city("port-harcourt-rivers"), enugu = city("enugu-enugu"), kano = city("kano-kano"), calabar = city("calabar-cross-river");
 
-interface Spec { slug: string; title: string; excerpt: string; category: string; kind: string; tags: string[]; date: string; metaDescription: string; sections: { h2: string; body: string; bullets?: string[]; table?: { headers: string[]; rows: string[][] } }[]; takeaways: string[]; ctaMid: { label: string; href: string }; ctaEnd: { label: string; href: string }; featured?: boolean; author?: { name: string; role: string }; references?: { label: string; url: string }[] }
+interface Spec { slug: string; title: string; excerpt: string; category: string; kind: string; tags: string[]; date: string; metaDescription: string; sections: { h2: string; body: string; bullets?: string[]; table?: { headers: string[]; rows: { cells: string[] }[] } }[]; takeaways: string[]; ctaMid: { label: string; href: string }; ctaEnd: { label: string; href: string }; featured?: boolean; author?: { name: string; role: string }; references?: { label: string; url: string }[] }
 
 const cityRow = (c: (typeof majors)[number]) => `${c.name}, ${c.stateName} — cost index ${c.costOfLivingIndex} (100 = national avg), safety ${c.safetyIndex}/100${r2(c.slug) ? `, 2-bed ~${naira(r2(c.slug)!)}/yr` : ""}`;
 
@@ -530,7 +530,7 @@ function expand(p: Spec): Spec {
   const rr2 = c ? r2(c.slug) : undefined;
   const gh = c ? gridHours[c.slug] : undefined;
   const v = (p.slug.length + p.slug.charCodeAt(0)) % 2;
-  const X: { h2: string; body: string; bullets?: string[]; table?: { headers: string[]; rows: string[][] } }[] = [];
+  const X: { h2: string; body: string; bullets?: string[]; table?: { headers: string[]; rows: { cells: string[] }[] } }[] = [];
 
   if (p.category === "City Guides" || p.category === "Cost of Living") {
     X.push({
@@ -559,12 +559,12 @@ function expand(p: Spec): Spec {
         table: {
           headers: ["", A2.name, B2.name],
           rows: [
-            ["Cost of living (100 = avg)", String(A2.costOfLivingIndex ?? "n/a"), String(B2.costOfLivingIndex ?? "n/a")],
-            ["Safety score (/100)", String(A2.safetyIndex ?? "n/a"), String(B2.safetyIndex ?? "n/a")],
-            ["Schools (/10)", String(A2.schoolRating ?? "n/a"), String(B2.schoolRating ?? "n/a")],
-            ["Grid power (hrs/day)", String(gridHours[A2.slug] ?? "8-12"), String(gridHours[B2.slug] ?? "8-12")],
-            ["2-bed rent (researched)", r2(A2.slug) ? naira(r2(A2.slug)!) + "/yr" : "estimate", r2(B2.slug) ? naira(r2(B2.slug)!) + "/yr" : "estimate"],
-            ["Population", A2.population.toLocaleString(), B2.population.toLocaleString()],
+            { cells: ["Cost of living (100 = avg)", String(A2.costOfLivingIndex ?? "n/a"), String(B2.costOfLivingIndex ?? "n/a")] },
+            { cells: ["Safety score (/100)", String(A2.safetyIndex ?? "n/a"), String(B2.safetyIndex ?? "n/a")] },
+            { cells: ["Schools (/10)", String(A2.schoolRating ?? "n/a"), String(B2.schoolRating ?? "n/a")] },
+            { cells: ["Grid power (hrs/day)", String(gridHours[A2.slug] ?? "8-12"), String(gridHours[B2.slug] ?? "8-12")] },
+            { cells: ["2-bed rent (researched)", r2(A2.slug) ? naira(r2(A2.slug)!) + "/yr" : "estimate", r2(B2.slug) ? naira(r2(B2.slug)!) + "/yr" : "estimate"] },
+            { cells: ["Population", A2.population.toLocaleString(), B2.population.toLocaleString()] },
           ],
         },
       });
