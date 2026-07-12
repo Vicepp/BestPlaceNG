@@ -31,6 +31,8 @@ export interface BlogPost {
   ctaMid: { label: string; href: string };
   ctaEnd: { label: string; href: string };
   featured?: boolean;
+  /** External sources & further reading — rendered at the end for E-E-A-T. */
+  references?: { label: string; url: string }[];
 }
 
 export async function getBlogPostsLive(): Promise<BlogPost[]> {

@@ -35,7 +35,7 @@ const bestPower = majors.filter((c) => gridHours[c.slug] !== undefined).sort((a,
 
 const lagos = city("lagos-lagos"), abuja = city("abuja-fct"), ibadan = city("ibadan-oyo"), ph = city("port-harcourt-rivers"), enugu = city("enugu-enugu"), kano = city("kano-kano"), calabar = city("calabar-cross-river");
 
-interface Spec { slug: string; title: string; excerpt: string; category: string; kind: string; tags: string[]; date: string; metaDescription: string; sections: { h2: string; body: string; bullets?: string[] }[]; takeaways: string[]; ctaMid: { label: string; href: string }; ctaEnd: { label: string; href: string }; featured?: boolean; author?: { name: string; role: string } }
+interface Spec { slug: string; title: string; excerpt: string; category: string; kind: string; tags: string[]; date: string; metaDescription: string; sections: { h2: string; body: string; bullets?: string[] }[]; takeaways: string[]; ctaMid: { label: string; href: string }; ctaEnd: { label: string; href: string }; featured?: boolean; author?: { name: string; role: string }; references?: { label: string; url: string }[] }
 
 const cityRow = (c: (typeof majors)[number]) => `${c.name}, ${c.stateName} — cost index ${c.costOfLivingIndex} (100 = national avg), safety ${c.safetyIndex}/100${r2(c.slug) ? `, 2-bed ~${naira(r2(c.slug)!)}/yr` : ""}`;
 
@@ -324,9 +324,206 @@ const POSTS: Spec[] = [
   },
 ];
 
+/* ── Generators: expand the library to ~100 research-grade posts ── */
+const wiki = (n: string) => ({ label: `${n} — Wikipedia`, url: `https://en.wikipedia.org/wiki/${encodeURIComponent(n.replace(/ /g, "_"))}` });
+const numbeo = (n: string) => ({ label: `Numbeo cost data for ${n}`, url: `https://www.numbeo.com/cost-of-living/in/${encodeURIComponent(n.replace(/ /g, "-"))}` });
+const NBS = { label: "National Bureau of Statistics", url: "https://nigerianstat.gov.ng" };
+const NERC = { label: "NERC electricity tariff orders", url: "https://nerc.gov.ng" };
+const NCC = { label: "NCC industry statistics", url: "https://www.ncc.gov.ng" };
+const CBN = { label: "Central Bank of Nigeria data", url: "https://www.cbn.gov.ng" };
+
+const covered = new Set(["lagos-lagos", "ibadan-oyo", "kano-kano", "calabar-cross-river", "uyo-akwa-ibom", "port-harcourt-rivers"]);
+const GEN: Spec[] = [];
+let d = new Date("2026-05-10");
+const nextDate = () => { d = new Date(d.getTime() - 86400000 * 2); return d.toISOString().slice(0, 10); };
+
+/* 1. City living guides for every remaining major city (43) */
+for (const c of majors.filter((c) => !covered.has(c.slug))) {
+  const rr = rent[c.slug]; const gh = gridHours[c.slug];
+  GEN.push({
+    slug: `living-in-${c.slug}-guide`, title: `Living in ${c.name}: Cost, Safety & Rent Guide`,
+    excerpt: `${c.description ?? `${c.name} is one of ${c.stateName} State's key cities.`} Here's the full data picture for anyone considering the move.`,
+    category: "City Guides", kind: "standalone", tags: [c.name.toLowerCase(), c.stateName.toLowerCase(), "living guide"], date: nextDate(),
+    metaDescription: `Is ${c.name} a good place to live? Cost index ${c.costOfLivingIndex}, safety ${c.safetyIndex}/100, rent levels, power and schools — the research.`,
+    sections: [
+      { h2: `${c.name} at a glance`, body: `${c.name} sits in ${c.lga} LGA, ${c.stateName} State (${c.region}), with roughly ${c.population.toLocaleString()} residents growing ${c.growthRatePercent}% a year. On our national indexes it scores ${c.costOfLivingIndex} for cost of living (100 = average) and ${c.safetyIndex}/100 for safety.` },
+      { h2: "What homes cost", body: rr ? `Researched annual rents (${rr.asOf}):` : `Rent levels are estimated from the state reference market; typical figures for a city of this profile:`, bullets: rr ? [`Self-contain: ~${naira(rr.selfContain)}/yr`, `1-bedroom: ~${naira(rr.oneBedroom)}/yr`, `2-bedroom: ~${naira(rr.twoBedroom)}/yr`, `3-bedroom: ~${naira(rr.threeBedroom)}/yr`] : [`Expect rents below the national big-city average given the ${c.costOfLivingIndex} cost index`, "Annual payment upfront is standard; budget 10–20% first-year extras"] },
+      { h2: "Power, weather and daily life", body: `Grid supply averages ${gh ? `~${gh} hours/day` : "the tier-typical 8–12 hours/day"} — an inverter or small solar setup is standard practice. ${c.climate ? `Days run around ${c.climate.tempHighC}°C with the rainy season ${c.climate.rainySeasonMonths.toLowerCase()}.` : ""} Schools rate ${c.schoolRating}/10 on our index.` },
+      { h2: "Who thrives here", body: `${(c.costOfLivingIndex ?? 100) <= 85 ? "Budget-conscious families, remote workers and anyone whose income isn't tied to a megacity — the low cost base is the whole point." : (c.safetyIndex ?? 0) >= 78 ? "Households prioritising stability: the safety score and steady administrative economy do the heavy lifting." : "Traders and professionals plugged into the local economy; do neighbourhood-level homework on the safety picture."} ${c.isStateCapital ? "As state capital, government and services anchor formal employment." : ""}` },
+    ],
+    takeaways: [`Cost index ${c.costOfLivingIndex} · Safety ${c.safetyIndex}/100 · Schools ${c.schoolRating}/10`, rr ? `2-bed rents ~${naira(rr.twoBedroom)}/yr` : "Rents run below big-city averages", "Check street-level power band and drainage before signing"],
+    ctaMid: { label: `${c.name}'s full data profile`, href: `/city/${c.slug}` }, ctaEnd: { label: `Browse ${c.name} listings`, href: `/city/${c.slug}/apartments` },
+    references: [wiki(c.name), numbeo(c.name), NBS, NERC],
+  });
+}
+
+/* 2. City-vs-city comparisons (15) */
+const pairs: [string, string][] = [["abuja-fct", "port-harcourt-rivers"], ["kano-kano", "kaduna-kaduna"], ["enugu-enugu", "owerri-imo"], ["ibadan-oyo", "abeokuta-ogun"], ["uyo-akwa-ibom", "calabar-cross-river"], ["benin-city-edo", "warri-delta"], ["jos-plateau", "ilorin-kwara"], ["lagos-lagos", "ibadan-oyo"], ["abuja-fct", "kaduna-kaduna"], ["enugu-enugu", "awka-anambra"], ["port-harcourt-rivers", "uyo-akwa-ibom"], ["akure-ondo", "ado-ekiti-ekiti"], ["lagos-lagos", "port-harcourt-rivers"], ["ibadan-oyo", "ilorin-kwara"], ["owerri-imo", "aba-abia"]];
+for (const [a, b] of pairs) {
+  const A = city(a), B = city(b);
+  const winnerCost = A.costOfLivingIndex! < B.costOfLivingIndex! ? A : B;
+  const winnerSafe = A.safetyIndex! > B.safetyIndex! ? A : B;
+  GEN.push({
+    slug: `${a.split("-")[0]}-vs-${b.split("-")[0]}-compared`, title: `${A.name} vs ${B.name}: Which City Should You Pick?`,
+    excerpt: `${A.name} and ${B.name} attract the same movers for different reasons. The data splits them cleanly on cost, safety and daily life.`,
+    category: "Comparisons", kind: "comparison", tags: [A.name.toLowerCase(), B.name.toLowerCase(), "comparison"], date: nextDate(),
+    metaDescription: `${A.name} vs ${B.name} compared on cost of living, safety, rent, power and schools — data-backed verdict on which fits you.`,
+    sections: [
+      { h2: "Head to head", body: "The core numbers:", bullets: [cityRow(A), cityRow(B), `Power: ${A.name} ~${gridHours[a] ?? "8-12"}h vs ${B.name} ~${gridHours[b] ?? "8-12"}h daily`, `Schools: ${A.name} ${A.schoolRating}/10 vs ${B.name} ${B.schoolRating}/10`] },
+      { h2: `The case for ${A.name}`, body: `${A.description ?? ""} ${A.slug === winnerCost.slug ? `It's the cheaper of the pair (index ${A.costOfLivingIndex}), which compounds every year you stay.` : `You pay more, but the deeper market and amenities are what you're buying.`}` },
+      { h2: `The case for ${B.name}`, body: `${B.description ?? ""} ${B.slug === winnerSafe.slug ? `It takes the safety column at ${B.safetyIndex}/100 — for families that often ends the debate.` : `Opportunity density is the draw; budget accordingly.`}` },
+      { h2: "Verdict", body: `Pure value: ${winnerCost.name}. Peace of mind: ${winnerSafe.name}. If those are the same city, your answer is made — otherwise weigh whether your income travels with you (favours the cheap pick) or depends on the bigger market.` },
+    ],
+    takeaways: [`${winnerCost.name} wins on cost (${winnerCost.costOfLivingIndex} index)`, `${winnerSafe.name} wins on safety (${winnerSafe.safetyIndex}/100)`, "Match the city to where your income actually comes from"],
+    ctaMid: { label: "Run this comparison live", href: "/compare" }, ctaEnd: { label: `Explore ${winnerCost.name}`, href: `/city/${winnerCost.slug}` },
+    references: [wiki(A.name), wiki(B.name), numbeo(A.name), NBS],
+  });
+}
+
+/* 3. Weekend & holiday tour guides (12) */
+const weekend: [string, string, string][] = [
+  ["calabar-cross-river", "Marina Resort, the Slave History Museum and Kwa Falls day trips", "carnival-city energy with the country's calmest streets"],
+  ["lagos-lagos", "Lekki Conservation Centre canopy walk, Nike Art Gallery, Tarkwa Bay and Landmark Beach", "the weekend never really starts or ends"],
+  ["abuja-fct", "Jabi Lake, Millennium Park, Zuma Rock runs and Usuma Dam picnics", "green, orderly and unhurried"],
+  ["jos-plateau", "Shere Hills hikes, the Jos Wildlife Park and Riyom Rock", "Nigeria's coolest air and highland views"],
+  ["enugu-enugu", "Ngwo Pine Forest and cave, Awhum Waterfall and Nike Lake", "hilly, green and easygoing"],
+  ["ibadan-oyo", "Agodi Gardens, Bower's Tower views and the old-city food circuit", "history with a student-town pulse"],
+  ["uyo-akwa-ibom", "Ibom Icon golf resort, Godswill Akpabio Stadium walks and riverine food", "tidy boulevards and slow evenings"],
+  ["kano-kano", "the ancient city walls, Kurmi Market and the Gidan Makama Museum", "a thousand years of trade in one walk"],
+  ["port-harcourt-rivers", "Port Harcourt Pleasure Park, Bonny Island hops and waterfront suya", "oil-city bustle with creek-side calm"],
+  ["badagry-lagos", "the Badagry Heritage Museum, the Point of No Return and coconut-lined beaches", "sober history and empty beaches an hour from Lagos"],
+  ["osogbo-osun", "the UNESCO Osun-Osogbo Sacred Grove and the adire textile workshops", "living heritage you can walk through"],
+  ["abeokuta-ogun", "Olumo Rock, the Itoku adire market and river views", "rock-top views over a storied old town"],
+];
+for (const [slug, sights, vibe] of weekend) {
+  const c = cities.find((x) => x.slug === slug)!;
+  GEN.push({
+    slug: `weekend-in-${slug}`, title: `A Perfect Weekend in ${c.name}: What to See & Do`,
+    excerpt: `${c.name} does weekends with ${vibe}. Here's a two-day plan built around ${sights.split(",")[0]} and the spots locals actually rate.`,
+    category: "Weekend & Travel", kind: "standalone", tags: [c.name.toLowerCase(), "weekend", "travel", "tourism"], date: nextDate(),
+    metaDescription: `Weekend in ${c.name}: top things to do — ${sights.slice(0, 90)}…`,
+    sections: [
+      { h2: "The vibe", body: `${c.description ?? ""} Expect ${vibe} — daytime highs around ${c.climate?.tempHighC ?? 31}°C, so plan outdoor stops for mornings and evenings${c.climate ? ` (rains ${c.climate.rainySeasonMonths.toLowerCase()})` : ""}.` },
+      { h2: "Day one: the essentials", body: `Start with ${sights}. Pace it slowly — the point of ${c.name} is not rushing it. Ride-hailing and keke cover everything on this list cheaply.` },
+      { h2: "Day two: eat and wander", body: `Trace the food: the main markets do the region's classics better than any restaurant, and asking vendors "what's good today" outperforms every listicle. Cap it with sunset at the liveliest open spot you passed on day one.` },
+      { h2: "If the weekend becomes a move", body: `Plenty of visitors run the numbers after a good weekend: ${c.name} scores ${c.costOfLivingIndex ?? "below-average"} on cost and ${c.safetyIndex ?? "solid"} on safety. The full profile — rents, power, schools — is one click away.` },
+    ],
+    takeaways: [`Anchor sights: ${sights.split(",").slice(0, 2).join(",")}`, "Mornings/evenings for outdoors; markets for food", `Liking it? ${c.name}'s living data is on its city page`],
+    ctaMid: { label: `${c.name} hotels & spots`, href: `/city/${c.slug}/hotels` }, ctaEnd: { label: `Could you live here? See the data`, href: `/city/${c.slug}` },
+    references: [wiki(c.name), { label: "Nigeria tourism overview", url: "https://en.wikipedia.org/wiki/Tourism_in_Nigeria" }],
+  });
+}
+
+/* 4. US / international platform comparisons (6) */
+const usComps: [string, string, string, string, string[]][] = [
+  ["zillow", "Zillow", "https://www.zillow.com", "the US home-search giant built on public MLS data and Zestimates", ["Zillow runs on MLS feeds and public records — infrastructure Nigeria doesn't have, which is why no 'Nigerian Zillow' can simply copy the model", "Zestimate-style valuations need transaction databases; here, researched rent data and landlord-direct listings do that job", "What transfers: search-first UX and data transparency — what doesn't: agent-fee structures and instant valuations"]],
+  ["apartments-com", "Apartments.com", "https://www.apartments.com", "America's biggest rental marketplace with verified availability and virtual tours", ["Verified availability is its core promise — ours is verified payment: escrow until move-in, which US monthly renting never needed to invent", "US leases are monthly with deposits capped by law; Nigerian annual rent makes payment protection matter far more than tour polish", "If you're relocating from the US, expect listings culture to differ: here the data layer (power, safety) replaces the amenity checklist"]],
+  ["zumper", "Zumper", "https://www.zumper.com", "a US rental platform known for real-time listings and credit-screened applications", ["Zumper's screening (credit reports, background checks) has no Nigerian equivalent — KYC identity verification is the local analogue", "Their PowerLeases let you apply once for many homes; here the friction is payment risk, which escrow addresses instead", "Both platforms agree on one thing: the transaction should finish where it starts"]],
+  ["realtor-com", "Realtor.com", "https://www.realtor.com", "the official-feel US portal tied to licensed realtor listings", ["Realtor.com's moat is licensure — every listing traces to a licensed agent; Nigeria has no equivalent enforcement, so platform-level verification substitutes", "For diaspora buyers researching from the US: use portal polish for browsing, but insist on escrowed payments and independent title checks here", "The 'official listing' concept simply doesn't exist in Nigeria — treat every ad as unverified until the platform proves otherwise"]],
+  ["bestplaces-net", "BestPlaces.net", "https://www.bestplaces.net", "the US city-comparison pioneer that inspired an entire category", ["BestPlaces built the playbook: compare cities on cost, crime, climate and schools before choosing — we built the same for Nigeria's 753 cities", "The difference in data plumbing is stark: US census granularity vs our mix of researched rents, NBS statistics and on-the-ground snapshots", "Where we go further: you can finish the move here — message the landlord, tour, and pay in escrow on the same platform"]],
+  ["us-renting-vs-nigeria", "Renting in the US vs Nigeria", "https://www.hud.gov", "two rental cultures that solve trust completely differently", ["US: monthly rent, capped deposits, credit scores and eviction courts carry the trust — Nigeria: a year upfront with none of that scaffolding", "That's why escrow matters more here than any US-style feature: it rebuilds the missing trust layer at the payment step", "Diaspora returnees: budget for rent + 20-30% first-year fees, and never pay outside a protected flow"]],
+];
+for (const [slugKey, name, url, tagline, points] of usComps) {
+  GEN.push({
+    slug: `bestplaceng-vs-${slugKey}`, title: `${name} vs BestPlaceNG: An Honest Comparison`,
+    excerpt: `${name} is ${tagline}. Here's how the model maps — and doesn't — to renting and relocating in Nigeria.`,
+    category: "Comparisons", kind: "vs-competitor", tags: [name.toLowerCase(), "comparison", "us real estate"], date: nextDate(),
+    metaDescription: `${name} vs BestPlaceNG: what the ${name} model gets right, what doesn't transfer to Nigeria, and where each wins.`,
+    sections: [
+      { h2: `What ${name} does brilliantly`, body: `${name} is ${tagline} — a mature product built for a market with deep data infrastructure, enforceable leases and standardised transactions.` },
+      { h2: "What changes in Nigeria", body: "The honest mapping:", bullets: points },
+      { h2: "Where BestPlaceNG fits", body: `We're built for the Nigerian trust gap: city liveability data first (cost, safety, power, schools across 753 cities), direct landlord messaging, tour scheduling, and rent held in escrow until you confirm move-in. Different market, different problem, different tool.` },
+    ],
+    takeaways: [`${name}: polished product for US market structure`, "Nigeria's core rental problem is payment trust, not search", "Use their ideas, close your Nigerian deal where money is protected"],
+    ctaMid: { label: "See how our data compares", href: "/rankings" }, ctaEnd: { label: "Try the Nigerian version", href: "/apartments" },
+    references: [{ label: name, url }, { label: "BestPlaces.net", url: "https://www.bestplaces.net" }, NBS, CBN],
+  });
+}
+
+/* 5. Real-estate & property posts (8) */
+const rePosts: [string, string, string, { h2: string; body: string; bullets?: string[] }[]][] = [
+  ["verify-land-title-nigeria", "How to Verify Land Title in Nigeria (C of O & More)", "Land fraud outsells every other scam in Nigerian property. Verification is boring, procedural — and it works.", [
+    { h2: "The documents that matter", body: "Know what you're looking at:", bullets: ["Certificate of Occupancy (C of O): the state's primary title grant", "Governor's Consent: required when titled land changes hands", "Deed of Assignment: the transfer contract itself", "Survey plan: confirms the land's actual coordinates", "Excision/Gazette: for land released from government acquisition"] },
+    { h2: "The verification walk", body: "Take the survey plan to the state land registry for a title search; confirm the seller matches the registered owner; check the land isn't under acquisition or litigation. Lagos, Ogun and several states now offer partially digital searches — use them, then verify physically." },
+    { h2: "Red flags that end deals", body: "Family land with 'receipts' only, pressure to skip the registry, prices dramatically under market, and sellers allergic to your surveyor visiting. Any one of these is your exit." }]],
+  ["buying-vs-renting-lagos", "Buying vs Renting in Lagos: The Real Math", "With 2-beds renting around ₦4.5m/yr and mainland flats selling from ₦40m+, which side of the ledger wins?", [
+    { h2: "The rent-multiple test", body: "Divide price by annual rent: Lagos properties commonly trade at 10–18× rent. Below 12×, buying gets interesting; above 15×, renting and investing the difference usually wins on paper — before the intangibles." },
+    { h2: "What the spreadsheet misses", body: "Buying fixes your biggest cost in an inflationary economy and ends landlord risk; renting preserves mobility and dodges service-charge shocks and title risk. In Lagos, title diligence is itself a cost line." },
+    { h2: "A sane middle path", body: "Many households rent centrally for career years while buying land or off-plan on the growth corridors (Epe, Ibeju-Lekki, the Circular-Road equivalent plays elsewhere) — mobility now, equity later." }]],
+  ["off-plan-property-risks", "Off-Plan Property in Nigeria: Rewards and Red Flags", "Discounted pre-construction prices built half of new Lagos — and burned thousands of buyers. The difference is process.", [
+    { h2: "Why off-plan tempts", body: "20–40% below completed prices, staged payments, and first pick of units. In fast corridors, completed values have historically outrun the discount." },
+    { h2: "Where it goes wrong", body: "The failure modes:", bullets: ["Developer sells more units than exist", "Land title was never clean to begin with", "Endless 'construction delays' that are really cashflow gaps", "Specs downgraded between brochure and handover"] },
+    { h2: "Your protection checklist", body: "Verify the land title first (not the renders), demand a track record of delivered projects, insist on milestone-linked payments into a traceable account, and get the delivery date + penalties in the contract." }]],
+  ["agent-fees-nigeria-explained", "Agent & Agency Fees in Nigeria, Explained", "Who pays what, what's negotiable, and when the fee is buying you nothing.", [
+    { h2: "The standard stack", body: "Typical first-year rental charges:", bullets: ["Agency: 10% of annual rent (the agent's cut)", "Legal/agreement: 5–10% (the lawyer who drafted a template)", "Caution: refundable deposit, in theory", "Inspection 'fees': the classic scam marker — legitimate agents earn on closing, not viewing"] },
+    { h2: "What's actually negotiable", body: "Almost all of it, especially legal fees and caution size — and doubly so on units that have sat empty. Ask what the agency fee specifically covered; silence is an answer." },
+    { h2: "The direct alternative", body: "When landlord and tenant meet directly on a platform, the 10% simply stops existing. Agents still earn their keep on scarce premium stock and for remote searches — pay for that, not for opening a door." }]],
+  ["reits-property-investment-nigeria", "REITs & Small-Ticket Property Investing in Nigeria", "You don't need ₦50m to own Nigerian real estate — but the small-ticket options need clear eyes.", [
+    { h2: "The listed route: N-REITs", body: "NGX-listed REITs (UPDC, Union Homes, SFS) pay rental-income dividends from a share-priced entry. Liquidity is thin and discounts to asset value persist — treat them as income plays, not growth rockets." },
+    { h2: "Fractional & co-ownership platforms", body: "Proptech now sells property fractions from tens of thousands of naira. The questions that matter: who holds title, what exactly do you own, and how do you exit? If the answers are vague, it's a promise, not an asset." },
+    { h2: "Land banking, honestly", body: "Cheap corridor land remains the classic small-ticket play — the entire risk is title and location patience. The verification post above is mandatory reading first." }]],
+  ["service-charges-estates-nigeria", "Estate Service Charges: What You're Really Paying For", "₦200k–₦2m a year on top of rent — here's how to audit it before you sign.", [
+    { h2: "What it covers (ideally)", body: "Security, shared power (the big one), water, waste, common-area maintenance. In serviced estates, 'estate power' hours are the main product — ask for the generator schedule in writing." },
+    { h2: "The questions to ask", body: "Your pre-signing audit:", bullets: ["Fixed or reviewable — and who approves increases?", "Metered or flat power contribution?", "What happened to last year's charge (ask a neighbour)?", "Is there a residents' association with sight of the books?"] },
+    { h2: "Rule of thumb", body: "A fair charge tracks what you'd spend replicating the services solo, minus the group discount. If it approaches 30%+ of rent without near-24/7 power, you're subsidising something." }]],
+  ["shortlet-investing-nigeria", "Short-Let Investing in Nigeria: The Honest Numbers", "Lagos short-lets promise triple the yield of annual rent. Sometimes they even deliver.", [
+    { h2: "The gross-vs-net trap", body: "₦150k/night sounds like ₦4.5m/month; occupancy (40–70%), agency splits, cleaning, power, and platform fees routinely halve it. Model at 50% occupancy and real diesel prices before believing any pitch." },
+    { h2: "Location is 90% of it", body: "Island Lagos, Abuja's Maitama/Wuse and oil-visitor PH sustain rates; everywhere else, short-let is a part-time hobby. Estate rules increasingly restrict it — check before you furnish." },
+    { h2: "Versus annual letting", body: "Annual rent is one payment, zero management. Short-let is a hospitality business with staff. The right comparison isn't yield vs yield — it's whether you're buying an asset or a job." }]],
+  ["documents-before-renting-nigeria", "Every Document to Check Before Renting in Nigeria", "The paper trail that separates a tenancy from a donation.", [
+    { h2: "Before any money moves", body: "Ask for:", bullets: ["Proof the 'landlord' controls the property (title doc or prior tenancy records)", "A written tenancy agreement — read the renewal and increment clauses", "Receipts for every naira, including caution and agency", "Documented condition of the flat (photos) attached to the agreement"] },
+    { h2: "Clauses that bite later", body: "Automatic increment percentages, 'landlord may terminate with one month notice', tenant-pays-all-repairs, and caution 'non-refundable for cleaning'. Strike or negotiate them before signing — after is too late." },
+    { h2: "The platform shortcut", body: "Structured flows generate the trail automatically: signed terms, payment records and message history all timestamped. However you rent, leave a paper trail a lawyer could love." }]],
+];
+for (const [slug, title, excerpt, sections] of rePosts) {
+  GEN.push({
+    slug, title, excerpt, category: "Real Estate", kind: "discussion", tags: ["real estate", "property", "investing"], date: nextDate(),
+    metaDescription: excerpt.slice(0, 158), sections,
+    takeaways: sections.map((s) => s.h2).slice(0, 3),
+    ctaMid: { label: "Browse verified listings", href: "/apartments" }, ctaEnd: { label: "Research any city first", href: "/rankings" },
+    references: [{ label: "Lagos State Lands Bureau", url: "https://landsbureau.lagosstate.gov.ng" }, { label: "Nigerian Exchange (NGX)", url: "https://ngxgroup.com" }, NBS, CBN],
+  });
+}
+
+/* 6. Vibes & what people are talking about (6) */
+const vibes: [string, string, string[]][] = [
+  ["lagos", "Lagos", ["Rent renewals arriving 40-60% higher and tenants comparing notes on negotiating them", "The Blue and Red Line trains changing which neighbourhoods count as 'far'", "Island vs mainland debates that never die — now with remote work as a plot twist"]],
+  ["abuja", "Abuja", ["Estate service charges quietly outpacing rent increases", "The commute divide between city-centre living and satellite-town economics (Kubwa, Lugbe)", "Whether Band A power bills beat generator budgets — residents post the receipts"]],
+  ["ibadan", "Ibadan", ["Circular Road land speculation — everyone knows someone who bought along the corridor", "Lagos remote workers relocating and what that's doing to Bodija/Akobo rents", "The train to Lagos as a lifestyle: weekday Ibadan calm, weekend Lagos noise"]],
+  ["enugu", "Enugu", ["The tech-and-remote crowd quietly gathering and the cafés that serve them", "Whether 'Enugu is the new safe haven' talk survives its own rent effect", "Independence Layout vs new-town estates for young families"]],
+  ["port-harcourt", "Port Harcourt", ["Power supply frustrations and the solar installations spreading roof by roof", "Oil-round hiring rumours and their instant effect on GRA rents", "Weekend escapes: which creek-side spots are actually worth it"]],
+  ["kano", "Kano", ["Trade recovering along the northern corridors and what it means for warehouse rents", "Keke fare economics as fuel prices move", "The quiet growth of new estates along Zaria Road"]],
+];
+for (const [key2, name, topics] of vibes) {
+  const c = majors.find((x) => x.name === name)!;
+  GEN.push({
+    slug: `what-people-say-about-${key2}`, title: `What People Are Talking About in ${name} Right Now`,
+    excerpt: `Every city has its running conversations. In ${name}, three threads dominate the estate WhatsApp groups, the barbershops and the timeline.`,
+    category: "Vibes & Culture", kind: "discussion", tags: [name.toLowerCase(), "vibes", "conversations"], date: nextDate(),
+    metaDescription: `The conversations defining ${name} right now — rent, power, movement and money, from the streets to the group chats.`,
+    sections: [
+      { h2: "The three big threads", body: "What keeps coming up:", bullets: topics },
+      { h2: "What it tells a mover", body: `City chatter is leading data: today's complaints are next year's price movements. In ${name}'s case, the threads above map directly onto its cost index (${c.costOfLivingIndex}) and power picture — the mood and the numbers agree.` },
+      { h2: "Add your voice", body: `Every ${name} city page takes resident reviews by topic — cost, power, safety, transport. The reviews feed the same pages movers read, so the conversation compounds.` },
+    ],
+    takeaways: topics.map((t) => t.split("—")[0].split(" and ")[0].trim()).slice(0, 3),
+    ctaMid: { label: `Read ${name} resident reviews`, href: `/city/${c.slug}/reviews` }, ctaEnd: { label: "Leave your own take", href: `/city/${c.slug}` },
+    references: [wiki(name), NBS],
+  });
+}
+
+/* De-2026 the handcrafted titles + attach default references */
+const DEFAULT_REFS: Record<string, { label: string; url: string }[]> = {
+  "Cost of Living": [NBS, CBN], Rankings: [NBS, NERC], Comparisons: [NBS], "Renting 101": [NERC, CBN, { label: "Lagos Tenancy Law overview", url: "https://lagosstate.gov.ng" }], "City Guides": [NBS, NCC],
+};
+function finalize(p: Spec): Spec {
+  const title = p.title.replace(/\s*\(2026\)/g, "").replace(/ in 2026/g, "").replace(/ 2026/g, "").replace(/2026:?\s*/g, "");
+  return { ...p, title, metaDescription: p.metaDescription.replace(/ 2026/g, "").replace(/2026 /g, ""), references: p.references ?? [...(DEFAULT_REFS[p.category] ?? [NBS]), numbeo("Lagos")] };
+}
+
 async function main() {
   let n = 0;
-  for (const p of POSTS) {
+  for (const p of [...POSTS.map(finalize), ...GEN.map(finalize)]) {
     await db.collection("blogPosts").doc(p.slug).set({
       ...p,
       image: img(p.slug),

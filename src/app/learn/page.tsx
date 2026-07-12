@@ -2,6 +2,7 @@ import Link from "next/link";
 import type { Metadata } from "next";
 import { BookOpen, TrendingUp, Mail } from "lucide-react";
 import { getBlogPostsLive } from "@/data/blog";
+import BlogGrid from "@/components/BlogGrid";
 
 export const metadata: Metadata = {
   title: "Learn — City Guides, Cost of Living & Renting in Nigeria | BestPlaceNG",
@@ -40,24 +41,8 @@ export default async function LearnPage() {
         </div>
       ) : (
         <div className="flex flex-col gap-8 lg:flex-row">
-          {/* Post grid */}
-          <div className="grid flex-1 grid-cols-1 gap-6 sm:grid-cols-2">
-            {posts.map((p) => (
-              <Link key={p.slug} href={`/learn/${p.slug}`}
-                className="group overflow-hidden rounded-2xl border border-zinc-100 bg-white shadow-sm transition hover:-translate-y-1 hover:border-brand hover:shadow-lg">
-                {/* eslint-disable-next-line @next/next/no-img-element */}
-                <img src={p.image} alt={p.title} loading="lazy" className="h-44 w-full object-cover transition duration-300 group-hover:scale-[1.02]" />
-                <div className="p-5">
-                  <div className="flex items-center gap-2 text-[11px] font-bold uppercase tracking-wide">
-                    <span className="rounded-full bg-brand-light px-2.5 py-0.5 text-brand-dark">{p.category}</span>
-                    <span className="text-zinc-300">{new Date(p.date).toLocaleDateString(undefined, { month: "short", day: "numeric", year: "numeric" })}</span>
-                  </div>
-                  <h2 className="mt-2 text-lg font-extrabold leading-snug text-foreground group-hover:text-brand">{p.title}</h2>
-                  <p className="mt-1.5 text-sm text-zinc-500 line-clamp-2">{p.excerpt}</p>
-                  <p className="mt-3 text-xs font-semibold text-zinc-400">{p.author.name} · {p.author.role}</p>
-                </div>
-              </Link>
-            ))}
+          <div className="min-w-0 flex-1">
+            <BlogGrid posts={posts} />
           </div>
 
           {/* Sidebar */}
@@ -71,10 +56,7 @@ export default async function LearnPage() {
                   {featured.map((p, i) => (
                     <Link key={p.slug} href={`/learn/${p.slug}`} className="group flex gap-3">
                       <span className="flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-zinc-900 text-xs font-bold text-white">{i + 1}</span>
-                      <span>
-                        <span className="block text-sm font-bold leading-snug text-foreground group-hover:text-brand">{p.title}</span>
-                        <span className="text-xs text-zinc-400">{new Date(p.date).toLocaleDateString(undefined, { month: "long", day: "numeric", year: "numeric" })}</span>
-                      </span>
+                      <span className="block text-sm font-bold leading-snug text-foreground group-hover:text-brand">{p.title}</span>
                     </Link>
                   ))}
                 </div>

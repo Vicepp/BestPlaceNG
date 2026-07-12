@@ -58,7 +58,7 @@ export default async function BlogPostPage({ params }: { params: Promise<{ slug:
             <span className="rounded-full bg-brand-light px-3.5 py-1 text-xs font-bold uppercase tracking-wide text-brand-dark">{post.category}</span>
             <h1 className="mx-auto mt-4 max-w-2xl text-3xl font-extrabold leading-tight text-foreground sm:text-4xl">{post.title}</h1>
             <p className="mt-3 text-xs font-bold uppercase tracking-widest text-zinc-400">
-              {post.author.name} · {new Date(post.date).toLocaleDateString(undefined, { month: "long", day: "numeric", year: "numeric" })}
+              {post.author.name} · {post.author.role}
             </p>
           </div>
 
@@ -84,6 +84,21 @@ export default async function BlogPostPage({ params }: { params: Promise<{ slug:
           <ul className="mt-3 space-y-1.5 text-zinc-600">
             {post.takeaways.map((t) => <li key={t} className="flex gap-2"><span className="mt-2 h-1.5 w-1.5 shrink-0 rounded-full bg-accent" /> <span>{t}</span></li>)}
           </ul>
+
+          {post.references && post.references.length > 0 && (
+            <>
+              <h2 className="mt-10 text-2xl font-extrabold text-foreground">Sources &amp; further reading</h2>
+              <ul className="mt-3 space-y-1.5 text-sm">
+                {post.references.map((ref) => (
+                  <li key={ref.url}>
+                    <a href={ref.url} target="_blank" rel="nofollow noopener noreferrer" className="font-semibold text-brand underline-offset-2 hover:underline">
+                      {ref.label} ↗
+                    </a>
+                  </li>
+                ))}
+              </ul>
+            </>
+          )}
 
           <Cta {...post.ctaEnd} />
         </article>
@@ -111,7 +126,7 @@ export default async function BlogPostPage({ params }: { params: Promise<{ slug:
                 {related.map((r) => (
                   <Link key={r.slug} href={`/learn/${r.slug}`} className="group block">
                     <p className="text-sm font-bold leading-snug text-foreground group-hover:text-brand">{r.title}</p>
-                    <p className="text-xs text-zinc-400">{new Date(r.date).toLocaleDateString(undefined, { month: "long", day: "numeric", year: "numeric" })}</p>
+                    <p className="text-xs text-zinc-400">{r.category}</p>
                   </Link>
                 ))}
               </div>
