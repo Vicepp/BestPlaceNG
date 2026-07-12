@@ -129,6 +129,9 @@ export default function Header() {
           <Link href="/rankings" className="px-3 py-2 text-sm font-medium text-foreground/80 transition hover:text-brand">
             Rankings
           </Link>
+          <Link href="/learn" className="px-3 py-2 text-sm font-medium text-foreground/80 transition hover:text-brand">
+            Learn
+          </Link>
         </nav>
 
         <div className="hidden items-center gap-3 md:flex">
@@ -230,6 +233,7 @@ export default function Header() {
                 ...communityData,
                 { label: "Apartments", href: "/apartments" },
                 { label: "Rankings", href: "/rankings" },
+                { label: "Learn", href: "/learn" },
                 { label: "List a Property", href: "/list-property" },
                 ...(user
                   ? [{ label: "Dashboard", href: "/dashboard" }, ...(isAdmin ? [{ label: "Admin Panel", href: "/admin" }] : [])]

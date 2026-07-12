@@ -11,6 +11,7 @@ export default function Footer() {
               <li><Link href="/search" className="hover:text-brand">Find a City</Link></li>
               <li><Link href="/compare" className="hover:text-brand">Compare Cities</Link></li>
               <li><Link href="/rankings" className="hover:text-brand">Rankings</Link></li>
+              <li><Link href="/learn" className="hover:text-brand">Learn — Guides &amp; Blog</Link></li>
             </ul>
           </div>
           <div>

@@ -41,6 +41,12 @@ service cloud.firestore {
       allow delete: if false;
     }
 
+    // Learn blog posts — published via admin scripts only.
+    match /blogPosts/{slug} {
+      allow read: if true;
+      allow write: if false;
+    }
+
     // Support tickets from the dashboard contact form.
     match /supportTickets/{id} {
       allow read: if request.auth != null && resource.data.userId == request.auth.uid;
