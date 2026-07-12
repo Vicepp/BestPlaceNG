@@ -94,3 +94,15 @@ export async function verifyIdToken(authHeader: string | null): Promise<string |
     return null;
   }
 }
+
+/** Like verifyIdToken but also returns the token's email — used by the admin
+ * panel to claim pending sub-admin invites addressed to an email. */
+export async function verifyIdTokenFull(authHeader: string | null): Promise<{ uid: string; email: string | null } | null> {
+  if (!authHeader?.startsWith("Bearer ")) return null;
+  try {
+    const decoded = await getAuth(getAdminApp()).verifyIdToken(authHeader.slice(7));
+    return { uid: decoded.uid, email: decoded.email ?? null };
+  } catch {
+    return null;
+  }
+}

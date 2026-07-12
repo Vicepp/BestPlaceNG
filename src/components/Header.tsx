@@ -78,6 +78,30 @@ export default function Header() {
     return unsub;
   }, [user]);
 
+  // Admin link visibility: checked once per session per user (cached), so the
+  // menu item only ever renders for master/sub-admins.
+  const [isAdmin, setIsAdmin] = useState(false);
+  useEffect(() => {
+    if (!user) { setIsAdmin(false); return; }
+    const cacheKey = `bpng:isAdmin:${user.uid}`;
+    const cached = typeof window !== "undefined" ? window.sessionStorage.getItem(cacheKey) : null;
+    if (cached !== null) { setIsAdmin(cached === "1"); return; }
+    (async () => {
+      try {
+        const token = await user.getIdToken();
+        const res = await fetch("/api/admin", {
+          method: "POST",
+          headers: { "Content-Type": "application/json", Authorization: `Bearer ${token}` },
+          body: JSON.stringify({ op: "me" }),
+        });
+        const json = await res.json().catch(() => null);
+        const admin = Boolean(json?.ok && json?.isAdmin);
+        setIsAdmin(admin);
+        window.sessionStorage.setItem(cacheKey, admin ? "1" : "0");
+      } catch { setIsAdmin(false); }
+    })();
+  }, [user]);
+
   async function handleSignOut() {
     await logOut();
     setAccountOpen(false);
@@ -135,6 +159,11 @@ export default function Header() {
                       <Link href="/dashboard" className="block px-4 py-2 text-sm text-foreground/80 hover:bg-brand-light hover:text-brand">
                         Dashboard
                       </Link>
+                      {isAdmin && (
+                        <Link href="/admin" className="block px-4 py-2 text-sm font-semibold text-brand hover:bg-brand-light">
+                          Admin Panel
+                        </Link>
+                      )}
                       <Link href="/list-property" className="block px-4 py-2 text-sm text-foreground/80 hover:bg-brand-light hover:text-brand">
                         List a Property
                       </Link>
@@ -203,7 +232,7 @@ export default function Header() {
                 { label: "Rankings", href: "/rankings" },
                 { label: "List a Property", href: "/list-property" },
                 ...(user
-                  ? [{ label: "Dashboard", href: "/dashboard" }]
+                  ? [{ label: "Dashboard", href: "/dashboard" }, ...(isAdmin ? [{ label: "Admin Panel", href: "/admin" }] : [])]
                   : [
                       { label: "Login", href: "/login" },
                       { label: "Create Account", href: "/signup" },
