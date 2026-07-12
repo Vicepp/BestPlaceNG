@@ -533,7 +533,7 @@ function expand(p: Spec): Spec {
   const extra: { h2: string; body: string; bullets?: string[] }[] = [
     {
       h2: `How far your money actually goes in ${cn}`,
-      body: `Headline rent is only the opening bid. In practice, a Nigerian household budget divides into rent (paid annually — see our full guide to [how rent works in Nigeria](/learn/how-rent-works-in-nigeria)), power (grid tariff plus backup fuel or solar amortisation), transport, food and school fees. ${c ? `For ${cn}, our dataset puts the cost-of-living index at ${c.costOfLivingIndex ?? "the national baseline"} against 100 for the country${rr2 ? `, with a researched 2-bedroom at roughly ${naira(rr2)} a year` : ""}. ` : ""}Cross-checking against community-sourced figures on [Numbeo](https://www.numbeo.com/cost-of-living/) and the official CPI releases from the [National Bureau of Statistics](https://nigerianstat.gov.ng) keeps any single source honest. The pattern that surprises newcomers most: day-to-day costs (food, transport, data) vary far less between cities than housing does — which is why the rent decision IS the cost-of-living decision, and why our [city cost pages](${cref}/cost-of-living) lead with it.`,
+      body: `Let's talk money for a minute, because the headline rent is only the opening bid. In practice, a Nigerian household budget divides into rent (paid annually — see our full guide to [how rent works in Nigeria](/learn/how-rent-works-in-nigeria)), power (grid tariff plus backup fuel or solar amortisation), transport, food and school fees. ${c ? `For ${cn}, our dataset puts the cost-of-living index at ${c.costOfLivingIndex ?? "the national baseline"} against 100 for the country${rr2 ? `, with a researched 2-bedroom at roughly ${naira(rr2)} a year` : ""}. ` : ""}Cross-checking against community-sourced figures on [Numbeo](https://www.numbeo.com/cost-of-living/) and the official CPI releases from the [National Bureau of Statistics](https://nigerianstat.gov.ng) keeps any single source honest. The pattern that surprises newcomers most: day-to-day costs (food, transport, data) vary far less between cities than housing does — which is why the rent decision IS the cost-of-living decision, and why our [city cost pages](${cref}/cost-of-living) lead with it.`,
     },
     {
       h2: "The rent process here, start to finish",
@@ -541,15 +541,15 @@ function expand(p: Spec): Spec {
     },
     {
       h2: "Power, internet and daily logistics",
-      body: `No Nigerian relocation guide is honest without the utilities paragraph. ${gh ? `${cn} averages about ${gh} hours of grid supply a day on our estimates` : `Grid supply in most cities runs 8–14 hours a day`}, and the street-by-street variation is governed by the tariff band system — [our NEPA bands explainer](/learn/understanding-nepa-bands) shows how to check a specific street before you commit, and the official band framework lives with the regulator, [NERC](https://nerc.gov.ng). Budget a backup: a 1–2kVA inverter setup has become the default middle-class answer, with rooftop solar spreading fast. Internet is mobile-first — coverage maps from the [NCC](https://www.ncc.gov.ng) tell the national story, but the practical test is which network your prospective neighbours actually use indoors. For remote workers, our ranking of the [best cities for remote work](/learn/best-cities-remote-work-nigeria) weighs exactly these two utilities.`,
+      body: `Now, can we be honest about light? No city guide is complete without this conversation. ${gh ? `${cn} averages about ${gh} hours of grid supply a day on our estimates` : `Grid supply in most cities runs 8–14 hours a day`}, and the street-by-street variation is governed by the tariff band system — [our NEPA bands explainer](/learn/understanding-nepa-bands) shows how to check a specific street before you commit, and the official band framework lives with the regulator, [NERC](https://nerc.gov.ng). Budget a backup: a 1–2kVA inverter setup has become the default middle-class answer, with rooftop solar spreading fast. Internet is mobile-first — coverage maps from the [NCC](https://www.ncc.gov.ng) tell the national story, but the practical test is which network your prospective neighbours actually use indoors. For remote workers, our ranking of the [best cities for remote work](/learn/best-cities-remote-work-nigeria) weighs exactly these two utilities.`,
     },
     {
       h2: "Reading safety beyond one number",
-      body: `${c ? `${cn} scores ${c.safetyIndex ?? "near the national average"} on our safety index, but a` : "A"} city-level score is a shortlisting tool, not a verdict. Safety in Nigerian cities is intensely local: the same metro can hold serene GRAs and areas you'd route around after dark. The method that works: use the index to compare cities (our [data-ranked safest cities](/learn/safest-cities-nigeria-2026) is the shortlist), then drop to street level — the city's own [crime section](${cref}/crime) carries incident notes and trend lines, resident [reviews](${cref}/reviews) carry the lived texture, and a deliberate visit at night tells you the rest. National context from sources like the [Nigeria Security Tracker](https://www.cfr.org/nigeria/nigeria-security-tracker/p29483) helps separate a state's reputation from a specific city's reality — they diverge more often than headlines suggest.`,
+      body: `${c ? `${cn} scores ${c.safetyIndex ?? "near the national average"} on our safety index, but a` : "A"} city-level score is a shortlisting tool, not a verdict. Ask anyone who lives there and they will tell you the same thing. Safety in Nigerian cities is intensely local: the same metro can hold serene GRAs and areas you'd route around after dark. The method that works: use the index to compare cities (our [data-ranked safest cities](/learn/safest-cities-nigeria-2026) is the shortlist), then drop to street level — the city's own [crime section](${cref}/crime) carries incident notes and trend lines, resident [reviews](${cref}/reviews) carry the lived texture, and a deliberate visit at night tells you the rest. National context from sources like the [Nigeria Security Tracker](https://www.cfr.org/nigeria/nigeria-security-tracker/p29483) helps separate a state's reputation from a specific city's reality — they diverge more often than headlines suggest.`,
     },
     {
       h2: `A practical relocation checklist${c ? ` for ${cn}` : ""}`,
-      body: `The moves that save money and regret, in order:`,
+      body: `Ready to actually move? Here is the checklist locals wish someone had handed them:`,
       bullets: [
         `Run the numbers first: [${cn}'s full data profile](${cref}) — cost, safety, power, schools — before any viewing trip`,
         `Shortlist areas by commute, not aesthetics; test them at rush hour and after rain`,
@@ -565,15 +565,27 @@ function expand(p: Spec): Spec {
     },
     {
       h2: "Where these numbers come from",
-      body: `Figures in this post draw from BestPlaceNG's city dataset: cost-of-living and safety indexes benchmarked to a national average of 100, researched annual rents refreshed periodically, household grid-hour estimates, and school ratings — all browsable on each [city's profile](${cref}) and in the national [rankings](/rankings). National statistics reference the [NBS](https://nigerianstat.gov.ng), tariffs the [NERC](https://nerc.gov.ng), telecoms the [NCC](https://www.ncc.gov.ng), and monetary data the [CBN](https://www.cbn.gov.ng). Where figures are estimates rather than researched values, the underlying city page says so explicitly — the same honesty rule applies here.`,
+      body: `Quick word on sources, so you know this isn't guesswork. Everything here draws from BestPlaceNG's city dataset: cost-of-living and safety indexes benchmarked to a national average of 100, researched annual rents refreshed periodically, household grid-hour estimates, and school ratings — all browsable on each [city's profile](${cref}) and in the national [rankings](/rankings). National statistics reference the [NBS](https://nigerianstat.gov.ng), tariffs the [NERC](https://nerc.gov.ng), telecoms the [NCC](https://www.ncc.gov.ng), and monetary data the [CBN](https://www.cbn.gov.ng). Where figures are estimates rather than researched values, the underlying city page says so explicitly — the same honesty rule applies here.`,
     },
   ];
   return { ...p, sections: [...p.sections, ...extra], featured: p.featured ?? FEATURED.has(p.slug) };
 }
 
+function deDash(t: string): string {
+  return t.replace(/ — /g, ", ").replace(/—/g, "-").replace(/ – /g, ", ").replace(/\s+,/g, ",");
+}
+function humanize(p: Spec): Spec {
+  return {
+    ...p,
+    title: deDash(p.title), excerpt: deDash(p.excerpt), metaDescription: deDash(p.metaDescription),
+    takeaways: p.takeaways.map(deDash),
+    sections: p.sections.map((s) => ({ h2: deDash(s.h2), body: deDash(s.body), ...(s.bullets ? { bullets: s.bullets.map(deDash) } : {}) })),
+  };
+}
+
 function finalize(p: Spec): Spec {
   const title = p.title.replace(/\s*\(2026\)/g, "").replace(/ in 2026/g, "").replace(/ 2026/g, "").replace(/2026:?\s*/g, "");
-  return expand({ ...p, title, metaDescription: p.metaDescription.replace(/ 2026/g, "").replace(/2026 /g, ""), references: p.references ?? [...(DEFAULT_REFS[p.category] ?? [NBS]), numbeo("Lagos")] });
+  return humanize(expand({ ...p, title, metaDescription: p.metaDescription.replace(/ 2026/g, "").replace(/2026 /g, ""), references: p.references ?? [...(DEFAULT_REFS[p.category] ?? [NBS]), numbeo("Lagos")] }));
 }
 
 async function main() {
