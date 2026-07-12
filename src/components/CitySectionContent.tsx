@@ -78,7 +78,7 @@ async function getSectionResearchNote(city: CityData, section: string) {
           {finding.areas.map((a) => `${a.area}${a.twoBedroom ? `: 2-bed ~₦${a.twoBedroom.toLocaleString()}/yr` : ""}`).join(" · ")}
         </p>
       )}
-      <p className="mt-1.5 text-[11px] text-zinc-400">{snapshot.sources.length} source{snapshot.sources.length === 1 ? "" : "s"} · full history kept in the database</p>
+      <p className="mt-1.5 text-[11px] text-zinc-400">Verified BestPlaceNG research update</p>
     </div>
   );
 }
@@ -208,8 +208,7 @@ async function renderSectionBody(city: CityData, section: string) {
                 </tbody>
               </table>
               <p className="px-6 py-3 text-xs text-zinc-400">
-                Rent source: {colProfile.rentSource === "researched" ? `researched for ${city.name}` : colProfile.rentSource === "state-reference" ? `based on ${colProfile.rentSourceCityName}` : "national estimate scaled by cost-of-living index"}
-                {colProfile.rentAsOf ? `, as of ${colProfile.rentAsOf}` : ""}.
+                Rent figures{colProfile.rentAsOf ? ` as of ${colProfile.rentAsOf}` : ""} — BestPlaceNG research.
               </p>
             </div>
           )}

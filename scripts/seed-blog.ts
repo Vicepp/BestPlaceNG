@@ -35,7 +35,7 @@ const bestPower = majors.filter((c) => gridHours[c.slug] !== undefined).sort((a,
 
 const lagos = city("lagos-lagos"), abuja = city("abuja-fct"), ibadan = city("ibadan-oyo"), ph = city("port-harcourt-rivers"), enugu = city("enugu-enugu"), kano = city("kano-kano"), calabar = city("calabar-cross-river");
 
-interface Spec { slug: string; title: string; excerpt: string; category: string; kind: string; tags: string[]; date: string; metaDescription: string; sections: { h2: string; body: string; bullets?: string[] }[]; takeaways: string[]; ctaMid: { label: string; href: string }; ctaEnd: { label: string; href: string }; featured?: boolean; author?: { name: string; role: string }; references?: { label: string; url: string }[] }
+interface Spec { slug: string; title: string; excerpt: string; category: string; kind: string; tags: string[]; date: string; metaDescription: string; sections: { h2: string; body: string; bullets?: string[]; table?: { headers: string[]; rows: string[][] } }[]; takeaways: string[]; ctaMid: { label: string; href: string }; ctaEnd: { label: string; href: string }; featured?: boolean; author?: { name: string; role: string }; references?: { label: string; url: string }[] }
 
 const cityRow = (c: (typeof majors)[number]) => `${c.name}, ${c.stateName} — cost index ${c.costOfLivingIndex} (100 = national avg), safety ${c.safetyIndex}/100${r2(c.slug) ? `, 2-bed ~${naira(r2(c.slug)!)}/yr` : ""}`;
 
@@ -530,7 +530,7 @@ function expand(p: Spec): Spec {
   const rr2 = c ? r2(c.slug) : undefined;
   const gh = c ? gridHours[c.slug] : undefined;
   const v = (p.slug.length + p.slug.charCodeAt(0)) % 2;
-  const X: { h2: string; body: string; bullets?: string[] }[] = [];
+  const X: { h2: string; body: string; bullets?: string[]; table?: { headers: string[]; rows: string[][] } }[] = [];
 
   if (p.category === "City Guides" || p.category === "Cost of Living") {
     X.push({
@@ -550,6 +550,25 @@ function expand(p: Spec): Spec {
       body: `Same three mistakes, every time. One, signing for a street they never saw at night or in rain. Two, treating quoted rent as the full price when [fees add 20 to 30 percent](/learn/agent-fees-nigeria-explained) in year one. Three, moving money outside a protected flow because someone manufactured urgency. That last one is the expensive one, and entirely avoidable: [the scam playbook](/learn/spot-rental-scams-nigeria) is a short read, and [escrow](/learn/why-we-hold-rent-in-escrow) exists so keys come before cash.`,
     });
   } else if (p.kind === "comparison") {
+    const two = p.tags.slice(0, 2).map((t) => majors.find((m) => m.name.toLowerCase() === t));
+    if (two[0] && two[1]) {
+      const [A2, B2] = two as [typeof majors[number], typeof majors[number]];
+      X.push({
+        h2: "The side-by-side table",
+        body: `Sometimes a table settles what paragraphs argue about. Here is the whole picture in one glance:`,
+        table: {
+          headers: ["", A2.name, B2.name],
+          rows: [
+            ["Cost of living (100 = avg)", String(A2.costOfLivingIndex ?? "n/a"), String(B2.costOfLivingIndex ?? "n/a")],
+            ["Safety score (/100)", String(A2.safetyIndex ?? "n/a"), String(B2.safetyIndex ?? "n/a")],
+            ["Schools (/10)", String(A2.schoolRating ?? "n/a"), String(B2.schoolRating ?? "n/a")],
+            ["Grid power (hrs/day)", String(gridHours[A2.slug] ?? "8-12"), String(gridHours[B2.slug] ?? "8-12")],
+            ["2-bed rent (researched)", r2(A2.slug) ? naira(r2(A2.slug)!) + "/yr" : "estimate", r2(B2.slug) ? naira(r2(B2.slug)!) + "/yr" : "estimate"],
+            ["Population", A2.population.toLocaleString(), B2.population.toLocaleString()],
+          ],
+        },
+      });
+    }
     X.push({
       h2: v ? "The tiebreakers people forget" : "What actually settles this",
       body: `Cost and safety start the argument, but they rarely finish it. Schools weigh in fast if you have kids (the [family cities ranking](/learn/best-cities-families-schools-nigeria) shows how much cities differ). Climate is sneaky: a few degrees and a longer rainy season change how a city feels by October. And power hours quietly set your generator budget, which is a rent line in disguise ([band explainer](/learn/understanding-nepa-bands)). Line them all up on [the compare tool](/compare) before deciding.`,
@@ -623,8 +642,8 @@ function expand(p: Spec): Spec {
       body: `Tenants negotiate rent and forget everything else. The extras move more easily: agency and legal fees flex, caution size flexes, payment can split into tranches, and units that sat empty flex most of all. Come armed with the [going rates](${cref}) and a calm willingness to walk away. Landlords respect the second one most.`,
     });
     X.push({
-      h2: "How to use these numbers well",
-      body: `Treat every figure here as a starting range, not gospel. Indexes benchmark to a national 100, researched rents carry their as-of date, and estimates say so on [each city's page](/rankings). The method that works: shortlist with the data, then verify the specific street with your own eyes and [other residents' reviews](${cref}). Numbers narrow the search, people close it.`,
+      h2: "Turning the numbers into a decision",
+      body: `Treat every figure here as a starting range, not gospel. The method that works: shortlist using [the rankings](/rankings), then verify the specific street with your own eyes and [other residents' reviews](${cref}). Numbers narrow the search, people close it.`,
     });
   }
   return { ...p, sections: [...p.sections, ...X], featured: p.featured ?? FEATURED.has(p.slug) };
@@ -638,7 +657,7 @@ function humanize(p: Spec): Spec {
     ...p,
     title: deDash(p.title), excerpt: deDash(p.excerpt), metaDescription: deDash(p.metaDescription),
     takeaways: p.takeaways.map(deDash),
-    sections: p.sections.map((s) => ({ h2: deDash(s.h2), body: deDash(s.body), ...(s.bullets ? { bullets: s.bullets.map(deDash) } : {}) })),
+    sections: p.sections.map((s) => ({ h2: deDash(s.h2), body: deDash(s.body), ...(s.bullets ? { bullets: s.bullets.map(deDash) } : {}), ...(s.table ? { table: s.table } : {}) })),
   };
 }
 

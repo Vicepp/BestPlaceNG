@@ -2,7 +2,8 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import type { Metadata } from "next";
 import { ArrowLeft, ArrowRight, User } from "lucide-react";
-import { getBlogPost, getBlogPostsLive } from "@/data/blog";
+import { getBlogPost, getBlogPostsLive, readMinutes } from "@/data/blog";
+import { EngagementBar, BlogComments } from "@/components/BlogEngagement";
 
 export const revalidate = 300;
 
@@ -71,8 +72,9 @@ export default async function BlogPostPage({ params }: { params: Promise<{ slug:
             <span className="rounded-full bg-brand-light px-3.5 py-1 text-xs font-bold uppercase tracking-wide text-brand-dark">{post.category}</span>
             <h1 className="mx-auto mt-4 max-w-2xl text-3xl font-extrabold leading-tight text-foreground sm:text-4xl">{post.title}</h1>
             <p className="mt-3 text-xs font-bold uppercase tracking-widest text-zinc-400">
-              {post.author.name} · {post.author.role}
+              {post.author.name} · {post.author.role} · {readMinutes(post)} min read
             </p>
+            <EngagementBar slug={post.slug} title={post.title} />
           </div>
 
           {/* eslint-disable-next-line @next/next/no-img-element */}
@@ -88,6 +90,22 @@ export default async function BlogPostPage({ params }: { params: Promise<{ slug:
                 <ul className="mt-3 space-y-1.5 text-zinc-600">
                   {s.bullets.map((b) => <li key={b} className="flex gap-2"><span className="mt-2 h-1.5 w-1.5 shrink-0 rounded-full bg-brand" /> <span>{rich(b)}</span></li>)}
                 </ul>
+              )}
+              {s.table && (
+                <div className="mt-4 overflow-x-auto rounded-xl border border-zinc-100">
+                  <table className="w-full text-sm">
+                    <thead><tr className="border-b border-zinc-100 bg-zinc-50 text-left text-xs uppercase tracking-wide text-zinc-400">
+                      {s.table.headers.map((h) => <th key={h} className="px-4 py-2.5 font-medium">{h}</th>)}
+                    </tr></thead>
+                    <tbody>
+                      {s.table.rows.map((row, ri) => (
+                        <tr key={ri} className={ri % 2 === 0 ? "bg-white" : "bg-zinc-50/50"}>
+                          {row.map((cell, ci) => <td key={ci} className={`px-4 py-2.5 ${ci === 0 ? "font-semibold text-foreground" : "text-zinc-600"}`}>{cell}</td>)}
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
               )}
               {i === midpoint - 1 && <Cta {...post.ctaMid} />}
             </section>
@@ -114,6 +132,8 @@ export default async function BlogPostPage({ params }: { params: Promise<{ slug:
           )}
 
           <Cta {...post.ctaEnd} />
+
+          <BlogComments slug={post.slug} title={post.title} />
         </article>
 
         {/* Sidebar */}
@@ -128,7 +148,7 @@ export default async function BlogPostPage({ params }: { params: Promise<{ slug:
               </div>
             </div>
             <p className="mt-3 text-xs leading-relaxed text-zinc-500">
-              Written with BestPlaceNG&apos;s city dataset — cost-of-living indexes, researched rents, power and safety data across 753 Nigerian cities.
+              The BestPlaceNG editorial team writes practical, data-backed guides to living, renting and investing across Nigeria&apos;s cities.
             </p>
           </div>
 

@@ -3,7 +3,7 @@
 import { useMemo, useState } from "react";
 import Link from "next/link";
 import { BookOpen, MapPin, Scale, Home, Palmtree, Sparkles, Landmark, Newspaper } from "lucide-react";
-import type { BlogPost } from "@/data/blog";
+import { readMinutes, type BlogPost } from "@/data/blog";
 
 const CAT_ICONS: Record<string, React.ComponentType<{ className?: string }>> = {
   "City Guides": MapPin, Comparisons: Scale, "Cost of Living": Landmark, Rankings: Newspaper,
@@ -60,7 +60,7 @@ export default function BlogGrid({ posts }: { posts: BlogPost[] }) {
                 </span>
               </div>
               <div className="p-4">
-                <p className="text-[10px] font-black uppercase tracking-widest text-brand">{p.category}</p>
+                <p className="text-[10px] font-black uppercase tracking-widest text-brand">{p.category} <span className="font-bold text-zinc-300">· {readMinutes(p)} min read</span></p>
                 <h2 className="mt-1 text-base font-extrabold leading-snug text-foreground group-hover:text-brand">{p.title}</h2>
                 <p className="mt-1 text-xs text-zinc-500 line-clamp-2">{p.excerpt}</p>
               </div>

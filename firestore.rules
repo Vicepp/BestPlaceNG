@@ -41,6 +41,34 @@ service cloud.firestore {
       allow delete: if false;
     }
 
+    // Blog engagement: views + reactions (public, +1 increments only).
+    match /blogStats/{slug} {
+      allow read: if true;
+      allow create: if true;
+      allow update: if request.resource.data.get("views", 0) >= resource.data.get("views", 0)
+        && request.resource.data.get("views", 0) <= resource.data.get("views", 0) + 1
+        && request.resource.data.get("like", 0) >= resource.data.get("like", 0)
+        && request.resource.data.get("like", 0) <= resource.data.get("like", 0) + 1
+        && request.resource.data.get("love", 0) >= resource.data.get("love", 0)
+        && request.resource.data.get("love", 0) <= resource.data.get("love", 0) + 1
+        && request.resource.data.get("insightful", 0) >= resource.data.get("insightful", 0)
+        && request.resource.data.get("insightful", 0) <= resource.data.get("insightful", 0) + 1;
+      allow delete: if false;
+    }
+
+    // Blog comments: public read/create with size limits; likes may +1.
+    match /blogComments/{id} {
+      allow read: if true;
+      allow create: if request.resource.data.name is string
+        && request.resource.data.name.size() > 0 && request.resource.data.name.size() < 100
+        && request.resource.data.comment is string
+        && request.resource.data.comment.size() > 0 && request.resource.data.comment.size() < 2000;
+      allow update: if request.resource.data.diff(resource.data).affectedKeys().hasOnly(["likes"])
+        && request.resource.data.get("likes", 0) >= resource.data.get("likes", 0)
+        && request.resource.data.get("likes", 0) <= resource.data.get("likes", 0) + 1;
+      allow delete: if false;
+    }
+
     // Learn blog posts — published via admin scripts only.
     match /blogPosts/{slug} {
       allow read: if true;

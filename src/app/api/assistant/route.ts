@@ -5,6 +5,7 @@ import { getDirectoryListingsLive } from "@/data/directoryListings";
 import { citySections } from "@/data/citySections";
 import { getInfraConfig } from "@/data/infrastructure";
 import { getAllReviewsLive } from "@/data/reviews";
+import { getBlogPostsLive } from "@/data/blog";
 import { getFirestoreCollection } from "@/lib/firestoreData";
 import type { ResearchSnapshot } from "@/data/cityResearch";
 import jobsConfig from "@/data/jobs-config.json";
@@ -31,6 +32,8 @@ Hard rules:
 - For jobs/salary questions, use the JOBS & ECONOMY data. For voting/politics, use the STATE VOTING data. For religion, use the STATE RELIGION data. City-level stats for smaller towns fall back to their state's reference city — say so when you do.
 - INFRASTRUCTURE data covers: electricity/power supply (each state's DisCo, average daily grid hours per city, NERC tariff bands, generator dependence) — use it for "light"/NEPA/power questions and recommend the "electricity" section; internet (broadband % per state, speeds, data cost, providers incl. Starlink) → "internet" section; commute times (one-way minutes per city vs national average, transport mode shares) → "commute-time"; transport fares & fuel prices (danfo/BRT/keke/okada/rail fares, petrol/diesel ₦/litre, intercity road/rail/air) → "transportation"; road condition (regional 0-100 scores, network stats, flagship projects) → "road-condition"; macro-economy (GDP, growth, inflation trend, VAT, income tax, minimum wage, key industries per state) → "economy"; literacy per state, WAEC trend & tertiary counts → "education-stats"; demographics (median age, household size, languages per region, urban share) → "people-stats". Cities without a city-specific figure use their tier default or state/region figure — say it's an estimate when you use one.
 - RESEARCH UPDATES are dated, sourced, on-the-ground snapshots researched for specific cities/states (rent in named areas, actual power hours, security trend, prices). When one exists for a city the user asks about, PREFER its specifics over the generalised estimates, cite the "as of" date, and note things may have changed since. Older cities' figures without an update use the standard estimates.
+- LEARN ARTICLES are the site's own guides. When one clearly answers or deepens the user's question, mention it and give its link as /learn/<slug> in the reply text. Never invent article slugs.
+- CONFIDENTIAL: never describe BestPlaceNG's internal data-gathering, research pipeline, update mechanics or how figures are produced. If asked how we get our data, say the platform combines official statistics with its own ongoing research, and move on.
 - RESIDENT REVIEWS are real opinions users posted on this site's city pages. Use them to answer "what do people say about X" and to add lived-experience colour next to the statistics ("one reviewer says…", "residents rate its cost of living 4.2/5"). They are subjective opinions, not verified facts — never present a review claim as a statistic, and if reviews conflict with the data, present both. Quote at most a short phrase, attribute it to "a reviewer", and mention the topic it was posted under. If a city has no reviews yet, say so and invite the user to read/leave one on the city page (the review box is at the bottom of every section).
 - The listings inventory (apartments, jobs, schools, hospitals, etc.) is the live, current, complete set of everything posted on the site right now - nothing more exists beyond what's listed. If a city has no listing in a category, that means there genuinely isn't one yet, not that you lack information.
 - When the user asks about a specific category in a specific city (e.g. "is there a job in X", "find an apartment in Y", "any hospitals in Z"):
@@ -189,6 +192,14 @@ async function buildReviewsContext(): Promise<string> {
   return `RESIDENT REVIEWS (real user reviews posted on this site's city pages; [section] = the topic it was posted under; subjective opinions, ${all.length} total):\n${cityBlocks.join("\n")}`;
 }
 
+/** The Learn library: titles + excerpts so the bot can point users at guides. */
+async function buildBlogContext(): Promise<string> {
+  const posts = await getBlogPostsLive();
+  if (posts.length === 0) return "LEARN ARTICLES: none yet.";
+  const lines = posts.slice(0, 120).map((p) => `/learn/${p.slug} | ${p.title} | ${p.category} | ${p.excerpt.slice(0, 110)}`);
+  return `LEARN ARTICLES (this site's own guides; link them as /learn/<slug> when relevant):\n${lines.join("\n")}`;
+}
+
 /** Latest researched snapshot per city/state (append-only history in Firestore;
  * only the newest per slug is sent to the model, capped for prompt safety). */
 async function buildResearchContext(): Promise<string> {
@@ -335,11 +346,12 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: "message too long" }, { status: 400 });
   }
 
-  const [listingsCtx, infraCtx, reviewsCtx, researchCtx] = await Promise.all([
+  const [listingsCtx, infraCtx, reviewsCtx, researchCtx, blogCtx] = await Promise.all([
     buildListingsContext(),
     buildInfrastructureContext(),
     buildReviewsContext(),
     buildResearchContext(),
+    buildBlogContext(),
   ]);
   const messages: ChatMessage[] = [
     { role: "system", content: SYSTEM_PROMPT },
@@ -348,6 +360,7 @@ export async function POST(req: NextRequest) {
     { role: "system", content: infraCtx },
     { role: "system", content: researchCtx },
     { role: "system", content: reviewsCtx },
+    { role: "system", content: blogCtx },
     { role: "system", content: listingsCtx },
     // Inject conversation history so the AI remembers what was already discussed
     ...history,

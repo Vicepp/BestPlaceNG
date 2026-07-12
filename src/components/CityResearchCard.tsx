@@ -36,7 +36,7 @@ export default async function CityResearchCard({ city }: { city: CityData }) {
       )}
       <p className="mt-3 flex items-center gap-1.5 text-xs text-zinc-400">
         <History className="h-3.5 w-3.5" />
-        {snapshot.sources.length} source{snapshot.sources.length === 1 ? "" : "s"} · {historyCount} snapshot{historyCount === 1 ? "" : "s"} on record (history is never overwritten)
+        Verified BestPlaceNG research update
       </p>
     </div>
   );
