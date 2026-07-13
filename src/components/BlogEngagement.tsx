@@ -12,7 +12,7 @@ const voted = (key: string) => typeof window !== "undefined" && window.localStor
 const remember = (key: string) => window.localStorage.setItem(key, "1");
 
 /** Views / reactions / share bar shown under the post header. */
-export function EngagementBar({ slug, title }: { slug: string; title: string }) {
+export function EngagementBar({ slug, title, description }: { slug: string; title: string; description?: string }) {
   const [stats, setStats] = useState<BlogStats>({});
   const [copied, setCopied] = useState(false);
 
@@ -33,12 +33,14 @@ export function EngagementBar({ slug, title }: { slug: string; title: string }) 
     await bumpBlogStat(slug, field);
   }
 
-  function share(target: "whatsapp" | "x" | "copy") {
+  function share(target: "whatsapp" | "x" | "facebook" | "copy") {
     const url = typeof window !== "undefined" ? window.location.href : "";
-    const text = encodeURIComponent(`${title} — ${url}`);
-    if (target === "whatsapp") window.open(`https://wa.me/?text=${text}`, "_blank", "noopener");
-    else if (target === "x") window.open(`https://twitter.com/intent/tweet?text=${text}`, "_blank", "noopener");
-    else { navigator.clipboard?.writeText(url); setCopied(true); setTimeout(() => setCopied(false), 1500); }
+    // Every share carries the title, description and link.
+    const full = [title, description, url].filter(Boolean).join("\n\n");
+    if (target === "whatsapp") window.open(`https://wa.me/?text=${encodeURIComponent(full)}`, "_blank", "noopener");
+    else if (target === "x") window.open(`https://twitter.com/intent/tweet?text=${encodeURIComponent([title, description].filter(Boolean).join("\n\n"))}&url=${encodeURIComponent(url)}`, "_blank", "noopener");
+    else if (target === "facebook") window.open(`https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(url)}&quote=${encodeURIComponent([title, description].filter(Boolean).join(" — "))}`, "_blank", "noopener");
+    else { navigator.clipboard?.writeText(full); setCopied(true); setTimeout(() => setCopied(false), 1500); }
   }
 
   const R = ({ field, icon: Icon, label }: { field: "like" | "love" | "insightful"; icon: React.ComponentType<{ className?: string }>; label: string }) => (
@@ -60,6 +62,7 @@ export function EngagementBar({ slug, title }: { slug: string; title: string }) 
       <R field="insightful" icon={Lightbulb} label="Insightful" />
       <span className="mx-1 h-4 w-px bg-zinc-200" />
       <button onClick={() => share("whatsapp")} className="rounded-full border border-zinc-200 px-3 py-1.5 text-xs font-semibold text-zinc-500 hover:border-brand hover:text-brand">WhatsApp</button>
+      <button onClick={() => share("facebook")} className="rounded-full border border-zinc-200 px-3 py-1.5 text-xs font-semibold text-zinc-500 hover:border-brand hover:text-brand">Facebook</button>
       <button onClick={() => share("x")} className="rounded-full border border-zinc-200 px-3 py-1.5 text-xs font-semibold text-zinc-500 hover:border-brand hover:text-brand">X</button>
       <button onClick={() => share("copy")} className="flex items-center gap-1 rounded-full border border-zinc-200 px-3 py-1.5 text-xs font-semibold text-zinc-500 hover:border-brand hover:text-brand">
         {copied ? <CheckCircle className="h-3.5 w-3.5 text-green-500" /> : <Link2 className="h-3.5 w-3.5" />} {copied ? "Copied" : "Copy link"}
@@ -99,10 +102,14 @@ export function BlogComments({ slug, title }: { slug: string; title: string }) {
     await likeBlogComment(c.id);
   }
 
-  function shareComment(c: BlogComment) {
+  function shareComment(c: BlogComment, target: "whatsapp" | "facebook" = "whatsapp") {
     const url = typeof window !== "undefined" ? window.location.href : "";
-    const text2 = encodeURIComponent(`"${c.comment.slice(0, 120)}" — ${c.name} on ${title}\n${url}`);
-    window.open(`https://wa.me/?text=${text2}`, "_blank", "noopener");
+    const quote = `"${c.comment.slice(0, 120)}" (${c.name} on ${title})`;
+    if (target === "facebook") {
+      window.open(`https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(url)}&quote=${encodeURIComponent(quote)}`, "_blank", "noopener");
+    } else {
+      window.open(`https://wa.me/?text=${encodeURIComponent(`${quote}\n${url}`)}`, "_blank", "noopener");
+    }
   }
 
   return (
@@ -132,8 +139,11 @@ export function BlogComments({ slug, title }: { slug: string; title: string }) {
                 className={`flex items-center gap-1 text-xs font-semibold ${voted(`bpng:clike:${c.id}`) ? "text-brand" : "text-zinc-400 hover:text-brand"}`}>
                 <ThumbsUp className="h-3.5 w-3.5" /> {(c.likes ?? 0) > 0 && c.likes}
               </button>
-              <button onClick={() => shareComment(c)} className="flex items-center gap-1 text-xs font-semibold text-zinc-400 hover:text-brand">
-                <Share2 className="h-3.5 w-3.5" /> Share
+              <button onClick={() => shareComment(c, "whatsapp")} className="flex items-center gap-1 text-xs font-semibold text-zinc-400 hover:text-brand">
+                <Share2 className="h-3.5 w-3.5" /> WhatsApp
+              </button>
+              <button onClick={() => shareComment(c, "facebook")} className="flex items-center gap-1 text-xs font-semibold text-zinc-400 hover:text-brand">
+                <Share2 className="h-3.5 w-3.5" /> Facebook
               </button>
             </div>
           </div>

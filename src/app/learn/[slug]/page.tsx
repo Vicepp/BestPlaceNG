@@ -15,7 +15,9 @@ export async function generateMetadata({ params }: { params: Promise<{ slug: str
     title: `${post.title} | BestPlaceNG Learn`,
     description: post.metaDescription,
     keywords: post.tags,
-    openGraph: { title: post.title, description: post.metaDescription, images: [post.image], type: "article" },
+    openGraph: { title: post.title, description: post.metaDescription, images: [post.image], type: "article", url: `/learn/${post.slug}` },
+    twitter: { card: "summary_large_image", title: post.title, description: post.metaDescription, images: [post.image] },
+    alternates: { canonical: `/learn/${post.slug}` },
   };
 }
 
@@ -74,7 +76,7 @@ export default async function BlogPostPage({ params }: { params: Promise<{ slug:
             <p className="mt-3 text-xs font-bold uppercase tracking-widest text-zinc-400">
               {post.author.name} · {post.author.role} · {readMinutes(post)} min read
             </p>
-            <EngagementBar slug={post.slug} title={post.title} />
+            <EngagementBar slug={post.slug} title={post.title} description={post.metaDescription} />
           </div>
 
           {/* eslint-disable-next-line @next/next/no-img-element */}
