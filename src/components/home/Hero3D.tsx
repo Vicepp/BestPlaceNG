@@ -167,21 +167,21 @@ export default function Hero3D() {
             backgroundSize: "72px 72px",
           }}
           animate={{ backgroundPositionY: ["0px", "72px"] }}
-          transition={{ duration: 2.6, repeat: Infinity, ease: "linear" }}
+          transition={{ duration: 4.5, repeat: Infinity, ease: "linear" }}
         />
         <div className="absolute inset-0 bg-gradient-to-b from-white via-white/40 to-transparent" />
 
         {/* People & traffic moving across the floor — every pass gets a new phrase */}
-        <Mover Icon={Truck} top="38%" dur={16} delay={0} size={26} dir={1} words={ROAD_WORDS} />
-        <Mover Icon={Car} top="56%" dur={10} delay={2.5} size={22} dir={-1} words={ROAD_WORDS} />
-        <Mover Icon={Bike} top="70%" dur={13} delay={5} size={20} dir={1} words={ROAD_WORDS} />
-        <Mover Icon={Car} top="84%" dur={8} delay={1} size={26} dir={-1} words={ROAD_WORDS} />
+        <Mover Icon={Truck} top="38%" dur={30} delay={0} size={26} dir={1} words={ROAD_WORDS} />
+        <Mover Icon={Car} top="56%" dur={22} delay={4} size={22} dir={-1} words={ROAD_WORDS} />
+        <Mover Icon={Bike} top="70%" dur={34} delay={9} size={20} dir={1} words={ROAD_WORDS} />
+        <Mover Icon={Car} top="84%" dur={19} delay={2} size={26} dir={-1} words={ROAD_WORDS} />
       </div>
 
       {/* Planes flying above the traffic, carrying city-to-city routes */}
       <div aria-hidden className="pointer-events-none absolute inset-x-0 top-[8%] h-[30%]">
-        <Mover Icon={Plane} plane top="12%" dur={22} delay={1} size={26} dir={1} words={SKY_ROUTES} />
-        <Mover Icon={Plane} plane top="58%" dur={28} delay={9} size={20} dir={-1} words={SKY_ROUTES} />
+        <Mover Icon={Plane} plane top="12%" dur={36} delay={1} size={26} dir={1} words={SKY_ROUTES} />
+        <Mover Icon={Plane} plane top="58%" dur={46} delay={12} size={20} dir={-1} words={SKY_ROUTES} />
       </div>
 
       {/* ── Main scene ── */}

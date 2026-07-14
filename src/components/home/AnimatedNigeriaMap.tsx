@@ -25,6 +25,9 @@ export default function AnimatedNigeriaMap() {
   const [spot, setSpot] = useState(0);
 
   // 3D tilt: the map sits on a slight perspective slab and follows the mouse.
+  // Touch devices get a flat map — a fixed tilt with no mouse just skews it.
+  const [canTilt, setCanTilt] = useState(false);
+  useEffect(() => { setCanTilt(window.matchMedia("(hover: hover) and (pointer: fine)").matches); }, []);
   const tmx = useMotionValue(0);
   const tmy = useMotionValue(0);
   const rotX = useSpring(useTransform(tmy, (v) => 11 - v * 9), { stiffness: 55, damping: 16 });
@@ -95,10 +98,10 @@ export default function AnimatedNigeriaMap() {
           </p>
         </motion.div>
 
-        <motion.div style={{ rotateX: rotX, rotateY: rotY, transformStyle: "preserve-3d" }}>
+        <motion.div style={canTilt ? { rotateX: rotX, rotateY: rotY, transformStyle: "preserve-3d" } : undefined}>
         <svg viewBox={(nigeria as { viewBox: string }).viewBox} className="h-auto w-full" role="img"
           aria-label="Animated 3D map of Nigeria's 36 states and the FCT"
-          style={{ filter: "drop-shadow(0 26px 22px rgba(31,77,56,0.22))" }}>
+          style={{ filter: canTilt ? "drop-shadow(0 26px 22px rgba(31,77,56,0.22))" : "drop-shadow(0 14px 12px rgba(31,77,56,0.18))" }}>
           {/* Extruded base: the same states, shifted down in a darker shade, give the map thickness */}
           <g aria-hidden style={{ pointerEvents: "none" }}>
             <g transform="translate(0,11)">
