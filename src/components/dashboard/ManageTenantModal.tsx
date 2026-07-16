@@ -188,7 +188,19 @@ export default function ManageTenantModal({ tenancy, onClose }: { tenancy: Tenan
 
             {/* Utility fees */}
             <section>
-              <h3 className="mb-2 flex items-center gap-1.5 text-sm font-bold text-foreground"><Zap className="h-4 w-4 text-accent" /> Utility &amp; Other Fees</h3>
+              <h3 className="mb-2 flex items-center gap-1.5 text-sm font-bold text-foreground">
+                <Zap className="h-4 w-4 text-accent" /> Utility &amp; Other Fees
+                {fees.length > 0 && (
+                  <span className="rounded-full bg-zinc-100 px-2 py-0.5 text-[10px] font-bold text-zinc-500">
+                    {fees.filter((f) => f.status === "active").length} active
+                  </span>
+                )}
+              </h3>
+              {fees.length === 0 && (
+                <p className="mb-2 rounded-xl border border-dashed border-zinc-200 bg-zinc-50/50 px-3 py-3 text-center text-xs text-zinc-400">
+                  No fees added for {tenancy.tenantName} yet — every fee you add appears here.
+                </p>
+              )}
               <div className="space-y-2">
                 {fees.map((f) => (
                   <div key={f.id} className={`flex items-center justify-between gap-2 rounded-xl border p-3 ${f.status === "removed" ? "border-zinc-100 opacity-50" : "border-zinc-100"}`}>
@@ -228,6 +240,17 @@ export default function ManageTenantModal({ tenancy, onClose }: { tenancy: Tenan
                 </div>
                 <button onClick={addFee} disabled={busy} className="flex items-center gap-1 rounded-full bg-accent px-3 py-2 text-xs font-semibold text-white hover:bg-accent-dark disabled:opacity-60"><Plus className="h-3.5 w-3.5" /> Add</button>
               </div>
+              {fees.some((f) => f.status === "active") && (
+                <p className="mt-2 text-xs font-semibold text-zinc-500">
+                  Total active fees:{" "}
+                  {(() => {
+                    const act = fees.filter((f) => f.status === "active");
+                    const monthly = act.filter((f) => f.period === "monthly").reduce((s, f) => s + f.amount, 0);
+                    const yearly = act.filter((f) => f.period === "yearly").reduce((s, f) => s + f.amount, 0);
+                    return [monthly ? `${formatNaira(monthly)}/month` : "", yearly ? `${formatNaira(yearly)}/year` : ""].filter(Boolean).join(" + ");
+                  })()}
+                </p>
+              )}
               <p className="mt-2 text-[11px] text-zinc-400">Fees are per-tenant — only this tenant sees the ones you add here.</p>
             </section>
 
