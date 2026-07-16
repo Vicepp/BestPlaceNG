@@ -275,6 +275,31 @@ service cloud.firestore {
       allow delete: if false;
     }
 
+    // --- Listing view events: one record per unit view, anonymous or signed in ---
+    match /listingViewEvents/{id} {
+      allow read: if request.auth != null && resource.data.ownerId == request.auth.uid;
+      allow create: if request.resource.data.apartmentId is string
+        && request.resource.data.ownerId is string
+        && request.resource.data.at is string
+        && (!("viewerId" in request.resource.data)
+            || (request.auth != null && request.resource.data.viewerId == request.auth.uid));
+      allow update, delete: if false;
+    }
+
+    // --- Listing leads: logged-in viewers of a property; readable by the landlord ---
+    match /listingLeads/{id} {
+      allow read: if request.auth != null
+        && (resource.data.ownerId == request.auth.uid || resource.data.viewerId == request.auth.uid);
+      allow create: if request.auth != null
+        && request.resource.data.viewerId == request.auth.uid
+        && request.resource.data.views == 1;
+      allow update: if request.auth != null
+        && resource.data.viewerId == request.auth.uid
+        && request.resource.data.viewerId == resource.data.viewerId
+        && request.resource.data.ownerId == resource.data.ownerId;
+      allow delete: if false;
+    }
+
     // --- Properties (buildings/estates) ---
     match /properties/{id} {
       allow read: if true;

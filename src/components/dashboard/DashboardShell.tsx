@@ -17,6 +17,7 @@ import {
   Wallet,
   CalendarDays,
   Store,
+  UserCheck,
 } from "lucide-react";
 import { useAuth, type DashboardView } from "@/context/AuthContext";
 
@@ -30,6 +31,7 @@ const NAV_ITEMS: NavItem[] = [
   { label: "Dashboard", href: "/dashboard", icon: LayoutDashboard },
   { label: "Properties", href: "/dashboard/properties", icon: Building2 },
   { label: "Tenants", href: "/dashboard/tenants", icon: Users },
+  { label: "Leads", href: "/dashboard/leads", icon: UserCheck },
   { label: "Payments", href: "/dashboard/payments", icon: CreditCard },
   { label: "Wallet", href: "/dashboard/wallet", icon: Wallet },
   { label: "Maintenance", href: "/dashboard/maintenance", icon: Wrench },

@@ -9,6 +9,7 @@ import { extractYouTubeId } from "@/data/properties";
 import RentThisButton from "@/components/RentThisButton";
 import MessageLandlordButton from "@/components/MessageLandlordButton";
 import RequestTourButton from "@/components/RequestTourButton";
+import ViewTracker from "@/components/ViewTracker";
 
 /* ── Image carousel ───────────────────────────────────────────── */
 function Carousel({ images, title }: { images: string[]; title: string }) {
@@ -65,6 +66,7 @@ function Detail({ apt, cityName, onBack }: { apt: ApartmentListing; cityName: st
 
   return (
     <div>
+      <ViewTracker apartmentId={apt.id} apartmentTitle={apt.title} ownerId={apt.ownerId} />
       <button onClick={onBack} className="mb-4 inline-flex items-center gap-1 text-sm font-semibold text-brand">
         <ArrowLeft className="h-4 w-4" /> Back to all listings
       </button>
