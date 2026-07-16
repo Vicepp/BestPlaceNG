@@ -4,7 +4,7 @@ import { useEffect, useState } from "react";
 import Link from "next/link";
 import { Hotel as HotelIcon, Plus, Eye, CalendarCheck } from "lucide-react";
 import { useAuth } from "@/context/AuthContext";
-import { getHotelsForOwner, getBookingsForOwner, getHotelViewsForOwner, type Hotel, type HotelBooking, type HotelViewEvent } from "@/data/hotels";
+import { getHotelsForOwner, getBookingsForOwner, getHotelViewsForOwner, getUnitsForHotel, currentlyOccupiedUnitIds, type Hotel, type HotelBooking, type HotelViewEvent, type HotelUnit } from "@/data/hotels";
 import { formatNaira } from "@/data/apartments";
 
 export default function MyHotelsPage() {
@@ -14,10 +14,17 @@ export default function MyHotelsPage() {
   const [views, setViews] = useState<HotelViewEvent[]>([]);
   const [loading, setLoading] = useState(true);
 
+  const [unitsByHotel, setUnitsByHotel] = useState<Record<string, HotelUnit[]>>({});
+
   useEffect(() => {
     if (!user) return;
     Promise.all([getHotelsForOwner(user.uid), getBookingsForOwner(user.uid), getHotelViewsForOwner(user.uid)]).then(
-      ([h, b, v]) => { setHotels(h); setBookings(b); setViews(v); setLoading(false); }
+      async ([h, b, v]) => {
+        setHotels(h); setBookings(b); setViews(v);
+        const unitLists = await Promise.all(h.map((x) => getUnitsForHotel(x.id)));
+        setUnitsByHotel(Object.fromEntries(h.map((x, i) => [x.id, unitLists[i]])));
+        setLoading(false);
+      }
     );
   }, [user]);
 
@@ -47,6 +54,9 @@ export default function MyHotelsPage() {
             const hb = bookings.filter((b) => b.hotelId === h.id);
             const active = hb.filter((b) => b.status === "approved").length;
             const hv = views.filter((v) => v.hotelId === h.id).length;
+            const hUnits = (unitsByHotel[h.id] ?? []).filter((u) => u.status === "active");
+            const occupied = currentlyOccupiedUnitIds(hb);
+            const free = hUnits.filter((u) => !occupied.has(u.id)).length;
             return (
               <Link key={h.id} href={`/dashboard/hotels/${h.id}`}
                 className="group overflow-hidden rounded-2xl border border-zinc-100 bg-white shadow-sm transition hover:-translate-y-0.5 hover:border-brand hover:shadow-lg">
@@ -59,10 +69,14 @@ export default function MyHotelsPage() {
                 <div className="p-4">
                   <p className="text-[10px] font-black uppercase tracking-widest text-brand">{h.kind} · {h.area}, {h.cityName}</p>
                   <h2 className="mt-0.5 text-base font-extrabold text-foreground group-hover:text-brand">{h.name}</h2>
-                  <div className="mt-2 flex items-center gap-3 text-xs font-semibold text-zinc-500">
+                  <div className="mt-2 flex flex-wrap items-center gap-3 text-xs font-semibold text-zinc-500">
                     <span>{formatNaira(h.defaultPricePerNight)}/night</span>
                     <span className="flex items-center gap-1"><CalendarCheck className="h-3.5 w-3.5 text-brand" /> {active} active</span>
                     <span className="flex items-center gap-1"><Eye className="h-3.5 w-3.5 text-zinc-300" /> {hv} views</span>
+                  </div>
+                  <div className="mt-2 flex items-center gap-2 text-[10px] font-bold">
+                    <span className="rounded-full bg-green-100 px-2 py-0.5 text-green-700">{free} rooms free now</span>
+                    <span className="rounded-full bg-red-100 px-2 py-0.5 text-red-600">{occupied.size} booked</span>
                   </div>
                 </div>
               </Link>

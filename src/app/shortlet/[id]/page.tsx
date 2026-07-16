@@ -93,6 +93,23 @@ export default function ShortletPage({ params }: { params: Promise<{ id: string 
   const floors = [...new Set(units.map((u) => u.floor))].sort((a, b) => a - b);
   const availableCount = datesOk ? units.filter((u) => !blocked.has(u.id)).length : units.length;
 
+  // Blocked rooms split two ways: "shift" = free later the same day (shown, with the
+  // suggested time); "gone" = booked across the whole day(s), hidden entirely.
+  const unitAvail = useMemo(() => {
+    const map = new Map<string, "free" | "shift" | "gone">();
+    if (!datesOk) return map;
+    const start = new Date(`${checkIn}T${checkInTime}:00`);
+    const stayMs = new Date(`${checkOut}T${checkOutTime}:00`).getTime() - start.getTime();
+    for (const u of units) {
+      if (!blocked.has(u.id)) { map.set(u.id, "free"); continue; }
+      const na = nextAvailableStart(bookings, u.id, start, stayMs);
+      const naDate = `${na.getFullYear()}-${String(na.getMonth() + 1).padStart(2, "0")}-${String(na.getDate()).padStart(2, "0")}`;
+      map.set(u.id, naDate === checkIn ? "shift" : "gone");
+    }
+    return map;
+  }, [units, blocked, bookings, checkIn, checkOut, checkInTime, checkOutTime, datesOk]);
+  const hiddenCount = datesOk ? units.filter((u) => unitAvail.get(u.id) === "gone").length : 0;
+
   function toggleUnit(u: HotelUnit) {
     if (!datesOk) { setError("Pick your check-in and check-out dates first."); setTab("rooms"); return; }
     if (blocked.has(u.id)) { setDetailUnit(u); setGalleryIdx(0); return; } // show when it's free instead
@@ -295,14 +312,22 @@ export default function ShortletPage({ params }: { params: Promise<{ id: string 
               <div className="mt-4 flex items-center gap-4 text-[11px] font-semibold text-zinc-500">
                 <span className="flex items-center gap-1.5"><span className="h-3 w-3 rounded-full border-2 border-zinc-300 bg-white" /> Available</span>
                 <span className="flex items-center gap-1.5"><span className="h-3 w-3 rounded-full bg-brand" /> Selected</span>
-                <span className="flex items-center gap-1.5"><span className="h-3 w-3 rounded-full bg-red-200" /> Booked / held</span>
+                <span className="flex items-center gap-1.5"><span className="h-3 w-3 rounded-full bg-red-200" /> Free later that day</span>
               </div>
+              {hiddenCount > 0 && (
+                <p className="mt-2 rounded-lg bg-zinc-50 px-3 py-2 text-[11px] font-semibold text-zinc-500">
+                  {hiddenCount} room{hiddenCount === 1 ? " is" : "s are"} fully booked for your dates and not shown.
+                </p>
+              )}
 
               {floors.map((f) => (
                 <div key={f} className="mt-5">
                   <h3 className="text-sm font-bold text-foreground">{f === 0 ? "Ground / Floor 1" : `Floor ${f + 1}`}</h3>
+                  {datesOk && units.filter((u) => u.floor === f).every((u) => unitAvail.get(u.id) === "gone") && (
+                    <p className="mt-2 text-xs text-zinc-400">All rooms on this floor are fully booked for your dates.</p>
+                  )}
                   <div className="mt-2 grid grid-cols-2 gap-3 sm:grid-cols-3">
-                    {units.filter((u) => u.floor === f).map((u) => {
+                    {units.filter((u) => u.floor === f && (!datesOk || unitAvail.get(u.id) !== "gone")).map((u) => {
                       const isBlocked = datesOk && blocked.has(u.id);
                       const isSelected = selected.includes(u.id);
                       return (
@@ -321,7 +346,7 @@ export default function ShortletPage({ params }: { params: Promise<{ id: string 
                           )}
                           <div className="flex items-center justify-between">
                             <p className="text-sm font-bold text-foreground">{u.name}</p>
-                            {isBlocked && <span className="rounded-full bg-red-100 px-2 py-0.5 text-[9px] font-bold text-red-600">TAKEN</span>}
+                            {isBlocked && <span className="rounded-full bg-red-100 px-2 py-0.5 text-[9px] font-bold text-red-600">FREE LATER — tap for times</span>}
                           </div>
                           <p className="text-xs text-zinc-500">{formatNaira(u.pricePerNight)}/night · <Users className="inline h-3 w-3" /> {u.capacity} · {u.bedType}</p>
                           <button onClick={(e) => { e.stopPropagation(); setDetailUnit(u); setGalleryIdx(0); }}
@@ -431,6 +456,21 @@ export default function ShortletPage({ params }: { params: Promise<{ id: string 
               <div className="mt-3 flex h-40 items-center justify-center rounded-xl bg-zinc-50 text-zinc-300"><BedDouble className="h-8 w-8" /></div>
             )}
             <p className="mt-3 text-sm font-bold text-foreground">{formatNaira(detailUnit.pricePerNight)}/night · {detailUnit.capacity} guest{detailUnit.capacity === 1 ? "" : "s"} · {detailUnit.bedType} bed</p>
+            {datesOk && (
+              <div className="mt-3 flex flex-wrap items-end gap-2 rounded-xl bg-zinc-50 p-3">
+                <div>
+                  <label className="mb-1 block text-[10px] font-semibold text-zinc-400">Check-in time</label>
+                  <input type="time" value={checkInTime} onChange={(e) => { setCheckInTime(e.target.value); setSelected([]); }}
+                    className="rounded-lg border border-zinc-200 px-2.5 py-1.5 text-xs outline-none focus:border-brand" />
+                </div>
+                <div>
+                  <label className="mb-1 block text-[10px] font-semibold text-zinc-400">Check-out time</label>
+                  <input type="time" value={checkOutTime} onChange={(e) => { setCheckOutTime(e.target.value); setSelected([]); }}
+                    className="rounded-lg border border-zinc-200 px-2.5 py-1.5 text-xs outline-none focus:border-brand" />
+                </div>
+                <p className="text-[10px] text-zinc-400">Times apply to your stay · 1-hour turnaround between guests</p>
+              </div>
+            )}
             {detailUnit.youtubeUrl && extractYouTubeId(detailUnit.youtubeUrl) && (
               <a href={detailUnit.youtubeUrl} target="_blank" rel="noopener noreferrer"
                 className="mt-2 inline-flex items-center gap-1.5 rounded-full bg-red-50 px-3 py-1.5 text-xs font-semibold text-red-600 hover:bg-red-100">

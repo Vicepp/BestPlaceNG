@@ -139,6 +139,18 @@ export function conflictsForUnit(
     .sort((a, b) => bookingStart(a).getTime() - bookingStart(b).getTime());
 }
 
+/** Units with a guest in them at this instant (paid bookings whose window covers `at`). */
+export function currentlyOccupiedUnitIds(bookings: HotelBooking[], at: Date = new Date()): Set<string> {
+  const out = new Set<string>();
+  for (const b of bookings) {
+    if ((b.status === "approved" || b.status === "completed")
+      && bookingStart(b) <= at && at < new Date(bookingEnd(b).getTime() + TURNAROUND_BUFFER_MS)) {
+      out.add(b.unitId);
+    }
+  }
+  return out;
+}
+
 /** Earliest instant this unit can host a stay of the same length, starting from the
  * desired check-in: walks past each conflicting booking + the 1-hour buffer. */
 export function nextAvailableStart(bookings: HotelBooking[], unitId: string, desiredStart: Date, stayMs: number): Date {

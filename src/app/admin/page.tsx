@@ -21,7 +21,7 @@ async function adminApi<T = Record<string, unknown>>(payload: Record<string, unk
   return res.json().catch(() => ({ ok: false, error: `HTTP ${res.status}` }));
 }
 
-type SectionId = "overview" | "users" | "tenancies" | "payments" | "kyc" | "reports" | "support" | "listings" | "reviews" | "research" | "admins";
+type SectionId = "overview" | "users" | "tenancies" | "payments" | "kyc" | "reports" | "support" | "listings" | "reviews" | "research" | "admins" | "hotels";
 
 const NAV: { id: SectionId; label: string; icon: React.ComponentType<{ className?: string }>; perm?: string }[] = [
   { id: "overview", label: "Overview", icon: LayoutDashboard },
@@ -32,12 +32,13 @@ const NAV: { id: SectionId; label: string; icon: React.ComponentType<{ className
   { id: "reports", label: "Reports", icon: Flag, perm: "reports" },
   { id: "support", label: "Support Tickets", icon: LifeBuoy, perm: "support" },
   { id: "listings", label: "Listings", icon: Building2, perm: "listings" },
+  { id: "hotels", label: "Hotels & Bookings", icon: Building2, perm: "hotels" },
   { id: "reviews", label: "Reviews", icon: Star, perm: "reviews" },
   { id: "research", label: "City Research", icon: Newspaper, perm: "research" },
   { id: "admins", label: "Admins", icon: UserCog, perm: "admins" },
 ];
 
-const PERMISSIONS = ["users", "tenancies", "payments", "kyc", "reports", "support", "listings", "reviews", "research"];
+const PERMISSIONS = ["users", "tenancies", "payments", "kyc", "reports", "support", "listings", "hotels", "reviews", "research"];
 
 type Row = Record<string, any>; // eslint-disable-line @typescript-eslint/no-explicit-any
 
@@ -138,6 +139,7 @@ export default function AdminPage() {
               {section === "reviews" && data?.city && <ReviewsTables city={data.city} user={data.user} act={act} />}
               {section === "research" && data?.city && <ResearchTables city={data.city} state={data.state} />}
               {section === "admins" && data?.admins && <AdminsPanel admins={data.admins} invites={data.invites} act={act} myUid={user.uid} />}
+              {section === "hotels" && data?.hotels && <HotelsTables hotels={data.hotels} bookings={data.bookings} />}
             </>
           )}
         </div>
@@ -474,6 +476,49 @@ function AdminsPanel({ admins, invites, act, myUid }: { admins: Row[]; invites: 
           </T>
         </>
       )}
+    </div>
+  );
+}
+
+function HotelsTables({ hotels, bookings }: { hotels: Row[]; bookings: Row[] }) {
+  const statusChip = (s: string) =>
+    s === "approved" ? chip("bg-green-100 text-green-700")
+    : s === "completed" ? chip("bg-blue-100 text-blue-700")
+    : s === "pending_payment" ? chip("bg-amber-100 text-amber-700")
+    : s === "expired" ? chip("bg-red-100 text-red-600")
+    : chip("bg-zinc-100 text-zinc-500");
+  return (
+    <div className="space-y-6">
+      <div>
+        <h2 className="mb-2 text-sm font-bold text-foreground">Hotels & Shortlets ({hotels.length})</h2>
+        <T head={["Name", "Type", "City", "Owner", "Price/night", "Created"]}>
+          {hotels.map((h) => (
+            <tr key={h.id} className="border-b border-zinc-50">
+              <td className={`${td} font-medium text-foreground`}>{h.name}</td>
+              <td className={`${td} capitalize text-zinc-500`}>{h.kind}</td>
+              <td className={`${td} text-zinc-500`}>{h.area}, {h.cityName}</td>
+              <td className={`${td} text-zinc-500`}>{h.ownerName || h.ownerId?.slice(0, 8)}</td>
+              <td className={td}>₦{Number(h.defaultPricePerNight ?? 0).toLocaleString()}</td>
+              <td className={`${td} text-zinc-400`}>{h.createdAt ? new Date(h.createdAt).toLocaleDateString() : "—"}</td>
+            </tr>
+          ))}
+        </T>
+      </div>
+      <div>
+        <h2 className="mb-2 text-sm font-bold text-foreground">Bookings ({bookings.length})</h2>
+        <T head={["Hotel / Room", "Guest", "Dates", "Amount", "Status", "Created"]}>
+          {bookings.map((b) => (
+            <tr key={b.id} className="border-b border-zinc-50">
+              <td className={`${td} text-foreground`}>{b.hotelName}<span className="text-zinc-400"> · {b.unitName}</span></td>
+              <td className={`${td} text-zinc-500`}>{b.guestName}</td>
+              <td className={`${td} text-zinc-500`}>{b.checkIn} → {b.checkOut}</td>
+              <td className={td}>₦{Number(b.amount ?? 0).toLocaleString()}</td>
+              <td className={td}><span className={statusChip(String(b.status))}>{String(b.status).replace("_", " ")}</span></td>
+              <td className={`${td} text-zinc-400`}>{b.createdAt ? new Date(b.createdAt).toLocaleDateString() : "—"}</td>
+            </tr>
+          ))}
+        </T>
+      </div>
     </div>
   );
 }

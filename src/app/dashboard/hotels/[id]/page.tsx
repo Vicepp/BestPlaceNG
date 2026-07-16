@@ -7,7 +7,8 @@ import { ArrowLeft, Upload, Loader2, Eye, Copy, MessageSquare, ExternalLink, Pen
 import { useAuth } from "@/context/AuthContext";
 import {
   getHotelById, getUnitsForHotel, getBookingsForHotel, getHotelViewsForOwner,
-  updateHotel, updateUnit, applyUnitSetupToAll, setBookingStatus, UNIT_AMENITIES, HOTEL_AMENITIES,
+  updateHotel, updateUnit, applyUnitSetupToAll, setBookingStatus, currentlyOccupiedUnitIds,
+  UNIT_AMENITIES, HOTEL_AMENITIES,
   type Hotel, type HotelUnit, type HotelBooking,
 } from "@/data/hotels";
 import { formatNaira } from "@/data/apartments";
@@ -53,6 +54,9 @@ export default function ManageHotelPage({ params }: { params: Promise<{ id: stri
   if (!hotel || hotel.ownerId !== user?.uid) return <p className="text-sm text-zinc-400">Hotel not found.</p>;
 
   const floors = [...new Set(units.map((u) => u.floor))].sort((a, b) => a - b);
+  const occupiedNow = currentlyOccupiedUnitIds(bookings);
+  const activeUnits = units.filter((u) => u.status === "active");
+  const freeNow = activeUnits.filter((u) => !occupiedNow.has(u.id)).length;
 
   async function saveUnit() {
     if (!editing) return;
@@ -115,6 +119,10 @@ export default function ManageHotelPage({ params }: { params: Promise<{ id: stri
           <Link href="/dashboard/hotels" className="mb-1 inline-flex items-center gap-1 text-xs font-semibold text-brand"><ArrowLeft className="h-3.5 w-3.5" /> All hotels</Link>
           <h1 className="text-2xl font-bold text-foreground">{hotel.name}</h1>
           <p className="mt-1 text-sm text-zinc-500">{hotel.area}, {hotel.cityName} · {units.length} units · <Eye className="inline h-3.5 w-3.5" /> {views} views (anonymous)</p>
+          <p className="mt-1.5 flex items-center gap-2 text-xs font-bold">
+            <span className="rounded-full bg-green-100 px-2.5 py-1 text-green-700">{freeNow} available now</span>
+            <span className="rounded-full bg-red-100 px-2.5 py-1 text-red-600">{occupiedNow.size} booked now</span>
+          </p>
         </div>
         <div className="flex gap-2">
           <button onClick={() => setEditHotel({ ...hotel })} className="flex items-center gap-1.5 rounded-full bg-brand px-4 py-2 text-xs font-semibold text-white hover:bg-brand-dark">
@@ -142,7 +150,14 @@ export default function ManageHotelPage({ params }: { params: Promise<{ id: stri
                 ) : (
                   <div className="mb-2 flex h-16 w-full items-center justify-center rounded-lg bg-zinc-50 text-[10px] text-zinc-300">No photos yet</div>
                 )}
-                <p className="text-sm font-bold text-foreground">{u.name}</p>
+                <div className="flex items-center justify-between">
+                  <p className="text-sm font-bold text-foreground">{u.name}</p>
+                  {u.status !== "hidden" && (
+                    occupiedNow.has(u.id)
+                      ? <span className="rounded-full bg-red-100 px-2 py-0.5 text-[9px] font-bold text-red-600">BOOKED</span>
+                      : <span className="rounded-full bg-green-100 px-2 py-0.5 text-[9px] font-bold text-green-700">FREE</span>
+                  )}
+                </div>
                 <p className="text-xs text-zinc-400">{formatNaira(u.pricePerNight)}/night · {u.capacity} guests</p>
               </button>
             ))}

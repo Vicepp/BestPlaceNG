@@ -14,7 +14,7 @@ export const maxDuration = 60;
  * POST body: { op: "me" | "overview" | "data" | "action", ... }
  */
 
-const SECTIONS = ["users", "tenancies", "payments", "kyc", "reports", "support", "listings", "reviews", "research", "admins"] as const;
+const SECTIONS = ["users", "tenancies", "payments", "kyc", "reports", "support", "listings", "reviews", "research", "admins", "hotels"] as const;
 type Section = (typeof SECTIONS)[number];
 
 interface AdminRecord { role: "master" | "sub"; permissions: string[]; email?: string }
@@ -144,6 +144,10 @@ export async function POST(req: NextRequest) {
         case "listings": {
           const [apartments, directory] = await Promise.all([grab("apartments", "createdAt", 200), grab("directoryListings", "createdAt", 200)]);
           return NextResponse.json({ ok: true, apartments, directory });
+        }
+        case "hotels": {
+          const [hotels, bookings] = await Promise.all([grab("hotels", "createdAt", 200), grab("hotelBookings", "createdAt", 300)]);
+          return NextResponse.json({ ok: true, hotels, bookings });
         }
         case "reviews": {
           const [city, user] = await Promise.all([grab("reviews", "date", 200), grab("userReviews", "date", 100)]);

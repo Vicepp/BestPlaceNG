@@ -192,12 +192,26 @@ export default function DashboardShell({ children }: { children: React.ReactNode
             ))}
           </div>
         </div>
+        {/* Every dashboard page, swipeable — keeps new sections reachable on mobile */}
+        <div className="mt-2 flex gap-1.5 overflow-x-auto pb-0.5" style={{ scrollbarWidth: "none" }}>
+          {[...navItems, ...HELP_ITEMS].map((item) => {
+            const active = pathname === item.href;
+            return (
+              <Link key={item.href} href={item.href}
+                className={`flex shrink-0 items-center gap-1 rounded-full px-3 py-1.5 text-[11px] font-bold transition ${
+                  active ? "bg-brand text-white" : "bg-zinc-100 text-zinc-500"
+                }`}>
+                <item.icon className="h-3 w-3" /> {item.label}
+              </Link>
+            );
+          })}
+        </div>
       </div>
 
       {/* ── Main content ─────────────────────────────────────── */}
       {/* Mobile: px-4 horizontal padding, pt-14 clears the sticky view-switcher bar (~52px),
           pb-24 clears the fixed bottom nav (~60px). Desktop resets all three. */}
-      <main className="min-w-0 flex-1 px-4 pb-24 pt-14 md:px-0 md:pb-0 md:pt-0">{children}</main>
+      <main className="min-w-0 flex-1 px-4 pb-24 pt-24 md:px-0 md:pb-0 md:pt-0">{children}</main>
 
       {/* ── Mobile floating Tour-calendar button ─────────────────
           Only for landlords on the built-in calendar; sits above the chat
