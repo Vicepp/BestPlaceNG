@@ -11,17 +11,18 @@ export async function POST(req: NextRequest) {
   if (!isFirebaseAdminConfigured()) {
     return NextResponse.json({ ok: false, error: "Payments not configured on the server." }, { status: 503 });
   }
-  let reference: string, paymentId: string, provider: string, transactionId: string;
+  let reference: string, paymentId: string, provider: string, transactionId: string, bookingIds: string[];
   try {
     const body = await req.json();
     reference = body?.reference;
     paymentId = body?.paymentId;
+    bookingIds = Array.isArray(body?.bookingIds) ? body.bookingIds.filter((x: unknown) => typeof x === "string") : [];
     provider = body?.provider === "flutterwave" ? "flutterwave" : "paystack";
     transactionId = body?.transactionId ?? "";
   } catch {
     return NextResponse.json({ ok: false, error: "Invalid request body" }, { status: 400 });
   }
-  if (!reference || !paymentId) {
+  if (!reference || (!paymentId && bookingIds.length === 0)) {
     return NextResponse.json({ ok: false, error: "Missing reference or paymentId" }, { status: 400 });
   }
   if (provider === "flutterwave") {
@@ -43,19 +44,15 @@ export async function POST(req: NextRequest) {
     // Paystack and loading the invoice don't depend on each other, so overlapping
     // them roughly halves the route's latency.
     const db = getAdminDb();
-    const paymentRef = db.collection("payments").doc(paymentId);
     const verifyUrl =
       provider === "flutterwave"
         ? `https://api.flutterwave.com/v3/transactions/${encodeURIComponent(transactionId)}/verify`
         : `https://api.paystack.co/transaction/verify/${encodeURIComponent(reference)}`;
     const secret = (provider === "flutterwave" ? process.env.FLUTTERWAVE_SECRET_KEY : process.env.PAYSTACK_SECRET_KEY)!.trim();
-    const [verifyRes, snap] = await Promise.all([
-      fetch(verifyUrl, {
-        headers: { Authorization: `Bearer ${secret}` },
-        signal: AbortSignal.timeout(15000),
-      }),
-      paymentRef.get(),
-    ]);
+    const verifyRes = await fetch(verifyUrl, {
+      headers: { Authorization: `Bearer ${secret}` },
+      signal: AbortSignal.timeout(15000),
+    });
     const verifyJson = await verifyRes.json().catch(() => null);
 
     const providerOk =
@@ -65,6 +62,59 @@ export async function POST(req: NextRequest) {
     if (!providerOk) {
       return NextResponse.json({ ok: false, error: `Payment not verified by ${provider === "flutterwave" ? "Flutterwave" : "Paystack"}.` }, { status: 402 });
     }
+    if (verifyJson.data.currency && verifyJson.data.currency !== "NGN") {
+      return NextResponse.json({ ok: false, error: "Currency mismatch — expected NGN" }, { status: 409 });
+    }
+
+    // ── Hotel booking payment: one charge may cover several units ──
+    if (bookingIds.length > 0) {
+      const refs = bookingIds.map((bid) => db.collection("hotelBookings").doc(bid));
+      const snaps = await db.getAll(...refs);
+      if (snaps.some((s) => !s.exists)) {
+        return NextResponse.json({ ok: false, error: "Booking not found" }, { status: 404 });
+      }
+      const docs = snaps.map((s) => ({ ref: s.ref, data: s.data()! }));
+      if (docs.every((d) => d.data.status === "approved")) {
+        return NextResponse.json({ ok: true, alreadyVerified: true });
+      }
+      const expected = docs.reduce((s, d) => s + (d.data.amount as number), 0);
+      const paidOk =
+        provider === "flutterwave"
+          ? Number(verifyJson.data.amount) >= expected
+          : verifyJson.data.amount === Math.round(expected * 100);
+      if (!paidOk) {
+        return NextResponse.json({ ok: false, error: "Amount mismatch — charge does not match the booking total" }, { status: 409 });
+      }
+      const bNow = new Date().toISOString();
+      await Promise.all(
+        docs.map((d) =>
+          d.ref.update({
+            status: "approved",
+            paidAt: bNow,
+            provider,
+            providerReference: reference,
+            ...(provider === "paystack" ? { paystackReference: reference } : { flutterwaveTransactionId: transactionId }),
+          })
+        )
+      );
+      // Credit the host's held (escrow-style) balance with the full stay total.
+      const { FieldValue } = await import("firebase-admin/firestore");
+      const hostId = docs[0].data.ownerId as string;
+      await db.collection("wallets").doc(hostId).set(
+        {
+          landlordId: hostId,
+          held: FieldValue.increment(expected),
+          totalReceived: FieldValue.increment(expected),
+          updatedAt: bNow,
+        },
+        { merge: true }
+      ).catch((e) => console.error("[verify] booking wallet credit failed:", e));
+      return NextResponse.json({ ok: true });
+    }
+
+    // ── Rent invoice payment (original path) ──
+    const paymentRef = db.collection("payments").doc(paymentId);
+    const snap = await paymentRef.get();
 
     if (!snap.exists) {
       return NextResponse.json({ ok: false, error: "Payment invoice not found" }, { status: 404 });

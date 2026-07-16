@@ -300,6 +300,44 @@ service cloud.firestore {
       allow delete: if false;
     }
 
+    // --- Hotels & shortlets ---
+    match /hotels/{id} {
+      allow read: if true;
+      allow create: if request.auth != null && request.resource.data.ownerId == request.auth.uid;
+      allow update, delete: if request.auth != null && resource.data.ownerId == request.auth.uid;
+    }
+    match /hotelUnits/{id} {
+      allow read: if true;
+      allow create: if request.auth != null && request.resource.data.ownerId == request.auth.uid;
+      allow update, delete: if request.auth != null && resource.data.ownerId == request.auth.uid;
+    }
+    // Bookings are publicly readable so any guest can compute live availability;
+    // status changes are limited to the two parties (payment flips happen via the
+    // admin-SDK verify route, which bypasses these rules).
+    match /hotelBookings/{id} {
+      allow read: if true;
+      allow create: if request.auth != null
+        && request.resource.data.guestId == request.auth.uid
+        && request.resource.data.status == "pending_payment"
+        && request.resource.data.amount is number && request.resource.data.amount > 0;
+      allow update: if request.auth != null
+        && request.resource.data.diff(resource.data).affectedKeys().hasOnly(["status"])
+        && (
+          (resource.data.guestId == request.auth.uid && request.resource.data.status in ["cancelled", "expired"])
+          || (resource.data.ownerId == request.auth.uid && request.resource.data.status in ["approved", "completed", "cancelled"])
+        );
+      allow delete: if false;
+    }
+    // Hotel view counter events: anonymous by design — no viewer identity stored.
+    match /hotelViewEvents/{id} {
+      allow read: if request.auth != null && resource.data.ownerId == request.auth.uid;
+      allow create: if request.resource.data.hotelId is string
+        && request.resource.data.ownerId is string
+        && request.resource.data.at is string
+        && request.resource.data.keys().hasOnly(["hotelId", "ownerId", "at"]);
+      allow update, delete: if false;
+    }
+
     // --- Properties (buildings/estates) ---
     match /properties/{id} {
       allow read: if true;

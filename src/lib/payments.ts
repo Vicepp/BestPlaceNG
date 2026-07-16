@@ -52,6 +52,33 @@ export async function verifyPayment(token: string, paymentId: string): Promise<{
   }
 }
 
+/** Verify a hotel-booking payment (one payment may cover several units). */
+export async function verifyBookingPayment(token: string, bookingIds: string[]): Promise<{ ok: boolean; error?: string }> {
+  const body: Record<string, unknown> = { bookingIds };
+  if (token.startsWith("flw:")) {
+    const [, transactionId, ...refParts] = token.split(":");
+    body.provider = "flutterwave";
+    body.transactionId = transactionId;
+    body.reference = refParts.join(":");
+  } else {
+    body.provider = "paystack";
+    body.reference = token;
+  }
+  try {
+    const res = await fetch("/api/payments/verify", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(body),
+      signal: AbortSignal.timeout(25000),
+    });
+    const json = await res.json().catch(() => null);
+    if (json && typeof json.ok === "boolean") return json;
+    return { ok: false, error: `Couldn't confirm the payment (HTTP ${res.status}). If you were charged it will reflect shortly.` };
+  } catch {
+    return { ok: false, error: "Couldn't reach the server to confirm payment. If you were charged, refresh in a moment." };
+  }
+}
+
 interface StartArgs {
   email: string;
   name?: string;

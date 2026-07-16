@@ -18,6 +18,8 @@ import {
   CalendarDays,
   Store,
   UserCheck,
+  Hotel,
+  CalendarCheck,
 } from "lucide-react";
 import { useAuth, type DashboardView } from "@/context/AuthContext";
 
@@ -37,6 +39,8 @@ const NAV_ITEMS: NavItem[] = [
   { label: "Maintenance", href: "/dashboard/maintenance", icon: Wrench },
   { label: "Messages", href: "/dashboard/messages", icon: MessageSquare },
   { label: "My Listings", href: "/dashboard/my-listings", icon: Store },
+  { label: "Hotels & Shortlets", href: "/dashboard/hotels", icon: Hotel },
+  { label: "Bookings", href: "/dashboard/bookings", icon: CalendarCheck },
 ];
 
 // Only relevant when the landlord uses the built-in tour calendar (not an
@@ -49,6 +53,7 @@ const TENANT_NAV_ITEMS: NavItem[] = [
   { label: "Maintenance", href: "/dashboard/maintenance", icon: Wrench },
   { label: "Messages", href: "/dashboard/messages", icon: MessageSquare },
   { label: "My Listings", href: "/dashboard/my-listings", icon: Store },
+  { label: "Bookings", href: "/dashboard/bookings", icon: CalendarCheck },
 ];
 
 const HELP_ITEMS: NavItem[] = [

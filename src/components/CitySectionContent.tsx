@@ -7,6 +7,7 @@ import { getReviewsLive } from "@/data/reviews";
 import IndexBar from "@/components/IndexBar";
 import ComingSoon from "@/components/ComingSoon";
 import ListingGroup from "@/components/ListingGroup";
+import CityHotels from "@/components/CityHotels";
 import CostOfLivingPanel from "@/components/CostOfLivingPanel";
 import CrimePanel from "@/components/CrimePanel";
 import ClimatePanel from "@/components/ClimatePanel";
@@ -323,7 +324,12 @@ async function renderSectionBody(city: CityData, section: string) {
       );
 
     case "hotels":
-      return <ListingGroup citySlug={city.slug} cityName={city.name} category="hotel" label="Hotel" />;
+      return (
+        <div>
+          <CityHotels citySlug={city.slug} cityName={city.name} />
+          <ListingGroup citySlug={city.slug} cityName={city.name} category="hotel" label="Hotel" />
+        </div>
+      );
 
     case "events":
       return <ListingGroup citySlug={city.slug} cityName={city.name} category="event" label="Event" />;

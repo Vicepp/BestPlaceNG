@@ -126,6 +126,9 @@ export default function Header() {
           <Link href="/apartments" className="px-3 py-2 text-sm font-medium text-foreground/80 transition hover:text-brand">
             Apartments
           </Link>
+          <Link href="/shortlets" className="px-3 py-2 text-sm font-medium text-foreground/80 transition hover:text-brand">
+            Hotels/Shortlets
+          </Link>
           <Link href="/rankings" className="px-3 py-2 text-sm font-medium text-foreground/80 transition hover:text-brand">
             Rankings
           </Link>
@@ -232,6 +235,7 @@ export default function Header() {
                 ...placesToLive,
                 ...communityData,
                 { label: "Apartments", href: "/apartments" },
+                { label: "Hotels/Shortlets", href: "/shortlets" },
                 { label: "Rankings", href: "/rankings" },
                 { label: "Learn", href: "/learn" },
                 { label: "List a Property", href: "/list-property" },
