@@ -58,7 +58,7 @@ export default function ManageTenantModal({ tenancy, onClose }: { tenancy: Tenan
   async function addFee() {
     if (!user || !tenancy.tenantId || !feeName.trim() || !feeAmount) return;
     setBusy(true);
-    await createUtilityFee({
+    const fee = {
       tenancyId: tenancy.id,
       apartmentId: tenancy.apartmentId,
       apartmentTitle: tenancy.apartmentTitle,
@@ -68,11 +68,19 @@ export default function ManageTenantModal({ tenancy, onClose }: { tenancy: Tenan
       name: feeName.trim(),
       amount: Number(feeAmount),
       period: feePeriod,
-    });
-    setFeeName(""); setFeeAmount("");
-    await loadFees();
+    };
+    const res = await createUtilityFee(fee);
     setBusy(false);
-    setMsg("Utility fee added.");
+    if (!res.ok) {
+      // A failed write must be loud — a silent failure looks like a missing feature.
+      setMsg(`⚠️ Couldn't save the fee: ${res.error}`);
+      return;
+    }
+    // Show the new fee in the list immediately, then reconcile with the server.
+    setFees((prev) => [...prev, { ...fee, id: res.id, status: "active", createdAt: new Date().toISOString() } as UtilityFee]);
+    setFeeName(""); setFeeAmount("");
+    setMsg(`${fee.name} added — it's now in the list above and visible to ${tenancy.tenantName}.`);
+    loadFees();
   }
 
   async function requestFeePayment(fee: UtilityFee) {
@@ -254,7 +262,9 @@ export default function ManageTenantModal({ tenancy, onClose }: { tenancy: Tenan
               <p className="mt-2 text-[11px] text-zinc-400">Fees are per-tenant — only this tenant sees the ones you add here.</p>
             </section>
 
-            {msg && <p className="rounded-lg bg-green-50 px-3 py-2 text-xs text-green-700">{msg}</p>}
+            {msg && (
+              <p className={`rounded-lg px-3 py-2 text-xs ${msg.startsWith("⚠️") ? "bg-red-50 text-red-700" : "bg-green-50 text-green-700"}`}>{msg}</p>
+            )}
           </div>
         )}
       </div>

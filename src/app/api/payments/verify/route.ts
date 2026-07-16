@@ -11,20 +11,28 @@ export async function POST(req: NextRequest) {
   if (!isFirebaseAdminConfigured()) {
     return NextResponse.json({ ok: false, error: "Payments not configured on the server." }, { status: 503 });
   }
-  if (!process.env.PAYSTACK_SECRET_KEY) {
-    return NextResponse.json({ ok: false, error: "Paystack not configured on the server." }, { status: 503 });
-  }
-
-  let reference: string, paymentId: string;
+  let reference: string, paymentId: string, provider: string, transactionId: string;
   try {
     const body = await req.json();
     reference = body?.reference;
     paymentId = body?.paymentId;
+    provider = body?.provider === "flutterwave" ? "flutterwave" : "paystack";
+    transactionId = body?.transactionId ?? "";
   } catch {
     return NextResponse.json({ ok: false, error: "Invalid request body" }, { status: 400 });
   }
   if (!reference || !paymentId) {
     return NextResponse.json({ ok: false, error: "Missing reference or paymentId" }, { status: 400 });
+  }
+  if (provider === "flutterwave") {
+    if (!process.env.FLUTTERWAVE_SECRET_KEY) {
+      return NextResponse.json({ ok: false, error: "Flutterwave not configured on the server." }, { status: 503 });
+    }
+    if (!transactionId) {
+      return NextResponse.json({ ok: false, error: "Missing Flutterwave transactionId" }, { status: 400 });
+    }
+  } else if (!process.env.PAYSTACK_SECRET_KEY) {
+    return NextResponse.json({ ok: false, error: "Paystack not configured on the server." }, { status: 503 });
   }
 
   // Everything below is wrapped so the client ALWAYS gets JSON back — a thrown
@@ -36,17 +44,26 @@ export async function POST(req: NextRequest) {
     // them roughly halves the route's latency.
     const db = getAdminDb();
     const paymentRef = db.collection("payments").doc(paymentId);
+    const verifyUrl =
+      provider === "flutterwave"
+        ? `https://api.flutterwave.com/v3/transactions/${encodeURIComponent(transactionId)}/verify`
+        : `https://api.paystack.co/transaction/verify/${encodeURIComponent(reference)}`;
+    const secret = (provider === "flutterwave" ? process.env.FLUTTERWAVE_SECRET_KEY : process.env.PAYSTACK_SECRET_KEY)!.trim();
     const [verifyRes, snap] = await Promise.all([
-      fetch(`https://api.paystack.co/transaction/verify/${encodeURIComponent(reference)}`, {
-        headers: { Authorization: `Bearer ${process.env.PAYSTACK_SECRET_KEY!.trim()}` },
+      fetch(verifyUrl, {
+        headers: { Authorization: `Bearer ${secret}` },
         signal: AbortSignal.timeout(15000),
       }),
       paymentRef.get(),
     ]);
     const verifyJson = await verifyRes.json().catch(() => null);
 
-    if (!verifyRes.ok || verifyJson?.data?.status !== "success") {
-      return NextResponse.json({ ok: false, error: "Payment not verified by Paystack." }, { status: 402 });
+    const providerOk =
+      provider === "flutterwave"
+        ? verifyRes.ok && verifyJson?.status === "success" && verifyJson?.data?.status === "successful" && verifyJson?.data?.tx_ref === reference
+        : verifyRes.ok && verifyJson?.data?.status === "success";
+    if (!providerOk) {
+      return NextResponse.json({ ok: false, error: `Payment not verified by ${provider === "flutterwave" ? "Flutterwave" : "Paystack"}.` }, { status: 402 });
     }
 
     if (!snap.exists) {
@@ -58,8 +75,13 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ ok: true, alreadyVerified: true });
     }
 
-    const expectedKobo = Math.round((snap.data()!.amount as number) * 100);
-    if (verifyJson.data.amount !== expectedKobo) {
+    // Amount check: Paystack reports kobo, Flutterwave reports naira.
+    const expectedNaira = snap.data()!.amount as number;
+    const chargedOk =
+      provider === "flutterwave"
+        ? Number(verifyJson.data.amount) >= expectedNaira
+        : verifyJson.data.amount === Math.round(expectedNaira * 100);
+    if (!chargedOk) {
       return NextResponse.json({ ok: false, error: "Amount mismatch — transaction amount does not match invoice" }, { status: 409 });
     }
     if (verifyJson.data.currency && verifyJson.data.currency !== "NGN") {
@@ -73,7 +95,9 @@ export async function POST(req: NextRequest) {
     await paymentRef.update({
       status: "success",
       escrowStatus: "held", // funds held in escrow until the tenant confirms move-in
-      paystackReference: reference,
+      provider,
+      providerReference: reference,
+      ...(provider === "paystack" ? { paystackReference: reference } : { flutterwaveTransactionId: transactionId }),
       verifiedAt: now,
     });
 

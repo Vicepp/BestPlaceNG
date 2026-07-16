@@ -14,7 +14,7 @@ import { createNotification } from "@/data/notifications";
 import { formatNaira, type ApartmentListing } from "@/data/apartments";
 import { cities } from "@/data/cities";
 import { getFirebaseAuth } from "@/lib/firebase";
-import { isPaystackConfigured, payWithPaystack, verifyPayment } from "@/lib/paystack";
+import { isPaymentConfigured, startPayment, verifyPayment } from "@/lib/payments";
 import PayNowButton from "@/components/dashboard/PayNowButton";
 
 /** Common reasons a tenant gives when vacating; "Other" opens a free-text box. */
@@ -76,7 +76,7 @@ export default function RentalDetailPage() {
 
   async function payUtility(reqDoc: UtilityPaymentRequest) {
     if (!user?.email || !tenancy) return;
-    if (!isPaystackConfigured()) return;
+    if (!isPaymentConfigured()) return;
     setPayingReq(reqDoc.id);
     const invoice = await createTenantInvoice({
       tenancyId: tenancy.id,
@@ -87,7 +87,7 @@ export default function RentalDetailPage() {
       amount: reqDoc.amount,
     });
     if (!invoice.ok) { setPayingReq(null); return; }
-    payWithPaystack({
+    startPayment({
       email: user.email,
       amountNaira: reqDoc.amount,
       reference: `bpng-${invoice.id}-${Date.now()}`,
@@ -104,7 +104,7 @@ export default function RentalDetailPage() {
 
   /** Pay an active recurring utility fee directly (no landlord request needed). */
   async function payFee(fee: UtilityFee) {
-    if (!user?.email || !tenancy || !isPaystackConfigured()) return;
+    if (!user?.email || !tenancy || !isPaymentConfigured()) return;
     setPayingReq(fee.id);
     const invoice = await createTenantInvoice({
       tenancyId: tenancy.id,
@@ -116,7 +116,7 @@ export default function RentalDetailPage() {
       kind: "utility",
     });
     if (!invoice.ok) { setPayingReq(null); return; }
-    payWithPaystack({
+    startPayment({
       email: user.email,
       amountNaira: fee.amount,
       reference: `bpng-${invoice.id}-${Date.now()}`,
@@ -317,7 +317,7 @@ export default function RentalDetailPage() {
                     <p className="text-sm font-semibold text-foreground">{r.feeName}</p>
                     <p className="text-xs text-zinc-400">{formatNaira(r.amount)}/{r.period} · due {new Date(r.dueDate).toLocaleDateString()}</p>
                   </div>
-                  {isPaystackConfigured() ? (
+                  {isPaymentConfigured() ? (
                     <button onClick={() => payUtility(r)} disabled={payingReq === r.id} className="rounded-full bg-brand px-4 py-2 text-xs font-semibold text-white hover:bg-brand-dark disabled:opacity-60">
                       {payingReq === r.id ? "Processing…" : `Pay ${formatNaira(r.amount)}`}
                     </button>
@@ -342,7 +342,7 @@ export default function RentalDetailPage() {
                       <span className="text-zinc-400">· {formatNaira(f.amount)}/{f.period}</span>
                     </div>
                     <div className="flex items-center gap-2">
-                      {isPaystackConfigured() ? (
+                      {isPaymentConfigured() ? (
                         <button onClick={() => payFee(f)} disabled={payingReq === f.id} className="rounded-full bg-brand px-3 py-1 text-xs font-semibold text-white hover:bg-brand-dark disabled:opacity-60">
                           {payingReq === f.id ? "Processing…" : `Pay 1 ${f.period === "yearly" ? "year" : "month"}`}
                         </button>

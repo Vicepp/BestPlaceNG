@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import { useAuth } from "@/context/AuthContext";
-import { isPaystackConfigured, payWithPaystack, verifyPayment } from "@/lib/paystack";
+import { isPaymentConfigured, startPayment, verifyPayment } from "@/lib/payments";
 import { formatNaira } from "@/data/apartments";
 import type { Payment } from "@/data/payments";
 
@@ -12,7 +12,7 @@ export default function PayNowButton({ payment, onSuccess }: { payment: Payment;
   const [error, setError] = useState("");
   const [done, setDone] = useState(false);
 
-  if (!isPaystackConfigured()) {
+  if (!isPaymentConfigured()) {
     return (
       <span className="text-xs text-zinc-400">
         (Payments not configured yet)
@@ -28,7 +28,7 @@ export default function PayNowButton({ payment, onSuccess }: { payment: Payment;
     if (!user?.email) return;
     setError("");
     const reference = `bpng-${payment.id}-${Date.now()}`;
-    payWithPaystack({
+    startPayment({
       email: user.email,
       amountNaira: payment.amount,
       reference,

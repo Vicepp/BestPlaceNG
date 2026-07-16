@@ -10,7 +10,7 @@ import { formatNaira, firstYearTotal, type ApartmentListing } from "@/data/apart
 import { signAndRequestTenancy, findTenantTenancyForApartment } from "@/data/tenancies";
 import { createTenantInvoice, findPendingRentInvoice } from "@/data/payments";
 import { createNotification } from "@/data/notifications";
-import { isPaystackConfigured, payWithPaystack, verifyPayment } from "@/lib/paystack";
+import { isPaymentConfigured, startPayment, verifyPayment } from "@/lib/payments";
 import { cities } from "@/data/cities";
 
 export default function BecomeTenantPage() {
@@ -66,7 +66,7 @@ export default function BecomeTenantPage() {
     if (!apt.ownerId) { setError("This listing has no owner to pay — please contact support."); return; }
     if (!name.trim() || !phone.trim()) { setError("Enter your full name and phone number."); return; }
     if (!agreed) { setError("You must accept the landlord's terms to continue."); return; }
-    if (!isPaystackConfigured()) { setError("Online payment isn't set up yet. Please contact the landlord to arrange payment."); return; }
+    if (!isPaymentConfigured()) { setError("Online payment isn't set up yet. Please contact the landlord to arrange payment."); return; }
     if (!user.email) { setError("Your account has no email on file."); return; }
 
     setBusy(true);
@@ -120,7 +120,7 @@ export default function BecomeTenantPage() {
     }
 
     setStatus("Opening secure payment…");
-    payWithPaystack({
+    startPayment({
       email: user.email,
       amountNaira: total,
       reference: `bpng-${invoiceId}-${Date.now()}`,
@@ -239,7 +239,7 @@ export default function BecomeTenantPage() {
           {busy ? "Please wait…" : `Make Payment · ${formatNaira(total)}`}
         </button>
         <p className="mt-2 text-center text-[11px] text-zinc-400">
-          Secured by Paystack. Your payment is held safely and released to the landlord; you become a tenant automatically once payment is confirmed.
+          Secured payment (Flutterwave/Paystack). Your payment is held safely and released to the landlord; you become a tenant automatically once payment is confirmed.
         </p>
       </div>
     </div>
