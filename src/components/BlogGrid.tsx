@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo, useRef, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import Link from "next/link";
 import { BookOpen, MapPin, Scale, Home, Palmtree, Sparkles, Landmark, Newspaper, Search, X } from "lucide-react";
 import { readMinutes, type BlogPost } from "@/data/blog";
@@ -37,6 +37,14 @@ export default function BlogGrid({ posts }: { posts: BlogPost[] }) {
   const [cat, setCat] = useState("All");
   const [q, setQ] = useState("");
   const [focused, setFocused] = useState(false);
+  // Responsive column count for the row-first masonry (1 / 2 / 3).
+  const [cols, setCols] = useState(3);
+  useEffect(() => {
+    const compute = () => setCols(window.innerWidth < 640 ? 1 : window.innerWidth < 1280 ? 2 : 3);
+    compute();
+    window.addEventListener("resize", compute);
+    return () => window.removeEventListener("resize", compute);
+  }, []);
   const inputRef = useRef<HTMLInputElement>(null);
   const categories = useMemo(() => ["All", ...[...new Set(posts.map((p) => p.category))]], [posts]);
 
@@ -123,8 +131,12 @@ export default function BlogGrid({ posts }: { posts: BlogPost[] }) {
         </div>
       )}
 
-      <div className="columns-1 gap-5 sm:columns-2 xl:columns-3 [&>*]:mb-5">
-        {filtered.map((p) => {
+      {/* Masonry that fills ACROSS the columns: newest posts spread left-to-right
+          over all three columns instead of stacking down the first one. */}
+      <div className="flex gap-5">
+        {Array.from({ length: cols }, (_, ci) => (
+          <div key={ci} className="flex min-w-0 flex-1 flex-col gap-5">
+            {filtered.filter((_, i) => i % cols === ci).map((p) => {
           const Icon = CAT_ICONS[p.category] ?? BookOpen;
           return (
             <Link key={p.slug} href={`/learn/${p.slug}`}
@@ -150,7 +162,9 @@ export default function BlogGrid({ posts }: { posts: BlogPost[] }) {
               </div>
             </Link>
           );
-        })}
+            })}
+          </div>
+        ))}
       </div>
     </div>
   );

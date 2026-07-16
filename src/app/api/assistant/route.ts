@@ -64,10 +64,27 @@ function buildCityContext(query: string): string {
     .filter((c) => c.tier === "lga")
     .slice(0, 8);
   const matchedLines = matched
-    .map((c) => `${c.slug} | ${c.name}, ${c.stateName} | pop ${c.population.toLocaleString()} | smaller LGA-level entry, no detailed stats yet`)
+    .map((c) => `${c.slug} | ${c.name}, ${c.stateName} | pop ${c.population.toLocaleString()} | smaller LGA-level entry`)
     .join("\n");
 
-  return `MAJOR CITIES (full profiles, 49 total):\n${majorLines}${matchedLines ? `\n\nOTHER PLACES NAMED IN THE USER'S MESSAGE:\n${matchedLines}` : ""}`;
+  // EVERY other city/LGA on the platform, grouped compactly by state, so the
+  // bot can answer about any place — not just the 49 majors.
+  const byState = new Map<string, string[]>();
+  for (const c of cities) {
+    if (c.tier === "major") continue;
+    const arr = byState.get(c.stateName) ?? [];
+    arr.push(`${c.name}(${c.slug}, pop ${Math.round(c.population / 1000)}k)`);
+    byState.set(c.stateName, arr);
+  }
+  const allLgaLines = [...byState.entries()]
+    .sort((a, b) => a[0].localeCompare(b[0]))
+    .map(([state, list]) => `${state}: ${list.join("; ")}`)
+    .join("\n");
+
+  return `MAJOR CITIES (full profiles, 49 total):\n${majorLines}${matchedLines ? `\n\nPLACES NAMED IN THE USER'S MESSAGE:\n${matchedLines}` : ""}
+
+ALL OTHER CITIES & LGAs ON THE PLATFORM (every one has a /city/<slug> page; inherit state-level religion/voting data and regional context from the majors around them):
+${allLgaLines}`;
 }
 
 async function buildListingsContext(): Promise<string> {
@@ -192,12 +209,47 @@ async function buildReviewsContext(): Promise<string> {
   return `RESIDENT REVIEWS (real user reviews posted on this site's city pages; [section] = the topic it was posted under; subjective opinions, ${all.length} total):\n${cityBlocks.join("\n")}`;
 }
 
-/** The Learn library: titles + excerpts so the bot can point users at guides. */
-async function buildBlogContext(): Promise<string> {
+/** The Learn library: a full index of EVERY post, plus the complete text of the
+ * posts most relevant to this specific question — so answers can draw on the
+ * articles' actual content, not just their titles. */
+async function buildBlogContext(query: string): Promise<string> {
   const posts = await getBlogPostsLive();
   if (posts.length === 0) return "LEARN ARTICLES: none yet.";
-  const lines = posts.slice(0, 120).map((p) => `/learn/${p.slug} | ${p.title} | ${p.category} | ${p.excerpt.slice(0, 110)}`);
-  return `LEARN ARTICLES (this site's own guides; link them as /learn/<slug> when relevant):\n${lines.join("\n")}`;
+
+  const lines = posts.map((p) => `/learn/${p.slug} | ${p.title} | ${p.category} | ${(p.tags ?? []).join(",")}`);
+
+  // Score every post against the question and pull the best matches in full.
+  const words = query.toLowerCase().split(/\W+/).filter((w) => w.length > 3);
+  const scored = posts
+    .map((p) => {
+      const hay = `${p.title} ${p.excerpt} ${p.category} ${(p.tags ?? []).join(" ")} ${(p.sections ?? []).map((s) => s.h2).join(" ")}`.toLowerCase();
+      const titleHay = `${p.title} ${(p.tags ?? []).join(" ")}`.toLowerCase();
+      let score = 0;
+      for (const w of words) {
+        if (titleHay.includes(w)) score += 3;
+        else if (hay.includes(w)) score += 1;
+      }
+      return { p, score };
+    })
+    .filter((x) => x.score >= 3)
+    .sort((a, b) => b.score - a.score)
+    .slice(0, 3);
+
+  const full = scored
+    .map(({ p }) => {
+      const body = (p.sections ?? [])
+        .map((s) => `## ${s.h2}\n${s.body}${s.bullets ? "\n- " + s.bullets.join("\n- ") : ""}`)
+        .join("\n")
+        .split(/\s+/)
+        .slice(0, 1300)
+        .join(" ");
+      return `=== /learn/${p.slug} — "${p.title}" (${p.category}) ===\n${p.excerpt}\n${body}`;
+    })
+    .join("\n\n");
+
+  return `LEARN ARTICLES — full index of all ${posts.length} guides (link as /learn/<slug> when relevant):\n${lines.join("\n")}${
+    full ? `\n\nFULL TEXT OF THE ARTICLES MOST RELEVANT TO THIS QUESTION (answer from these when they apply):\n${full}` : ""
+  }`;
 }
 
 /** Latest researched snapshot per city/state (append-only history in Firestore;
@@ -351,7 +403,7 @@ export async function POST(req: NextRequest) {
     buildInfrastructureContext(),
     buildReviewsContext(),
     buildResearchContext(),
-    buildBlogContext(),
+    buildBlogContext(message),
   ]);
   const messages: ChatMessage[] = [
     { role: "system", content: SYSTEM_PROMPT },
