@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { Home, ThumbsUp, ThumbsDown, Trophy, MapPin } from "lucide-react";
 import { cities, type CityData } from "@/data/cities";
+import { townsForCity } from "@/data/lagosTowns";
 import { getCostOfLivingProfile, getStateReferenceCity } from "@/data/costOfLiving";
 import { getJobsProfile } from "@/data/insights";
 import { getEconomyProfile, getPeopleStatsProfile, getElectricityProfile, getCommuteProfile } from "@/data/infrastructure";
@@ -140,7 +141,7 @@ export default async function CityOverview({ city }: { city: CityData }) {
         <div className="grid grid-cols-1 gap-x-8 gap-y-2.5 text-sm sm:grid-cols-2">
           <Detail label="State"><Link href={`/search?q=${encodeURIComponent(city.stateName)}`} className="font-medium text-brand hover:underline">{city.stateName}</Link></Detail>
           <Detail label="ZIP code">{city.zipCode ?? "—"}</Detail>
-          <Detail label="LGA">{city.lga}</Detail>
+          <Detail label="District">{city.lga}</Detail>
           <Detail label="Cost of living">
             {costVs !== undefined ? (
               <span className={costVs <= 0 ? "font-semibold text-green-600" : "font-semibold text-red-500"}>
@@ -155,6 +156,30 @@ export default async function CityOverview({ city }: { city: CityData }) {
         </div>
         {estimated && <p className="mt-3 text-xs text-zinc-400">*Estimated from {ref.name}, the reference city for {city.stateName} State.</p>}
       </div>
+
+      {/* Towns & areas inside this LGA (Lagos tree data) */}
+      {townsForCity(city.slug).length > 0 && (
+        <div className="rounded-2xl border border-zinc-100 bg-white p-6 shadow-sm">
+          <div className="mb-3 flex items-center justify-between gap-2">
+            <h2 className="text-lg font-bold text-foreground">Towns in {city.name}</h2>
+            <span className="shrink-0 rounded-full bg-zinc-100 px-2.5 py-1 text-[10px] font-bold text-zinc-500">{townsForCity(city.slug).length} towns</span>
+          </div>
+          <p className="mb-3 text-sm text-zinc-500">
+            These {townsForCity(city.slug).length} towns fall under {city.name} — everything on this page
+            (rents, safety, power, listings) covers them.
+          </p>
+          <div className="flex flex-wrap gap-1.5">
+            {townsForCity(city.slug).map((t) => (
+              <span key={t.town}
+                className={`rounded-full border px-2.5 py-1 text-xs font-semibold ${
+                  t.hq ? "border-brand/40 bg-brand-light/50 text-brand-dark" : "border-zinc-200 text-zinc-600"
+                }`}>
+                {t.town}{t.hq ? " ★ Main" : ""}
+              </span>
+            ))}
+          </div>
+        </div>
+      )}
 
       {/* CTA */}
       <div className="flex flex-wrap items-center justify-between gap-3 rounded-2xl border border-zinc-200 bg-white p-5 shadow-sm">

@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { cities, searchCities, type CityData } from "@/data/cities";
+import { lagosTowns } from "@/data/lagosTowns";
 import { getApartmentsLive } from "@/data/apartments";
 import { getDirectoryListingsLive } from "@/data/directoryListings";
 import { citySections } from "@/data/citySections";
@@ -28,6 +29,7 @@ Before answering, think carefully about what the user actually needs and reason 
 MOST IMPORTANT: Actually ANSWER the user's question directly using the specific numbers in the data below. If they ask "what is the highest paying job in Uyo", state the actual sector and salary. If they ask "cost of living in Ibadan", give the actual index and what it means. Do NOT reply with a vague "here is a place worth a look" — that is a failure. Lead with the concrete answer, then point them to the relevant city section. Use Nigerian context and plain language (naira, "annual rent", etc.), never American framing.
 
 Hard rules:
+- Vocabulary: BestPlaceNG calls every place a "city" or a "town" — NEVER use the terms "LGA", "local government", or "area" for places in your replies. A town belongs to a city; a city belongs to a state. That's the whole hierarchy.
 - Only use the data provided to you below (city stats, jobs/economy figures, state voting & religion data, INFRASTRUCTURE data, AND the listings inventory). Never invent a city, statistic, listing, or fact not present in that data.
 - For jobs/salary questions, use the JOBS & ECONOMY data. For voting/politics, use the STATE VOTING data. For religion, use the STATE RELIGION data. City-level stats for smaller towns fall back to their state's reference city — say so when you do.
 - INFRASTRUCTURE data covers: electricity/power supply (each state's DisCo, average daily grid hours per city, NERC tariff bands, generator dependence) — use it for "light"/NEPA/power questions and recommend the "electricity" section; internet (broadband % per state, speeds, data cost, providers incl. Starlink) → "internet" section; commute times (one-way minutes per city vs national average, transport mode shares) → "commute-time"; transport fares & fuel prices (danfo/BRT/keke/okada/rail fares, petrol/diesel ₦/litre, intercity road/rail/air) → "transportation"; road condition (regional 0-100 scores, network stats, flagship projects) → "road-condition"; macro-economy (GDP, growth, inflation trend, VAT, income tax, minimum wage, key industries per state) → "economy"; literacy per state, WAEC trend & tertiary counts → "education-stats"; demographics (median age, household size, languages per region, urban share) → "people-stats". Cities without a city-specific figure use their tier default or state/region figure — say it's an estimate when you use one.
@@ -63,9 +65,14 @@ function buildCityContext(query: string): string {
   const matched = searchCities(query)
     .filter((c) => c.tier === "lga")
     .slice(0, 8);
-  const matchedLines = matched
-    .map((c) => `${c.slug} | ${c.name}, ${c.stateName} | pop ${c.population.toLocaleString()} | smaller LGA-level entry`)
-    .join("\n");
+  // A town is "named in the message" when the message contains the town's name
+  // (not vice-versa — users write sentences, not exact search strings).
+  const ql = query.toLowerCase();
+  const townMatches = lagosTowns.filter((t) => t.town.length >= 4 && ql.includes(t.town.toLowerCase())).slice(0, 6);
+  const matchedLines = [
+    ...matched.map((c) => `${c.slug} | ${c.name}, ${c.stateName} | pop ${c.population.toLocaleString()} | smaller city entry`),
+    ...townMatches.map((t) => `${t.citySlug} | ${t.town} is a town inside the city of ${t.lga}, Lagos${t.hq ? ` (${t.lga}'s main town)` : ""} — use the ${t.lga} page for its data`),
+  ].join("\n");
 
   // EVERY other city/LGA on the platform, grouped compactly by state, so the
   // bot can answer about any place — not just the 49 majors.
@@ -81,9 +88,11 @@ function buildCityContext(query: string): string {
     .map(([state, list]) => `${state}: ${list.join("; ")}`)
     .join("\n");
 
-  return `MAJOR CITIES (full profiles, 49 total):\n${majorLines}${matchedLines ? `\n\nPLACES NAMED IN THE USER'S MESSAGE:\n${matchedLines}` : ""}
+  return `PLATFORM COVERAGE: 1,048 places total — 49 major cities with full profiles, ~700 more cities, and 295 named Lagos towns. Towns don't have their own pages: a town's data lives on its parent city's /city/<slug> page (each Lagos city page lists its towns in the overview).
 
-ALL OTHER CITIES & LGAs ON THE PLATFORM (every one has a /city/<slug> page; inherit state-level religion/voting data and regional context from the majors around them):
+MAJOR CITIES (full profiles, 49 total):\n${majorLines}${matchedLines ? `\n\nPLACES NAMED IN THE USER'S MESSAGE:\n${matchedLines}` : ""}
+
+ALL OTHER CITIES ON THE PLATFORM (every one has a /city/<slug> page; inherit state-level religion/voting data and regional context from the majors around them):
 ${allLgaLines}`;
 }
 

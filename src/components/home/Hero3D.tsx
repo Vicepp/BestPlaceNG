@@ -213,7 +213,7 @@ export default function Hero3D() {
         <motion.p initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 0.8, duration: 0.6 }}
           className="mx-auto mt-6 max-w-2xl text-lg text-zinc-500">
           Compare cost of living, safety, power supply, schools and real rents across{" "}
-          <strong className="text-foreground">753 cities</strong> — then rent directly from the landlord, with your
+          <strong className="text-foreground">1,048 cities &amp; towns</strong> — then rent directly from the landlord, with your
           money protected until you move in.
         </motion.p>
 

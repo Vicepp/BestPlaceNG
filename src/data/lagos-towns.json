@@ -1,0 +1,1772 @@
+[
+ {
+  "town": "Isale",
+  "lga": "Agege",
+  "citySlug": "agege-lagos",
+  "hq": false
+ },
+ {
+  "town": "Idimangoro",
+  "lga": "Agege",
+  "citySlug": "agege-lagos",
+  "hq": false
+ },
+ {
+  "town": "Iloro",
+  "lga": "Agege",
+  "citySlug": "agege-lagos",
+  "hq": false
+ },
+ {
+  "town": "Onipetesi",
+  "lga": "Agege",
+  "citySlug": "agege-lagos",
+  "hq": false
+ },
+ {
+  "town": "Oniwaya",
+  "lga": "Agege",
+  "citySlug": "agege-lagos",
+  "hq": false
+ },
+ {
+  "town": "Papa-Uku",
+  "lga": "Agege",
+  "citySlug": "agege-lagos",
+  "hq": false
+ },
+ {
+  "town": "Agbotikuyo",
+  "lga": "Agege",
+  "citySlug": "agege-lagos",
+  "hq": false
+ },
+ {
+  "town": "Dopemu",
+  "lga": "Agege",
+  "citySlug": "agege-lagos",
+  "hq": false
+ },
+ {
+  "town": "Oyewole",
+  "lga": "Agege",
+  "citySlug": "agege-lagos",
+  "hq": false
+ },
+ {
+  "town": "Papa Ashafa",
+  "lga": "Agege",
+  "citySlug": "agege-lagos",
+  "hq": false
+ },
+ {
+  "town": "Okekoto",
+  "lga": "Agege",
+  "citySlug": "agege-lagos",
+  "hq": false
+ },
+ {
+  "town": "Keke",
+  "lga": "Agege",
+  "citySlug": "agege-lagos",
+  "hq": false
+ },
+ {
+  "town": "Darocha",
+  "lga": "Agege",
+  "citySlug": "agege-lagos",
+  "hq": false
+ },
+ {
+  "town": "Tabon",
+  "lga": "Agege",
+  "citySlug": "agege-lagos",
+  "hq": false
+ },
+ {
+  "town": "Oko Oba",
+  "lga": "Agege",
+  "citySlug": "agege-lagos",
+  "hq": false
+ },
+ {
+  "town": "Orile Agege",
+  "lga": "Agege",
+  "citySlug": "agege-lagos",
+  "hq": false
+ },
+ {
+  "town": "Isale Odo",
+  "lga": "Agege",
+  "citySlug": "agege-lagos",
+  "hq": false
+ },
+ {
+  "town": "Ago Hausa",
+  "lga": "Ajeromi-Ifelodun",
+  "citySlug": "ajeromi-ifelodun-lagos",
+  "hq": false
+ },
+ {
+  "town": "Awodi-Ora",
+  "lga": "Ajeromi-Ifelodun",
+  "citySlug": "ajeromi-ifelodun-lagos",
+  "hq": false
+ },
+ {
+  "town": "Wilmer",
+  "lga": "Ajeromi-Ifelodun",
+  "citySlug": "ajeromi-ifelodun-lagos",
+  "hq": false
+ },
+ {
+  "town": "Olodi",
+  "lga": "Ajeromi-Ifelodun",
+  "citySlug": "ajeromi-ifelodun-lagos",
+  "hq": false
+ },
+ {
+  "town": "Tolu",
+  "lga": "Ajeromi-Ifelodun",
+  "citySlug": "ajeromi-ifelodun-lagos",
+  "hq": false
+ },
+ {
+  "town": "Temidire I",
+  "lga": "Ajeromi-Ifelodun",
+  "citySlug": "ajeromi-ifelodun-lagos",
+  "hq": false
+ },
+ {
+  "town": "Layeni",
+  "lga": "Ajeromi-Ifelodun",
+  "citySlug": "ajeromi-ifelodun-lagos",
+  "hq": false
+ },
+ {
+  "town": "Alaba Oro",
+  "lga": "Ajeromi-Ifelodun",
+  "citySlug": "ajeromi-ifelodun-lagos",
+  "hq": false
+ },
+ {
+  "town": "Mosafejo",
+  "lga": "Ajeromi-Ifelodun",
+  "citySlug": "ajeromi-ifelodun-lagos",
+  "hq": false
+ },
+ {
+  "town": "Temidire II",
+  "lga": "Ajeromi-Ifelodun",
+  "citySlug": "ajeromi-ifelodun-lagos",
+  "hq": false
+ },
+ {
+  "town": "Akowonjo",
+  "lga": "Alimosho",
+  "citySlug": "alimosho-lagos",
+  "hq": false
+ },
+ {
+  "town": "Egbeda",
+  "lga": "Alimosho",
+  "citySlug": "alimosho-lagos",
+  "hq": false
+ },
+ {
+  "town": "Alimosho",
+  "lga": "Alimosho",
+  "citySlug": "alimosho-lagos",
+  "hq": false
+ },
+ {
+  "town": "Idimu",
+  "lga": "Alimosho",
+  "citySlug": "alimosho-lagos",
+  "hq": false
+ },
+ {
+  "town": "Isheri Olofin",
+  "lga": "Alimosho",
+  "citySlug": "alimosho-lagos",
+  "hq": false
+ },
+ {
+  "town": "Akesan",
+  "lga": "Alimosho",
+  "citySlug": "alimosho-lagos",
+  "hq": false
+ },
+ {
+  "town": "Ikotun",
+  "lga": "Alimosho",
+  "citySlug": "alimosho-lagos",
+  "hq": true
+ },
+ {
+  "town": "Ijegun",
+  "lga": "Alimosho",
+  "citySlug": "alimosho-lagos",
+  "hq": false
+ },
+ {
+  "town": "Egbe",
+  "lga": "Alimosho",
+  "citySlug": "alimosho-lagos",
+  "hq": false
+ },
+ {
+  "town": "Agodo",
+  "lga": "Alimosho",
+  "citySlug": "alimosho-lagos",
+  "hq": false
+ },
+ {
+  "town": "Igando",
+  "lga": "Alimosho",
+  "citySlug": "alimosho-lagos",
+  "hq": false
+ },
+ {
+  "town": "Egan",
+  "lga": "Alimosho",
+  "citySlug": "alimosho-lagos",
+  "hq": false
+ },
+ {
+  "town": "Ipaja North",
+  "lga": "Alimosho",
+  "citySlug": "alimosho-lagos",
+  "hq": false
+ },
+ {
+  "town": "Ipaja South",
+  "lga": "Alimosho",
+  "citySlug": "alimosho-lagos",
+  "hq": false
+ },
+ {
+  "town": "Ayobo/Ijon Village",
+  "lga": "Alimosho",
+  "citySlug": "alimosho-lagos",
+  "hq": false
+ },
+ {
+  "town": "Oke-Odo",
+  "lga": "Alimosho",
+  "citySlug": "alimosho-lagos",
+  "hq": false
+ },
+ {
+  "town": "Abule-Egba",
+  "lga": "Alimosho",
+  "citySlug": "alimosho-lagos",
+  "hq": false
+ },
+ {
+  "town": "Aboru",
+  "lga": "Alimosho",
+  "citySlug": "alimosho-lagos",
+  "hq": false
+ },
+ {
+  "town": "Meiran",
+  "lga": "Alimosho",
+  "citySlug": "alimosho-lagos",
+  "hq": false
+ },
+ {
+  "town": "Alagbado",
+  "lga": "Alimosho",
+  "citySlug": "alimosho-lagos",
+  "hq": false
+ },
+ {
+  "town": "Festac Town",
+  "lga": "Amuwo-Odofin",
+  "citySlug": "amuwo-odofin-lagos",
+  "hq": true
+ },
+ {
+  "town": "Kirikiri",
+  "lga": "Amuwo-Odofin",
+  "citySlug": "amuwo-odofin-lagos",
+  "hq": false
+ },
+ {
+  "town": "Amuwo",
+  "lga": "Amuwo-Odofin",
+  "citySlug": "amuwo-odofin-lagos",
+  "hq": false
+ },
+ {
+  "town": "Ijegun",
+  "lga": "Amuwo-Odofin",
+  "citySlug": "amuwo-odofin-lagos",
+  "hq": false
+ },
+ {
+  "town": "Satellite Town",
+  "lga": "Amuwo-Odofin",
+  "citySlug": "amuwo-odofin-lagos",
+  "hq": false
+ },
+ {
+  "town": "Irede",
+  "lga": "Amuwo-Odofin",
+  "citySlug": "amuwo-odofin-lagos",
+  "hq": false
+ },
+ {
+  "town": "Ibeshe",
+  "lga": "Amuwo-Odofin",
+  "citySlug": "amuwo-odofin-lagos",
+  "hq": false
+ },
+ {
+  "town": "Igbologun",
+  "lga": "Amuwo-Odofin",
+  "citySlug": "amuwo-odofin-lagos",
+  "hq": false
+ },
+ {
+  "town": "Tincan/Snake Island",
+  "lga": "Apapa",
+  "citySlug": "apapa-lagos",
+  "hq": false
+ },
+ {
+  "town": "Ijora-Oloye",
+  "lga": "Apapa",
+  "citySlug": "apapa-lagos",
+  "hq": false
+ },
+ {
+  "town": "Olodan",
+  "lga": "Apapa",
+  "citySlug": "apapa-lagos",
+  "hq": false
+ },
+ {
+  "town": "Olojowou",
+  "lga": "Apapa",
+  "citySlug": "apapa-lagos",
+  "hq": false
+ },
+ {
+  "town": "Olatokunbo",
+  "lga": "Apapa",
+  "citySlug": "apapa-lagos",
+  "hq": false
+ },
+ {
+  "town": "Iganmu",
+  "lga": "Apapa",
+  "citySlug": "apapa-lagos",
+  "hq": false
+ },
+ {
+  "town": "Gaskiya",
+  "lga": "Apapa",
+  "citySlug": "apapa-lagos",
+  "hq": false
+ },
+ {
+  "town": "Afolabi Alasia",
+  "lga": "Apapa",
+  "citySlug": "apapa-lagos",
+  "hq": false
+ },
+ {
+  "town": "Sari",
+  "lga": "Apapa",
+  "citySlug": "apapa-lagos",
+  "hq": false
+ },
+ {
+  "town": "Posukoh",
+  "lga": "Badagry",
+  "citySlug": "badagry-lagos",
+  "hq": false
+ },
+ {
+  "town": "Awhanjigoh",
+  "lga": "Badagry",
+  "citySlug": "badagry-lagos",
+  "hq": false
+ },
+ {
+  "town": "Ibereko",
+  "lga": "Badagry",
+  "citySlug": "badagry-lagos",
+  "hq": false
+ },
+ {
+  "town": "Keta-East",
+  "lga": "Badagry",
+  "citySlug": "badagry-lagos",
+  "hq": false
+ },
+ {
+  "town": "Iworo Gbanko",
+  "lga": "Badagry",
+  "citySlug": "badagry-lagos",
+  "hq": false
+ },
+ {
+  "town": "Ajido",
+  "lga": "Badagry",
+  "citySlug": "badagry-lagos",
+  "hq": false
+ },
+ {
+  "town": "Ilogbo-Araromi",
+  "lga": "Badagry",
+  "citySlug": "badagry-lagos",
+  "hq": false
+ },
+ {
+  "town": "Ikoga",
+  "lga": "Badagry",
+  "citySlug": "badagry-lagos",
+  "hq": false
+ },
+ {
+  "town": "Ajara",
+  "lga": "Badagry",
+  "citySlug": "badagry-lagos",
+  "hq": false
+ },
+ {
+  "town": "Iya-Afin",
+  "lga": "Badagry",
+  "citySlug": "badagry-lagos",
+  "hq": false
+ },
+ {
+  "town": "Etita",
+  "lga": "Epe",
+  "citySlug": "epe-lagos",
+  "hq": false
+ },
+ {
+  "town": "Ebode",
+  "lga": "Epe",
+  "citySlug": "epe-lagos",
+  "hq": false
+ },
+ {
+  "town": "Lagbade",
+  "lga": "Epe",
+  "citySlug": "epe-lagos",
+  "hq": false
+ },
+ {
+  "town": "Popo-Oba",
+  "lga": "Epe",
+  "citySlug": "epe-lagos",
+  "hq": false
+ },
+ {
+  "town": "Oke-Balogun",
+  "lga": "Epe",
+  "citySlug": "epe-lagos",
+  "hq": false
+ },
+ {
+  "town": "Ajaganabe",
+  "lga": "Epe",
+  "citySlug": "epe-lagos",
+  "hq": false
+ },
+ {
+  "town": "Ise/Igbogun",
+  "lga": "Epe",
+  "citySlug": "epe-lagos",
+  "hq": false
+ },
+ {
+  "town": "Oriba",
+  "lga": "Epe",
+  "citySlug": "epe-lagos",
+  "hq": false
+ },
+ {
+  "town": "Ladaba",
+  "lga": "Epe",
+  "citySlug": "epe-lagos",
+  "hq": false
+ },
+ {
+  "town": "Agbowa",
+  "lga": "Epe",
+  "citySlug": "epe-lagos",
+  "hq": false
+ },
+ {
+  "town": "Agbowa Ikosi",
+  "lga": "Epe",
+  "citySlug": "epe-lagos",
+  "hq": false
+ },
+ {
+  "town": "Ago Owu",
+  "lga": "Epe",
+  "citySlug": "epe-lagos",
+  "hq": false
+ },
+ {
+  "town": "Orugbo",
+  "lga": "Epe",
+  "citySlug": "epe-lagos",
+  "hq": false
+ },
+ {
+  "town": "Ilara",
+  "lga": "Epe",
+  "citySlug": "epe-lagos",
+  "hq": false
+ },
+ {
+  "town": "Ibonwon",
+  "lga": "Epe",
+  "citySlug": "epe-lagos",
+  "hq": false
+ },
+ {
+  "town": "Odoragunsin",
+  "lga": "Epe",
+  "citySlug": "epe-lagos",
+  "hq": false
+ },
+ {
+  "town": "Poka",
+  "lga": "Epe",
+  "citySlug": "epe-lagos",
+  "hq": false
+ },
+ {
+  "town": "Odomola",
+  "lga": "Epe",
+  "citySlug": "epe-lagos",
+  "hq": false
+ },
+ {
+  "town": "Ejirin",
+  "lga": "Epe",
+  "citySlug": "epe-lagos",
+  "hq": false
+ },
+ {
+  "town": "Itoikin",
+  "lga": "Epe",
+  "citySlug": "epe-lagos",
+  "hq": false
+ },
+ {
+  "town": "Ikoyi",
+  "lga": "Eti-Osa",
+  "citySlug": "eti-osa-lagos",
+  "hq": true
+ },
+ {
+  "town": "Victoria Island",
+  "lga": "Eti-Osa",
+  "citySlug": "eti-osa-lagos",
+  "hq": false
+ },
+ {
+  "town": "Victoria Island II",
+  "lga": "Eti-Osa",
+  "citySlug": "eti-osa-lagos",
+  "hq": false
+ },
+ {
+  "town": "Lekki Phase 1",
+  "lga": "Eti-Osa",
+  "citySlug": "eti-osa-lagos",
+  "hq": false
+ },
+ {
+  "town": "Ilasan",
+  "lga": "Eti-Osa",
+  "citySlug": "eti-osa-lagos",
+  "hq": false
+ },
+ {
+  "town": "Ikate",
+  "lga": "Eti-Osa",
+  "citySlug": "eti-osa-lagos",
+  "hq": false
+ },
+ {
+  "town": "Ilado",
+  "lga": "Eti-Osa",
+  "citySlug": "eti-osa-lagos",
+  "hq": false
+ },
+ {
+  "town": "Eti-Osa",
+  "lga": "Eti-Osa",
+  "citySlug": "eti-osa-lagos",
+  "hq": false
+ },
+ {
+  "town": "Ajah",
+  "lga": "Eti-Osa",
+  "citySlug": "eti-osa-lagos",
+  "hq": false
+ },
+ {
+  "town": "Sangotedo",
+  "lga": "Eti-Osa",
+  "citySlug": "eti-osa-lagos",
+  "hq": false
+ },
+ {
+  "town": "Ado",
+  "lga": "Eti-Osa",
+  "citySlug": "eti-osa-lagos",
+  "hq": false
+ },
+ {
+  "town": "Langbasa",
+  "lga": "Eti-Osa",
+  "citySlug": "eti-osa-lagos",
+  "hq": false
+ },
+ {
+  "town": "Badore",
+  "lga": "Eti-Osa",
+  "citySlug": "eti-osa-lagos",
+  "hq": false
+ },
+ {
+  "town": "Obalende",
+  "lga": "Eti-Osa",
+  "citySlug": "eti-osa-lagos",
+  "hq": false
+ },
+ {
+  "town": "Ibeju",
+  "lga": "Ibeju-Lekki",
+  "citySlug": "ibeju-lekki-lagos",
+  "hq": false
+ },
+ {
+  "town": "Orimedu I",
+  "lga": "Ibeju-Lekki",
+  "citySlug": "ibeju-lekki-lagos",
+  "hq": false
+ },
+ {
+  "town": "Orimedu II",
+  "lga": "Ibeju-Lekki",
+  "citySlug": "ibeju-lekki-lagos",
+  "hq": false
+ },
+ {
+  "town": "Iwerekun II",
+  "lga": "Ibeju-Lekki",
+  "citySlug": "ibeju-lekki-lagos",
+  "hq": false
+ },
+ {
+  "town": "Siriwon",
+  "lga": "Ibeju-Lekki",
+  "citySlug": "ibeju-lekki-lagos",
+  "hq": false
+ },
+ {
+  "town": "Igbekodo I",
+  "lga": "Ibeju-Lekki",
+  "citySlug": "ibeju-lekki-lagos",
+  "hq": false
+ },
+ {
+  "town": "Siriwon/Igbekodo II",
+  "lga": "Ibeju-Lekki",
+  "citySlug": "ibeju-lekki-lagos",
+  "hq": false
+ },
+ {
+  "town": "Akodo",
+  "lga": "Ibeju-Lekki",
+  "citySlug": "ibeju-lekki-lagos",
+  "hq": true
+ },
+ {
+  "town": "Old Ifako",
+  "lga": "Ifako-Ijaiye",
+  "citySlug": "ifako-ijaiye-lagos",
+  "hq": false
+ },
+ {
+  "town": "Karaole",
+  "lga": "Ifako-Ijaiye",
+  "citySlug": "ifako-ijaiye-lagos",
+  "hq": false
+ },
+ {
+  "town": "Ifako",
+  "lga": "Ifako-Ijaiye",
+  "citySlug": "ifako-ijaiye-lagos",
+  "hq": true
+ },
+ {
+  "town": "Oyemekun",
+  "lga": "Ifako-Ijaiye",
+  "citySlug": "ifako-ijaiye-lagos",
+  "hq": false
+ },
+ {
+  "town": "Fagba/Akute",
+  "lga": "Ifako-Ijaiye",
+  "citySlug": "ifako-ijaiye-lagos",
+  "hq": false
+ },
+ {
+  "town": "Iju Isaga",
+  "lga": "Ifako-Ijaiye",
+  "citySlug": "ifako-ijaiye-lagos",
+  "hq": false
+ },
+ {
+  "town": "Iju-Obawole",
+  "lga": "Ifako-Ijaiye",
+  "citySlug": "ifako-ijaiye-lagos",
+  "hq": false
+ },
+ {
+  "town": "Pamada/Abule-Egba",
+  "lga": "Ifako-Ijaiye",
+  "citySlug": "ifako-ijaiye-lagos",
+  "hq": false
+ },
+ {
+  "town": "Ijaiye",
+  "lga": "Ifako-Ijaiye",
+  "citySlug": "ifako-ijaiye-lagos",
+  "hq": false
+ },
+ {
+  "town": "Ojokoro",
+  "lga": "Ifako-Ijaiye",
+  "citySlug": "ifako-ijaiye-lagos",
+  "hq": false
+ },
+ {
+  "town": "Agbado",
+  "lga": "Ifako-Ijaiye",
+  "citySlug": "ifako-ijaiye-lagos",
+  "hq": false
+ },
+ {
+  "town": "Alakuko",
+  "lga": "Ifako-Ijaiye",
+  "citySlug": "ifako-ijaiye-lagos",
+  "hq": false
+ },
+ {
+  "town": "Kollington",
+  "lga": "Ifako-Ijaiye",
+  "citySlug": "ifako-ijaiye-lagos",
+  "hq": false
+ },
+ {
+  "town": "Ajegunle/Akinde",
+  "lga": "Ifako-Ijaiye",
+  "citySlug": "ifako-ijaiye-lagos",
+  "hq": false
+ },
+ {
+  "town": "Animashaun",
+  "lga": "Ifako-Ijaiye",
+  "citySlug": "ifako-ijaiye-lagos",
+  "hq": false
+ },
+ {
+  "town": "Anifowoshe",
+  "lga": "Ikeja",
+  "citySlug": "ikeja-lagos",
+  "hq": false
+ },
+ {
+  "town": "Ikeja",
+  "lga": "Ikeja",
+  "citySlug": "ikeja-lagos",
+  "hq": true
+ },
+ {
+  "town": "Ojodu",
+  "lga": "Ikeja",
+  "citySlug": "ikeja-lagos",
+  "hq": false
+ },
+ {
+  "town": "Agidingbi",
+  "lga": "Ikeja",
+  "citySlug": "ikeja-lagos",
+  "hq": false
+ },
+ {
+  "town": "Omole",
+  "lga": "Ikeja",
+  "citySlug": "ikeja-lagos",
+  "hq": false
+ },
+ {
+  "town": "Alausa",
+  "lga": "Ikeja",
+  "citySlug": "ikeja-lagos",
+  "hq": false
+ },
+ {
+  "town": "Oregun",
+  "lga": "Ikeja",
+  "citySlug": "ikeja-lagos",
+  "hq": false
+ },
+ {
+  "town": "Olusosun",
+  "lga": "Ikeja",
+  "citySlug": "ikeja-lagos",
+  "hq": false
+ },
+ {
+  "town": "Airport/Onipetesi/Onilekere",
+  "lga": "Ikeja",
+  "citySlug": "ikeja-lagos",
+  "hq": false
+ },
+ {
+  "town": "Ipodo",
+  "lga": "Ikeja",
+  "citySlug": "ikeja-lagos",
+  "hq": false
+ },
+ {
+  "town": "Seriki Aro",
+  "lga": "Ikeja",
+  "citySlug": "ikeja-lagos",
+  "hq": false
+ },
+ {
+  "town": "Adekunle Village/Adeniyi Jones",
+  "lga": "Ikeja",
+  "citySlug": "ikeja-lagos",
+  "hq": false
+ },
+ {
+  "town": "Ogba",
+  "lga": "Ikeja",
+  "citySlug": "ikeja-lagos",
+  "hq": false
+ },
+ {
+  "town": "Oke-Ira",
+  "lga": "Ikeja",
+  "citySlug": "ikeja-lagos",
+  "hq": false
+ },
+ {
+  "town": "Aguda",
+  "lga": "Ikeja",
+  "citySlug": "ikeja-lagos",
+  "hq": false
+ },
+ {
+  "town": "Onigbongbo",
+  "lga": "Ikeja",
+  "citySlug": "ikeja-lagos",
+  "hq": false
+ },
+ {
+  "town": "Wasimi",
+  "lga": "Ikeja",
+  "citySlug": "ikeja-lagos",
+  "hq": false
+ },
+ {
+  "town": "Opebi",
+  "lga": "Ikeja",
+  "citySlug": "ikeja-lagos",
+  "hq": false
+ },
+ {
+  "town": "Isele",
+  "lga": "Ikorodu",
+  "citySlug": "ikorodu-lagos",
+  "hq": false
+ },
+ {
+  "town": "Aga",
+  "lga": "Ikorodu",
+  "citySlug": "ikorodu-lagos",
+  "hq": false
+ },
+ {
+  "town": "Ijimu",
+  "lga": "Ikorodu",
+  "citySlug": "ikorodu-lagos",
+  "hq": false
+ },
+ {
+  "town": "Ipakodo",
+  "lga": "Ikorodu",
+  "citySlug": "ikorodu-lagos",
+  "hq": false
+ },
+ {
+  "town": "Imota",
+  "lga": "Ikorodu",
+  "citySlug": "ikorodu-lagos",
+  "hq": false
+ },
+ {
+  "town": "Isiu",
+  "lga": "Ikorodu",
+  "citySlug": "ikorodu-lagos",
+  "hq": false
+ },
+ {
+  "town": "Igbogbo",
+  "lga": "Ikorodu",
+  "citySlug": "ikorodu-lagos",
+  "hq": false
+ },
+ {
+  "town": "Baiyeku",
+  "lga": "Ikorodu",
+  "citySlug": "ikorodu-lagos",
+  "hq": false
+ },
+ {
+  "town": "Oreta",
+  "lga": "Ikorodu",
+  "citySlug": "ikorodu-lagos",
+  "hq": false
+ },
+ {
+  "town": "Ijede",
+  "lga": "Ikorodu",
+  "citySlug": "ikorodu-lagos",
+  "hq": false
+ },
+ {
+  "town": "Agura/Iponmi",
+  "lga": "Ikorodu",
+  "citySlug": "ikorodu-lagos",
+  "hq": false
+ },
+ {
+  "town": "Odogunyan",
+  "lga": "Ikorodu",
+  "citySlug": "ikorodu-lagos",
+  "hq": false
+ },
+ {
+  "town": "Erikorodu",
+  "lga": "Ikorodu",
+  "citySlug": "ikorodu-lagos",
+  "hq": false
+ },
+ {
+  "town": "Agbala",
+  "lga": "Ikorodu",
+  "citySlug": "ikorodu-lagos",
+  "hq": false
+ },
+ {
+  "town": "Olorunda",
+  "lga": "Ikorodu",
+  "citySlug": "ikorodu-lagos",
+  "hq": false
+ },
+ {
+  "town": "Igbaga",
+  "lga": "Ikorodu",
+  "citySlug": "ikorodu-lagos",
+  "hq": false
+ },
+ {
+  "town": "Oworonshoki",
+  "lga": "Kosofe",
+  "citySlug": "kosofe-lagos",
+  "hq": false
+ },
+ {
+  "town": "Ifako/Soluyi",
+  "lga": "Kosofe",
+  "citySlug": "kosofe-lagos",
+  "hq": false
+ },
+ {
+  "town": "Ajao Estate",
+  "lga": "Kosofe",
+  "citySlug": "kosofe-lagos",
+  "hq": false
+ },
+ {
+  "town": "Mende",
+  "lga": "Kosofe",
+  "citySlug": "kosofe-lagos",
+  "hq": false
+ },
+ {
+  "town": "Maryland",
+  "lga": "Kosofe",
+  "citySlug": "kosofe-lagos",
+  "hq": false
+ },
+ {
+  "town": "Ojota",
+  "lga": "Kosofe",
+  "citySlug": "kosofe-lagos",
+  "hq": false
+ },
+ {
+  "town": "Ogudu",
+  "lga": "Kosofe",
+  "citySlug": "kosofe-lagos",
+  "hq": false
+ },
+ {
+  "town": "Ketu",
+  "lga": "Kosofe",
+  "citySlug": "kosofe-lagos",
+  "hq": false
+ },
+ {
+  "town": "Alapere",
+  "lga": "Kosofe",
+  "citySlug": "kosofe-lagos",
+  "hq": false
+ },
+ {
+  "town": "Agidi",
+  "lga": "Kosofe",
+  "citySlug": "kosofe-lagos",
+  "hq": false
+ },
+ {
+  "town": "Orisigun",
+  "lga": "Kosofe",
+  "citySlug": "kosofe-lagos",
+  "hq": false
+ },
+ {
+  "town": "Ajelogo",
+  "lga": "Kosofe",
+  "citySlug": "kosofe-lagos",
+  "hq": false
+ },
+ {
+  "town": "Akanimodo",
+  "lga": "Kosofe",
+  "citySlug": "kosofe-lagos",
+  "hq": false
+ },
+ {
+  "town": "Ikosi Ketu",
+  "lga": "Kosofe",
+  "citySlug": "kosofe-lagos",
+  "hq": false
+ },
+ {
+  "town": "Mile 12",
+  "lga": "Kosofe",
+  "citySlug": "kosofe-lagos",
+  "hq": false
+ },
+ {
+  "town": "Agiliti",
+  "lga": "Kosofe",
+  "citySlug": "kosofe-lagos",
+  "hq": false
+ },
+ {
+  "town": "Maidan",
+  "lga": "Kosofe",
+  "citySlug": "kosofe-lagos",
+  "hq": false
+ },
+ {
+  "town": "Isheri-Olowo-Ira",
+  "lga": "Kosofe",
+  "citySlug": "kosofe-lagos",
+  "hq": false
+ },
+ {
+  "town": "Shangisha",
+  "lga": "Kosofe",
+  "citySlug": "kosofe-lagos",
+  "hq": false
+ },
+ {
+  "town": "Magodo",
+  "lga": "Kosofe",
+  "citySlug": "kosofe-lagos",
+  "hq": false
+ },
+ {
+  "town": "Agboyi I",
+  "lga": "Kosofe",
+  "citySlug": "kosofe-lagos",
+  "hq": false
+ },
+ {
+  "town": "Owode Onirin",
+  "lga": "Kosofe",
+  "citySlug": "kosofe-lagos",
+  "hq": false
+ },
+ {
+  "town": "Odo-Ogun",
+  "lga": "Kosofe",
+  "citySlug": "kosofe-lagos",
+  "hq": false
+ },
+ {
+  "town": "Olowogbowo",
+  "lga": "Lagos Island",
+  "citySlug": "lagos-island-lagos",
+  "hq": false
+ },
+ {
+  "town": "Elegbata",
+  "lga": "Lagos Island",
+  "citySlug": "lagos-island-lagos",
+  "hq": false
+ },
+ {
+  "town": "Oluwole",
+  "lga": "Lagos Island",
+  "citySlug": "lagos-island-lagos",
+  "hq": false
+ },
+ {
+  "town": "Idumota/Oke",
+  "lga": "Lagos Island",
+  "citySlug": "lagos-island-lagos",
+  "hq": false
+ },
+ {
+  "town": "Oju-Oto",
+  "lga": "Lagos Island",
+  "citySlug": "lagos-island-lagos",
+  "hq": false
+ },
+ {
+  "town": "Oko-Awo",
+  "lga": "Lagos Island",
+  "citySlug": "lagos-island-lagos",
+  "hq": false
+ },
+ {
+  "town": "Agarawu",
+  "lga": "Lagos Island",
+  "citySlug": "lagos-island-lagos",
+  "hq": false
+ },
+ {
+  "town": "Obadina",
+  "lga": "Lagos Island",
+  "citySlug": "lagos-island-lagos",
+  "hq": false
+ },
+ {
+  "town": "Iduntafa",
+  "lga": "Lagos Island",
+  "citySlug": "lagos-island-lagos",
+  "hq": false
+ },
+ {
+  "town": "Ilupesi",
+  "lga": "Lagos Island",
+  "citySlug": "lagos-island-lagos",
+  "hq": false
+ },
+ {
+  "town": "Isale-Agbede",
+  "lga": "Lagos Island",
+  "citySlug": "lagos-island-lagos",
+  "hq": false
+ },
+ {
+  "town": "Olosun",
+  "lga": "Lagos Island",
+  "citySlug": "lagos-island-lagos",
+  "hq": false
+ },
+ {
+  "town": "Olushi",
+  "lga": "Lagos Island",
+  "citySlug": "lagos-island-lagos",
+  "hq": false
+ },
+ {
+  "town": "Kakawa",
+  "lga": "Lagos Island",
+  "citySlug": "lagos-island-lagos",
+  "hq": false
+ },
+ {
+  "town": "Popo-Aguda",
+  "lga": "Lagos Island",
+  "citySlug": "lagos-island-lagos",
+  "hq": false
+ },
+ {
+  "town": "Anikantamo",
+  "lga": "Lagos Island",
+  "citySlug": "lagos-island-lagos",
+  "hq": false
+ },
+ {
+  "town": "Oko-Faji",
+  "lga": "Lagos Island",
+  "citySlug": "lagos-island-lagos",
+  "hq": false
+ },
+ {
+  "town": "Eiyekole",
+  "lga": "Lagos Island",
+  "citySlug": "lagos-island-lagos",
+  "hq": false
+ },
+ {
+  "town": "Onikan",
+  "lga": "Lagos Island",
+  "citySlug": "lagos-island-lagos",
+  "hq": false
+ },
+ {
+  "town": "Sandgrouse",
+  "lga": "Lagos Island",
+  "citySlug": "lagos-island-lagos",
+  "hq": false
+ },
+ {
+  "town": "Epetedo",
+  "lga": "Lagos Island",
+  "citySlug": "lagos-island-lagos",
+  "hq": false
+ },
+ {
+  "town": "Ebute",
+  "lga": "Lagos Island",
+  "citySlug": "lagos-island-lagos",
+  "hq": false
+ },
+ {
+  "town": "Otto/Iddo",
+  "lga": "Lagos Mainland",
+  "citySlug": "lagos-mainland-lagos",
+  "hq": false
+ },
+ {
+  "town": "Olaleye Village",
+  "lga": "Lagos Mainland",
+  "citySlug": "lagos-mainland-lagos",
+  "hq": false
+ },
+ {
+  "town": "Maroko",
+  "lga": "Lagos Mainland",
+  "citySlug": "lagos-mainland-lagos",
+  "hq": false
+ },
+ {
+  "town": "Ebute Metta",
+  "lga": "Lagos Mainland",
+  "citySlug": "lagos-mainland-lagos",
+  "hq": false
+ },
+ {
+  "town": "Glover",
+  "lga": "Lagos Mainland",
+  "citySlug": "lagos-mainland-lagos",
+  "hq": false
+ },
+ {
+  "town": "Oko-Baba",
+  "lga": "Lagos Mainland",
+  "citySlug": "lagos-mainland-lagos",
+  "hq": false
+ },
+ {
+  "town": "Oyadiran Estate",
+  "lga": "Lagos Mainland",
+  "citySlug": "lagos-mainland-lagos",
+  "hq": false
+ },
+ {
+  "town": "Abule-Oja",
+  "lga": "Lagos Mainland",
+  "citySlug": "lagos-mainland-lagos",
+  "hq": false
+ },
+ {
+  "town": "Alagomeji",
+  "lga": "Lagos Mainland",
+  "citySlug": "lagos-mainland-lagos",
+  "hq": false
+ },
+ {
+  "town": "Iwaya",
+  "lga": "Lagos Mainland",
+  "citySlug": "lagos-mainland-lagos",
+  "hq": false
+ },
+ {
+  "town": "Yaba",
+  "lga": "Lagos Mainland",
+  "citySlug": "lagos-mainland-lagos",
+  "hq": false
+ },
+ {
+  "town": "Igbobi",
+  "lga": "Lagos Mainland",
+  "citySlug": "lagos-mainland-lagos",
+  "hq": false
+ },
+ {
+  "town": "Mushin",
+  "lga": "Mushin",
+  "citySlug": "mushin-lagos",
+  "hq": true
+ },
+ {
+  "town": "Alakara",
+  "lga": "Mushin",
+  "citySlug": "mushin-lagos",
+  "hq": false
+ },
+ {
+  "town": "Odi-Olowu",
+  "lga": "Mushin",
+  "citySlug": "mushin-lagos",
+  "hq": false
+ },
+ {
+  "town": "Babalosa",
+  "lga": "Mushin",
+  "citySlug": "mushin-lagos",
+  "hq": false
+ },
+ {
+  "town": "Ojuwoye",
+  "lga": "Mushin",
+  "citySlug": "mushin-lagos",
+  "hq": false
+ },
+ {
+  "town": "Ilupeju",
+  "lga": "Mushin",
+  "citySlug": "mushin-lagos",
+  "hq": false
+ },
+ {
+  "town": "Olateju",
+  "lga": "Mushin",
+  "citySlug": "mushin-lagos",
+  "hq": false
+ },
+ {
+  "town": "Kayode/Fadeyi",
+  "lga": "Mushin",
+  "citySlug": "mushin-lagos",
+  "hq": false
+ },
+ {
+  "town": "Atewolara",
+  "lga": "Mushin",
+  "citySlug": "mushin-lagos",
+  "hq": false
+ },
+ {
+  "town": "Papa-Ajao",
+  "lga": "Mushin",
+  "citySlug": "mushin-lagos",
+  "hq": false
+ },
+ {
+  "town": "Ilasamaja",
+  "lga": "Mushin",
+  "citySlug": "mushin-lagos",
+  "hq": false
+ },
+ {
+  "town": "Idi-Araba",
+  "lga": "Mushin",
+  "citySlug": "mushin-lagos",
+  "hq": false
+ },
+ {
+  "town": "Itire",
+  "lga": "Mushin",
+  "citySlug": "mushin-lagos",
+  "hq": false
+ },
+ {
+  "town": "Ilupeju Industrial Estate",
+  "lga": "Mushin",
+  "citySlug": "mushin-lagos",
+  "hq": false
+ },
+ {
+  "town": "Ojo",
+  "lga": "Ojo",
+  "citySlug": "ojo-lagos",
+  "hq": true
+ },
+ {
+  "town": "Okokomaiko",
+  "lga": "Ojo",
+  "citySlug": "ojo-lagos",
+  "hq": false
+ },
+ {
+  "town": "Ajangbadi",
+  "lga": "Ojo",
+  "citySlug": "ojo-lagos",
+  "hq": false
+ },
+ {
+  "town": "Ijanikin",
+  "lga": "Ojo",
+  "citySlug": "ojo-lagos",
+  "hq": false
+ },
+ {
+  "town": "Iba",
+  "lga": "Ojo",
+  "citySlug": "ojo-lagos",
+  "hq": false
+ },
+ {
+  "town": "Irewe",
+  "lga": "Ojo",
+  "citySlug": "ojo-lagos",
+  "hq": false
+ },
+ {
+  "town": "Tafi",
+  "lga": "Ojo",
+  "citySlug": "ojo-lagos",
+  "hq": false
+ },
+ {
+  "town": "Etegbin",
+  "lga": "Ojo",
+  "citySlug": "ojo-lagos",
+  "hq": false
+ },
+ {
+  "town": "Idoluwo",
+  "lga": "Ojo",
+  "citySlug": "ojo-lagos",
+  "hq": false
+ },
+ {
+  "town": "Sabo",
+  "lga": "Ojo",
+  "citySlug": "ojo-lagos",
+  "hq": false
+ },
+ {
+  "town": "Orile-Oshodi",
+  "lga": "Oshodi-Isolo",
+  "citySlug": "oshodi-isolo-lagos",
+  "hq": false
+ },
+ {
+  "town": "Isolo",
+  "lga": "Oshodi-Isolo",
+  "citySlug": "oshodi-isolo-lagos",
+  "hq": false
+ },
+ {
+  "town": "Ajao Estate",
+  "lga": "Oshodi-Isolo",
+  "citySlug": "oshodi-isolo-lagos",
+  "hq": false
+ },
+ {
+  "town": "Mafoluku",
+  "lga": "Oshodi-Isolo",
+  "citySlug": "oshodi-isolo-lagos",
+  "hq": false
+ },
+ {
+  "town": "Sogunle",
+  "lga": "Oshodi-Isolo",
+  "citySlug": "oshodi-isolo-lagos",
+  "hq": false
+ },
+ {
+  "town": "Alasia",
+  "lga": "Oshodi-Isolo",
+  "citySlug": "oshodi-isolo-lagos",
+  "hq": false
+ },
+ {
+  "town": "Okota",
+  "lga": "Oshodi-Isolo",
+  "citySlug": "oshodi-isolo-lagos",
+  "hq": false
+ },
+ {
+  "town": "Ishagatedo",
+  "lga": "Oshodi-Isolo",
+  "citySlug": "oshodi-isolo-lagos",
+  "hq": false
+ },
+ {
+  "town": "Oke-Afa",
+  "lga": "Oshodi-Isolo",
+  "citySlug": "oshodi-isolo-lagos",
+  "hq": false
+ },
+ {
+  "town": "Ejigbo",
+  "lga": "Oshodi-Isolo",
+  "citySlug": "oshodi-isolo-lagos",
+  "hq": false
+ },
+ {
+  "town": "Onipanu",
+  "lga": "Shomolu",
+  "citySlug": "shomolu-lagos",
+  "hq": false
+ },
+ {
+  "town": "Palmgrove/Ijebutedo",
+  "lga": "Shomolu",
+  "citySlug": "shomolu-lagos",
+  "hq": false
+ },
+ {
+  "town": "Alade",
+  "lga": "Shomolu",
+  "citySlug": "shomolu-lagos",
+  "hq": false
+ },
+ {
+  "town": "Bajulaiye",
+  "lga": "Shomolu",
+  "citySlug": "shomolu-lagos",
+  "hq": false
+ },
+ {
+  "town": "Mafowoku/Pedro",
+  "lga": "Shomolu",
+  "citySlug": "shomolu-lagos",
+  "hq": false
+ },
+ {
+  "town": "Lad-Lak",
+  "lga": "Shomolu",
+  "citySlug": "shomolu-lagos",
+  "hq": false
+ },
+ {
+  "town": "Bariga",
+  "lga": "Shomolu",
+  "citySlug": "shomolu-lagos",
+  "hq": false
+ },
+ {
+  "town": "Ilaje",
+  "lga": "Shomolu",
+  "citySlug": "shomolu-lagos",
+  "hq": false
+ },
+ {
+  "town": "Akoka",
+  "lga": "Shomolu",
+  "citySlug": "shomolu-lagos",
+  "hq": false
+ },
+ {
+  "town": "Igbobi/Fadeyi",
+  "lga": "Shomolu",
+  "citySlug": "shomolu-lagos",
+  "hq": false
+ },
+ {
+  "town": "Fola Agoro",
+  "lga": "Shomolu",
+  "citySlug": "shomolu-lagos",
+  "hq": false
+ },
+ {
+  "town": "Igbari-Akoka",
+  "lga": "Shomolu",
+  "citySlug": "shomolu-lagos",
+  "hq": false
+ },
+ {
+  "town": "Gbagada Phase I/Obanikoro",
+  "lga": "Shomolu",
+  "citySlug": "shomolu-lagos",
+  "hq": false
+ },
+ {
+  "town": "Gbagada Phase II",
+  "lga": "Shomolu",
+  "citySlug": "shomolu-lagos",
+  "hq": false
+ },
+ {
+  "town": "Apelehin",
+  "lga": "Shomolu",
+  "citySlug": "shomolu-lagos",
+  "hq": false
+ },
+ {
+  "town": "Abule-Okuta",
+  "lga": "Shomolu",
+  "citySlug": "shomolu-lagos",
+  "hq": false
+ },
+ {
+  "town": "Orile",
+  "lga": "Surulere",
+  "citySlug": "surulere-lagos",
+  "hq": false
+ },
+ {
+  "town": "Aguda",
+  "lga": "Surulere",
+  "citySlug": "surulere-lagos",
+  "hq": false
+ },
+ {
+  "town": "Ijeshatedo",
+  "lga": "Surulere",
+  "citySlug": "surulere-lagos",
+  "hq": false
+ },
+ {
+  "town": "Akinhanmi/Cole",
+  "lga": "Surulere",
+  "citySlug": "surulere-lagos",
+  "hq": false
+ },
+ {
+  "town": "Yaba",
+  "lga": "Surulere",
+  "citySlug": "surulere-lagos",
+  "hq": false
+ },
+ {
+  "town": "Ojuelegba",
+  "lga": "Surulere",
+  "citySlug": "surulere-lagos",
+  "hq": false
+ },
+ {
+  "town": "Igbaja",
+  "lga": "Surulere",
+  "citySlug": "surulere-lagos",
+  "hq": false
+ },
+ {
+  "town": "Shitta/Ogunlana Drive",
+  "lga": "Surulere",
+  "citySlug": "surulere-lagos",
+  "hq": false
+ },
+ {
+  "town": "Adeniran",
+  "lga": "Surulere",
+  "citySlug": "surulere-lagos",
+  "hq": false
+ },
+ {
+  "town": "Ogunsanya",
+  "lga": "Surulere",
+  "citySlug": "surulere-lagos",
+  "hq": false
+ },
+ {
+  "town": "Iponri Housing Estate",
+  "lga": "Surulere",
+  "citySlug": "surulere-lagos",
+  "hq": false
+ },
+ {
+  "town": "Eric Moore",
+  "lga": "Surulere",
+  "citySlug": "surulere-lagos",
+  "hq": false
+ },
+ {
+  "town": "Coker",
+  "lga": "Surulere",
+  "citySlug": "surulere-lagos",
+  "hq": false
+ },
+ {
+  "town": "Ikate",
+  "lga": "Surulere",
+  "citySlug": "surulere-lagos",
+  "hq": false
+ },
+ {
+  "town": "Baya-Oje",
+  "lga": "Surulere",
+  "citySlug": "surulere-lagos",
+  "hq": false
+ },
+ {
+  "town": "Igbon",
+  "lga": "Surulere",
+  "citySlug": "surulere-lagos",
+  "hq": false
+ },
+ {
+  "town": "Gambari",
+  "lga": "Surulere",
+  "citySlug": "surulere-lagos",
+  "hq": false
+ },
+ {
+  "town": "Iresaapa",
+  "lga": "Surulere",
+  "citySlug": "surulere-lagos",
+  "hq": false
+ },
+ {
+  "town": "Arolu",
+  "lga": "Surulere",
+  "citySlug": "surulere-lagos",
+  "hq": false
+ },
+ {
+  "town": "Iresaadu",
+  "lga": "Surulere",
+  "citySlug": "surulere-lagos",
+  "hq": false
+ },
+ {
+  "town": "Iregba",
+  "lga": "Surulere",
+  "citySlug": "surulere-lagos",
+  "hq": false
+ },
+ {
+  "town": "Iwofin",
+  "lga": "Surulere",
+  "citySlug": "surulere-lagos",
+  "hq": false
+ },
+ {
+  "town": "Ilajue",
+  "lga": "Surulere",
+  "citySlug": "surulere-lagos",
+  "hq": false
+ }
+]

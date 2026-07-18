@@ -75,7 +75,7 @@ export default function HomeLanding() {
       {/* ── COUNTERS ─────────────────────────────────────────── */}
       <section className="mx-auto max-w-5xl px-4 py-14 sm:px-6">
         <div className="grid grid-cols-2 gap-8 sm:grid-cols-4">
-          <Counter to={753} label="Cities & LGAs" />
+          <Counter to={1048} label="Cities, LGAs & Towns" />
           <Counter to={37} label="States covered" />
           <Counter to={24} suffix="+" label="Data sections per city" />
           <Counter to={100} suffix="%" label="Rent held safe till move-in" />

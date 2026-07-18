@@ -3,6 +3,7 @@ import Link from "next/link";
 import { getCityBySlug } from "@/data/cities";
 import CitySidebar, { MobileTabStrip } from "@/components/CitySidebar";
 import CitySearchBar from "@/components/CitySearchBar";
+import CitySubtitle from "@/components/CitySubtitle";
 
 export default async function CityLayout({
   children,
@@ -29,10 +30,13 @@ export default async function CityLayout({
               <h1 className="text-3xl font-extrabold tracking-tight text-foreground sm:text-4xl">
                 {city.name}, {city.stateName}
               </h1>
-              <p className="mt-1 text-sm text-zinc-500">
-                {city.isFederalCapital ? "Federal Capital" : city.isStateCapital ? `${city.stateName} State Capital` : city.lga + " LGA"}
-                {city.zipCode && <> &middot; ZIP {city.zipCode}</>}
-              </p>
+              <CitySubtitle
+                citySlug={city.slug}
+                cityName={city.name}
+                fallback={`${
+                  city.isFederalCapital ? "Federal Capital" : city.isStateCapital ? `${city.stateName} State Capital` : `City in ${city.stateName} State`
+                }${city.zipCode ? ` · ZIP ${city.zipCode}` : ""}`}
+              />
             </div>
             <div className="w-full max-w-sm">
               <CitySearchBar size="sm" placeholder="Search another city..." />
