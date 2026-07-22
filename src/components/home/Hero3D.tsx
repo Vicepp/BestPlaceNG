@@ -3,7 +3,7 @@
 import { useEffect, useRef, useState } from "react";
 import Link from "next/link";
 import { motion, useMotionValue, useSpring, useTransform, useScroll } from "framer-motion";
-import { MapPin, ArrowRight, Mic, ShieldCheck, Zap, Car, Truck, Bike, Home, Plane } from "lucide-react";
+import { MapPin, ArrowRight, Mic, ShieldCheck, Zap, Car, Truck, Bike, Home, Plane, SlidersHorizontal } from "lucide-react";
 import CitySearchBar from "@/components/CitySearchBar";
 
 /* ── Random content pools: a fresh mix every page load ── */
@@ -232,6 +232,9 @@ export default function Hero3D() {
           </Link>
           <Link href="/rankings" className="rounded-full border border-zinc-200 bg-white px-6 py-3 text-sm font-bold text-zinc-600 transition hover:border-brand hover:text-brand">
             City rankings
+          </Link>
+          <Link href="/where-should-i-move" className="group flex items-center gap-1.5 rounded-full border border-brand/30 bg-brand-light/60 px-6 py-3 text-sm font-bold text-brand-dark transition hover:border-brand hover:bg-brand-light">
+            <SlidersHorizontal className="h-4 w-4" /> Where should I move?
           </Link>
         </motion.div>
 
