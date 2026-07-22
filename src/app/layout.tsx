@@ -5,6 +5,7 @@ import Header from "@/components/Header";
 import ConditionalFooter from "@/components/ConditionalChrome";
 import FloatingAssistant from "@/components/FloatingAssistant";
 import { AuthProvider } from "@/context/AuthContext";
+import { getSiteUrl } from "@/lib/siteUrl";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -17,10 +18,7 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  metadataBase: new URL(
-    process.env.NEXT_PUBLIC_SITE_URL ??
-      (process.env.VERCEL_PROJECT_PRODUCTION_URL ? `https://${process.env.VERCEL_PROJECT_PRODUCTION_URL}` : "http://localhost:3000"),
-  ),
+  metadataBase: new URL(getSiteUrl()),
   title: "BestPlaceNG — Find the Best Place to Live in Nigeria",
   description:
     "Compare cities across Nigeria by cost of living, safety, climate, schools, and more — and find apartments to rent.",
